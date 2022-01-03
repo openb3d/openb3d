@@ -15,7 +15,11 @@
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
+#include <algorithm>
+
 using namespace std;
+
+static string filepath_in_use;
 
 /*string File::DocsDir(){
 
@@ -49,51 +53,56 @@ using namespace std;
 
 string File::ResourceFilePath(string filename){
 
-	if(filename==""){
-		return "";
+	std::replace(filename.begin(), filename.end(), '\\', '/');
+
+	File* stream;
+
+	stream=File::ReadFile(filename);
+
+	if (stream!=0) {
+		stream->CloseFile();
+		return filename;
 	}
 
-	if(filename==""){
-		return "";
+	string::size_type idx=filename.rfind("/");
+
+	if(idx!=string::npos){
+		filename=filename.substr(idx+1);
+	}
+	if (filepath_in_use.length() != 0) {
+		filename=filepath_in_use+"/"+filename;
 	}
 
-	//const char* c_filename=filename.c_str();
+	stream=File::ReadFile(filename);
 
-	/*NSString* ns_string = [NSString stringWithUTF8String: c_filename];
-
-	NSArray* ns_string_parts = [ns_string componentsSeparatedByString:@"."];
-
-	if([ns_string_parts count]!=2) return "";
-
-	NSString* ns_string_part1=[ns_string_parts objectAtIndex: 0];
-	NSString* ns_string_part2=[ns_string_parts objectAtIndex: 1];
-
-	if([ns_string_part1 length]==0 || [ns_string_part2 length]==0){
-		return "";
+	if (stream!=0) {
+		stream->CloseFile();
+		return filename;
 	}
 
-	CFStringRef fileString;
-	fileString = (CFStringRef)[[NSBundle mainBundle] pathForResource:ns_string_part1 ofType:ns_string_part2];
-
-	if(fileString==0) return "";
-
-	//cout << "fileString: " << fileString << endl;
-
-	const char* filename2=CFStringGetCStringPtr(fileString,CFStringGetSystemEncoding());*/
-
-	return filename;
+	return "";
 
 }
 
 File* File::ReadResourceFile(string filename){
 
-	string filename2=ResourceFilePath(filename);
+	std::replace(filename.begin(), filename.end(), '\\', '/');
 
-	if(filename2==""){
+	string::size_type idx=filename.rfind("/");
+
+	if(idx!=string::npos){
+		filepath_in_use=filename.substr(0,idx);
+	}
+
+	//string filename2=ResourceFilePath(filename);
+
+	
+
+	if(filename==""){
 		cout << "Error: No Filename: " << filename << endl;
 	}
 
-	const char* c_filename=filename2.c_str();
+	const char* c_filename=filename.c_str();
 
 	FILE* pFile=fopen(c_filename,"rb");
 

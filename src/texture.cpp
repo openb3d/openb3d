@@ -43,11 +43,13 @@ void CopyPixels (unsigned char *src, unsigned int srcWidth, unsigned int srcHeig
 
 Texture* Texture::LoadTexture(string filename,int flags){
 	if (flags&128) {
-		filename=Strip(filename); // get rid of path info
-		if (File::ResourceFilePath(filename)==""){
+		//filename=Strip(filename); // get rid of path info
+		filename=File::ResourceFilePath(filename);
+
+		/*if (filename==""){
 			cout << "Error: Cannot Find Texture: " << filename << endl;
 			return NULL;
-		}
+		}*/
 
 		Texture* tex=new Texture();
 		tex->file=filename;
@@ -119,12 +121,14 @@ Texture* Texture::LoadTexture(string filename,int flags){
 
 Texture* Texture::LoadAnimTexture(string filename,int flags, int frame_width,int frame_height,int first_frame,int frame_count){
 
-	filename=Strip(filename); // get rid of path info
+	//filename=Strip(filename); // get rid of path info
 
-	if(File::ResourceFilePath(filename)==""){
+	filename=File::ResourceFilePath(filename);
+
+	/*if (filename==""){
 		cout << "Error: Cannot Find Texture: " << filename << endl;
 		return NULL;
-	}
+	}*/
 
 	Texture* tex=new Texture();
 	tex->file=filename;
@@ -301,7 +305,7 @@ void Texture::FilterFlags(){
 }
 
 // used in LoadTexture, strips path info from filename
-string Texture::Strip(string filename){
+/*string Texture::Strip(string filename){
 	string stripped_filename=filename;
 	string::size_type idx;
 
@@ -317,7 +321,7 @@ string Texture::Strip(string filename){
 
 	return stripped_filename;
 
-}
+}*/
 
 void Texture::BufferToTex(unsigned char* buffer, int frame){
 	if(flags&128){
@@ -483,6 +487,36 @@ void Texture::TexToBuffer(unsigned char* buffer, int frame){
 	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 
 }
+
+
+void Texture::DepthBufferToTex(Camera* cam=0 ){
+	glBindTexture(GL_TEXTURE_2D,texture);
+	if (cam==0){
+		glCopyTexImage2D(GL_TEXTURE_2D,0,GL_DEPTH_COMPONENT,0,Global::height-height,width,height,0);
+		glTexParameteri(GL_TEXTURE_2D,GL_GENERATE_MIPMAP_SGIS,GL_TRUE);
+	}else{
+		Global::camera_in_use=cam;
+		if (framebuffer==0){
+			framebuffer=new unsigned int[1];
+			glGenFramebuffers(1, &framebuffer[0]);
+			glGenRenderbuffers(1, &framebuffer[1]);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, 0);
+		}
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[0]);
+
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texture, 0);
+		glBindRenderbuffer(GL_RENDERBUFFER, framebuffer[1]);
+
+		cam->Render();
+		glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, 0); 
+
+		glGenerateMipmap(GL_TEXTURE_2D);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+	}
+}
+
 
 void CopyPixels (unsigned char *src, unsigned int srcWidth, unsigned int srcHeight, unsigned int srcX, unsigned int srcY, unsigned char *dst, unsigned int dstWidth, unsigned int dstHeight, unsigned int bytesPerPixel) {
   // Copy image data line by line

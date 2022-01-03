@@ -90,6 +90,7 @@ Camera* Camera::CopyEntity(Entity* parent_ent){
 	cam->box_w=box_w;
 	cam->box_h=box_h;
 	cam->box_d=box_d;
+	cam->collision_type=collision_type;
 	cam->pick_mode=pick_mode;
 	cam->obscurer=obscurer;
 
@@ -625,9 +626,9 @@ void UpdateEntityRender(Entity* ent,Entity* cam){
 	ent->old_x=ent->EntityX(true);
 	ent->old_y=ent->EntityY(true);
 	ent->old_z=ent->EntityZ(true);
-	ent->old_pitch=ent->EntityPitch();
-	ent->old_yaw=ent->EntityYaw();
-	ent->old_roll=ent->EntityRoll();
+	/*ent->old_pitch=ent->mat.GetPitch();
+	ent->old_yaw=ent->mat.GetYaw();
+	ent->old_roll=ent->mat.GetRoll();*/
 	ent->old_mat.Overwrite(ent->mat);
 	
 	Mesh* mesh=dynamic_cast<Mesh*>(ent);

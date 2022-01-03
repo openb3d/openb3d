@@ -68,12 +68,13 @@ public:
 	void TexToBuffer(unsigned char* buffer, int frames=0);
 	void BackBufferToTex(int frames=0);
 	void CameraToTex(Camera* cam, int frames=0);
+	void DepthBufferToTex(Camera* cam);
 	string TextureName();
 	static void ClearTextureFilters();
 	static void AddTextureFilter(string text_match,int flags);
 	Texture* TexInList();
 	void FilterFlags();
-	static string Strip(string filename);
+	//static string Strip(string filename);
 };
 
 #endif
