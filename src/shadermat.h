@@ -33,23 +33,32 @@ class ShaderData{
 	};
 };
 
-class Sampler2D{
+class Material : public Texture{
+public:
+	static Material* LoadMaterial(string filename,int flags=0, int frame_width=0,int frame_height=0,int first_frame=0,int frame_count=1);
+	void BufferToMaterial(unsigned char* buffer);
+	void MaterialToBuffer(unsigned char* buffer);
+};
+
+
+class Sampler{
 public:
 	string Name;
 	Texture* texture;
 	int Slot;
+	int is3D;
 	
-	static Sampler2D* Create(string Name, int Slot, Texture* Tex);
+	static Sampler* Create(string Name, int Slot, Texture* Tex);
 
 };
 
 
 
-class ShaderMaterial {//: public MaterialPlugin{
+class Shader {//: public MaterialPlugin{
 	static int ShaderIDCount;
 
 	int texCount;
-	Sampler2D* Shader_Tex[255];
+	Sampler* Shader_Tex[255];
 	ProgramObject* arb_program;
 	int ID;
 	string name;
@@ -64,12 +73,13 @@ class ShaderMaterial {//: public MaterialPlugin{
 	
 	// internal 
 public:
-	static ShaderMaterial* CreateShaderMaterial(string Name = "");
+	static Shader* CreateShaderMaterial(string Name = "");
 	void TurnOn(Surface* surf, Matrix& mat);
 	void TurnOff();
 	void AddShader(string _vert, string _frag);
 	void AddShaderFromString(string _vert, string _frag);
 	void AddSampler2D(string Name, int Slot, Texture* Tex);
+	void AddSampler3D(string Name, int Slot, Texture* Tex);
 	void ProgramAttriBegin();
 	void ProgramAttriEnd();
 

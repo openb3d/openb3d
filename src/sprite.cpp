@@ -201,10 +201,10 @@ void Sprite::SpriteTexCoords(int cell_x,int cell_y,int cell_w,int cell_h,int tex
 	v2=swap;
 	//cout << " U1: " << u1 << " U2: " << u2 << " V1: " << v1 << " V2: " << v2 << endl;
 	Surface* surf=GetSurface(1);
-	surf->VertexTexCoords(0,u1,v1,uv_set);
-	surf->VertexTexCoords(1,u1,v2,uv_set);
-	surf->VertexTexCoords(2,u2,v2,uv_set);
-  surf->VertexTexCoords(3,u2,v1,uv_set);
+	surf->VertexTexCoords(0,u1,v1,0,uv_set);
+	surf->VertexTexCoords(1,u1,v2,0,uv_set);
+	surf->VertexTexCoords(2,u2,v2,0,uv_set);
+	surf->VertexTexCoords(3,u2,v1,0,uv_set);
 }
 
 void Sprite::SpriteVertexColor(int v,float r,float g,float b){

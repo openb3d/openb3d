@@ -28,6 +28,7 @@
 #include "geom.h"
 #include "maths_helper.h"
 #include "string_helper.h"
+#include "csg.h"
 #include "3ds.h"
 
 #include <iostream>
@@ -243,10 +244,10 @@ void Mesh::FreeEntity(){
 
 	vector<Bone*>::iterator bone_it;
 
-	for(bone_it=bones.begin();bone_it!=bones.end();bone_it++){
+	/*for(bone_it=bones.begin();bone_it!=bones.end();bone_it++){
 		Bone* bone=*bone_it;
 		delete bone;
-	}
+	}*/
 	bones.clear();
 
 	delete c_col_tree;
@@ -654,6 +655,7 @@ Mesh* Mesh::CreateSphere(int segments,Entity* parent_ent){
 
 				Thisvdiv=Thisvdiv+vdiv;
 				mult=mult+1;
+
 				YPos=cosdeg(div*(mult));
 				YPos2=cosdeg(div*(mult+1.0));
 
@@ -2016,6 +2018,10 @@ int Mesh::MeshesIntersect(Mesh* mesh2){
 	}
 
 	return 0;
+}
+
+Mesh* Mesh::MeshCSG(Mesh* mesh2, int method){
+	return CSG::MeshCSG(this, mesh2, method);
 }
 
 void Mesh::Render(){

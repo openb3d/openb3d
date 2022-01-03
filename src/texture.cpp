@@ -7,6 +7,11 @@
  *
  */
 
+#ifdef linux
+#define GL_GLEXT_PROTOTYPES
+#include <GL/gl.h>
+#include <GL/glext.h>
+#endif
 #ifdef WIN32
 #include <gl\GLee.h>
 #endif
@@ -19,6 +24,8 @@
 #include "string_helper.h"
 #include "file.h"
 #include "global.h"
+#include "shadow.h"
+
 #include <string.h>
 
 list<Texture*> Texture::tex_list;
@@ -90,6 +97,8 @@ Texture* Texture::LoadTexture(string filename,int flags){
 			}
 		}
 		delete dstbuffer;
+		stbi_image_free(buffer);
+
 		tex->texture=name;
 		return tex;
 	}
@@ -176,6 +185,7 @@ Texture* Texture::LoadAnimTexture(string filename,int flags, int frame_width,int
 		delete dstbuffer;
 
 	}
+	stbi_image_free(buffer);
 
 	return tex;
 
@@ -303,7 +313,7 @@ string Texture::Strip(string filename){
 
 void Texture::BufferToTex(unsigned char* buffer, int frame){
 	if(flags&128){
-		glBindTexture (GL_TEXTURE_2D,texture);
+		glBindTexture (GL_TEXTURE_CUBE_MAP,texture);
 		switch (cube_face){
 		case 0:
 			gluBuild2DMipmaps(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, GL_RGBA,width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
@@ -333,7 +343,7 @@ void Texture::BufferToTex(unsigned char* buffer, int frame){
 
 void Texture::BackBufferToTex(int frame){
 	if(flags&128){
-		glBindTexture (GL_TEXTURE_2D,texture);
+		glBindTexture (GL_TEXTURE_CUBE_MAP,texture);
 		switch (cube_face){
 		case 0:
 			glCopyTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X,0,GL_RGBA,0,Global::height-height,width,height,0);
@@ -361,6 +371,101 @@ void Texture::BackBufferToTex(int frame){
 		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
 	}
 }
+
+void Texture::CameraToTex(Camera* cam, int frame){
+
+	GLenum target;
+	if(flags&128){
+		target=GL_TEXTURE_CUBE_MAP;
+	}else{
+		target=GL_TEXTURE_2D;
+	}
+	
+
+	glBindTexture (target, texture);
+
+	if (framebuffer==0){
+		framebuffer=new unsigned int[1];
+		glGenFramebuffers(1, &framebuffer[0]);
+		glGenRenderbuffers(1, &framebuffer[1]);
+		if(flags&128){
+			for (int i=0;i<6;i++){
+				switch(i){
+					case 0:
+						glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+						break;
+					case 1:
+						glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+						break;
+					case 2:
+						glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+						break;
+					case 3:
+						glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+						break;
+					case 4:
+						glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+						break;
+					case 5:
+						glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+						break;
+				}
+			}
+		}else{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+		}
+
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[0]);
+
+	if(flags&128){
+		switch (cube_face){
+		case 0:
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_NEGATIVE_X, texture, 0);
+			break;
+		case 1:
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_Z, texture, 0);
+			break;
+		case 2:
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X, texture, 0);
+			break;
+		case 3:
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, texture, 0);
+			break;
+		case 4:
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, texture, 0);
+			break;
+		case 5:
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_Y, texture, 0);
+			break;
+		}
+
+	}else{
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+	}
+
+	//Depth buffer
+	glBindRenderbuffer(GL_RENDERBUFFER, framebuffer[1]);
+	glRenderbufferStorage( GL_RENDERBUFFER, GL_DEPTH_STENCIL, width, height);
+	glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, framebuffer[1]); 
+	glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, framebuffer[1]); 
+
+	cam->Render();
+
+	if (Global::Shadows_enabled==true)
+		ShadowObject::Update(cam);
+
+
+	glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, 0); 
+
+	glGenerateMipmap(target);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+
+}
+
 
 void Texture::TexToBuffer(unsigned char* buffer, int frame){
 	glBindTexture (GL_TEXTURE_2D,texture);

@@ -23,7 +23,7 @@ using namespace std;
 
 float Global::ambient_red=0.5,Global::ambient_green=0.5,Global::ambient_blue=0.5;
 
-int Global::vbo_enabled=false,Global::vbo_min_tris=0;
+int Global::vbo_enabled=true,Global::vbo_min_tris=0;
 
 float Global::anim_speed=1.0;
 

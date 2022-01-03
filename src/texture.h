@@ -18,6 +18,8 @@
 
 using namespace std;
 
+class Camera;
+
 class Texture{
 
 public:
@@ -34,7 +36,7 @@ public:
 	string file_abs;
 	int width,height; // returned by Name/Width/Height commands
 	int no_frames;
-	int no_mipmaps;
+	unsigned int* framebuffer;
 	int cube_face,cube_mode;
 
 	Texture(){
@@ -46,7 +48,7 @@ public:
 		string file_abs="";
 		width=0,height=0; // returned by Name/Width/Height commands
 		no_frames=1;
-		no_mipmaps=0;
+		framebuffer=0;
 		cube_face=0,cube_mode=1;
 
 	};
@@ -65,6 +67,7 @@ public:
 	void BufferToTex(unsigned char* buffer, int frames=0);
 	void TexToBuffer(unsigned char* buffer, int frames=0);
 	void BackBufferToTex(int frames=0);
+	void CameraToTex(Camera* cam, int frames=0);
 	string TextureName();
 	static void ClearTextureFilters();
 	static void AddTextureFilter(string text_match,int flags);

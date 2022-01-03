@@ -6,6 +6,9 @@
 #include "pick.h"
 #include "light.h"
 #include "shadow.h"
+#include "stencil.h"
+#include "csg.h"
+#include "voxel.h"
 
 extern "C" {
 
@@ -15,6 +18,10 @@ void BufferToTex(Texture* tex,unsigned char* buffer, int frame){
 
 void BackBufferToTex(Texture* tex,int frame){
 	tex->BackBufferToTex(frame);
+}
+
+void CameraToTex(Texture* tex, Camera* cam, int frame){
+	tex->CameraToTex(cam,frame);
 }
 
 void TexToBuffer(Texture* tex,unsigned char* buffer, int frame){
@@ -481,6 +488,12 @@ Surface* CreateSurface(Mesh* mesh,Brush* brush){
 
 /*
 */
+Stencil* CreateStencil(){
+	return Stencil::CreateStencil();
+}
+
+/*
+*/
 Terrain* CreateTerrain(int size, Entity* parent){
 	return Terrain::CreateTerrain(size,parent);
 }
@@ -491,6 +504,13 @@ bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CreateTexture
 Texture* CreateTexture(int width,int height,int flags,int frames){
 	return Texture::CreateTexture(width,height,flags,frames);
 }
+
+/*
+*/
+VoxelSprite* CreateVoxelSprite(int slices, Entity* parent){
+	return VoxelSprite::CreateVoxelSprite(slices, parent);
+}
+
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=DeltaPitch">Online Help</a>
@@ -592,6 +612,10 @@ void EntityOrder(Entity* ent,int order){
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=EntityParent">Online Help</a>
+
+
+
+
 */
 void EntityParent(Entity* ent,Entity* parent_ent,bool glob){
 	ent->EntityParent(parent_ent,glob);
@@ -910,6 +934,12 @@ Sprite* LoadSprite(char* tex_file,int tex_flag,Entity* parent){
 }
 
 /*
+*/
+Mesh* MeshCSG(Mesh* m1, Mesh* m2, int method = 1){
+	return CSG::MeshCSG(m1, m2, method);
+}
+
+/*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=MeshDepth">Online Help</a>
 */
 float MeshDepth(Mesh* mesh){
@@ -1186,12 +1216,19 @@ void SetAnimTime(Entity* ent,float time,int seq){
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=SetCubeFace">Online Help</a>
 */
 void SetCubeFace(Texture* tex,int face){
+
+
 	tex->cube_face=face;
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=SetCubeMode">Online Help</a>
 */
+
+
+
+
+
 void SetCubeMode(Texture* tex,int mode){
 	tex->cube_mode=mode;
 }
@@ -1208,6 +1245,36 @@ bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=SpriteViewMod
 */
 void SpriteViewMode(Sprite* sprite,int mode){
 	sprite->SpriteViewMode(mode);
+}
+
+/*
+*/
+void StencilAlpha(Stencil* stencil, float a){
+	stencil->StencilAlpha(a);
+}
+
+/*
+*/
+void StencilClsColor(Stencil* stencil, float r,float g,float b){
+	stencil->StencilClsColor(r,g,b);
+}
+
+/*
+*/
+void StencilClsMode(Stencil* stencil,int cls_depth,int cls_zbuffer){
+	stencil->StencilClsMode(cls_depth,cls_zbuffer);
+}
+
+/*
+*/
+void StencilMesh(Stencil* stencil, Mesh* mesh, int mode=1){
+	stencil->StencilMesh(mesh, mode);
+}
+
+/*
+*/
+void StencilMode(Stencil* stencil, int m, int o=1){
+	stencil->StencilMode(m, o);
 }
 
 /*
@@ -1352,12 +1419,28 @@ void UpdateNormals(Mesh* mesh){
 }
 
 /*
+bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=UpdateNormals">Online Help</a>
+*/
+void UpdateTexCoords(Surface* surf){
+	surf->UpdateTexCoords();
+}
+
+
+/*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=UpdateWorld">Online Help</a>
 */
 void UpdateWorld(float anim_speed){
 	Global::UpdateWorld(anim_speed);
 }
 
+/*
+*/
+void UseStencil(Stencil* stencil){
+	if (stencil==0)
+		glDisable(GL_STENCIL_TEST);
+	else
+		stencil->UseStencil();
+}
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=VectorPitch">Online Help</a>
 */
@@ -1462,6 +1545,7 @@ void VertexTexCoords(Surface* surf,int vid,float u,float v,float w,int coord_set
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=VertexU">Online Help</a>
 */
 float VertexU(Surface* surf,int vid,int coord_set){
+
 	return surf->VertexU(vid,coord_set);
 }
 
@@ -1499,6 +1583,13 @@ bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=VertexZ">Onli
 float VertexZ(Surface* surf,int vid){
 	return surf->VertexZ(vid);
 }
+
+/*
+*/
+void VoxelSpriteMaterial(VoxelSprite* voxelspr, Material* mat){
+	voxelspr->VoxelSpriteMaterial(mat);
+}
+
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=Wireframe">Online Help</a>
@@ -1539,23 +1630,23 @@ float EntityScaleZ(Entity* ent,bool glob){
 	return ent->EntityScaleZ(glob);
 }
 
-ShaderMaterial* LoadShader(char* ShaderName, char* VshaderFileName, char* FshaderFileName){
-	ShaderMaterial* s=ShaderMaterial::CreateShaderMaterial(ShaderName);
+Shader* LoadShader(char* ShaderName, char* VshaderFileName, char* FshaderFileName){
+	Shader* s=Shader::CreateShaderMaterial(ShaderName);
 	s->AddShader(VshaderFileName, FshaderFileName);
 	return s;
 }
 
-ShaderMaterial* CreateShader(char* ShaderName, char* VshaderString, char* FshaderString){
-	ShaderMaterial* s=ShaderMaterial::CreateShaderMaterial(ShaderName);
+Shader* CreateShader(char* ShaderName, char* VshaderString, char* FshaderString){
+	Shader* s=Shader::CreateShaderMaterial(ShaderName);
 	s->AddShaderFromString(VshaderString, FshaderString);
 	return s;
 }
 
-void ShadeSurface(Surface* surf, ShaderMaterial* material){
+void ShadeSurface(Surface* surf, Shader* material){
 	surf->ShaderMat = material;
 }
 
-void ShadeMesh(Mesh* mesh, ShaderMaterial* material){
+void ShadeMesh(Mesh* mesh, Shader* material){
 	for(int s=1;s<=mesh->CountSurfaces();s++){
 
 		Surface* surf=mesh->GetSurface(s);
@@ -1563,7 +1654,7 @@ void ShadeMesh(Mesh* mesh, ShaderMaterial* material){
 	}
 }
 
-void ShadeEntity(Entity* ent, ShaderMaterial* material){
+void ShadeEntity(Entity* ent, Shader* material){
 	Mesh* mesh=dynamic_cast<Mesh*>(ent);
 	Terrain* terr=dynamic_cast<Terrain*>(ent);
 
@@ -1573,190 +1664,200 @@ void ShadeEntity(Entity* ent, ShaderMaterial* material){
 		ShadeMesh(mesh, material);
 }
 
-void ShaderTexture(ShaderMaterial* material, Texture* tex, char* name, int index){
+void ShaderTexture(Shader* material, Texture* tex, char* name, int index){
 	material->AddSampler2D(name, index, tex);
 }
 
-
-void SetFloat(ShaderMaterial* material, char* name, float v1){
+void SetFloat(Shader* material, char* name, float v1){
 	material->SetFloat(name, v1);
 }
 
-void SetFloat2(ShaderMaterial* material, char* name, float v1, float v2){
+void SetFloat2(Shader* material, char* name, float v1, float v2){
 	material->SetFloat2(name, v1, v2);
 }
 
-void SetFloat3(ShaderMaterial* material, char* name, float v1, float v2, float v3){
+void SetFloat3(Shader* material, char* name, float v1, float v2, float v3){
 	material->SetFloat3(name, v1, v2, v3);
 }
 
-void SetFloat4(ShaderMaterial* material, char* name, float v1, float v2, float v3, float v4){
+void SetFloat4(Shader* material, char* name, float v1, float v2, float v3, float v4){
 	material->SetFloat4(name, v1, v2, v3, v4);
 }
 
-void UseFloat(ShaderMaterial* material, char* name, float* v1){
+void UseFloat(Shader* material, char* name, float* v1){
 	material->UseFloat(name, v1);
 }
 
-void UseFloat2(ShaderMaterial* material, char* name, float* v1, float* v2){
+void UseFloat2(Shader* material, char* name, float* v1, float* v2){
 	material->UseFloat2(name, v1, v2);
 }
 
-void UseFloat3(ShaderMaterial* material, char* name, float* v1, float* v2, float* v3){
+void UseFloat3(Shader* material, char* name, float* v1, float* v2, float* v3){
 	material->UseFloat3(name, v1, v2, v3);
 }
 
-void UseFloat4(ShaderMaterial* material, char* name, float* v1, float* v2, float* v3, float* v4){
+void UseFloat4(Shader* material, char* name, float* v1, float* v2, float* v3, float* v4){
 	material->UseFloat4(name, v1, v2, v3, v4);
 }
 
-void SetInteger(ShaderMaterial* material, char* name, int v1){
+void SetInteger(Shader* material, char* name, int v1){
 	material->SetInteger(name, v1);
 }
 
-void SetInteger2(ShaderMaterial* material, char* name, int v1, int v2){
+void SetInteger2(Shader* material, char* name, int v1, int v2){
 	material->SetInteger2(name, v1, v2);
 }
 
-void SetInteger3(ShaderMaterial* material, char* name, int v1, int v2, int v3){
+void SetInteger3(Shader* material, char* name, int v1, int v2, int v3){
 	material->SetInteger3(name, v1, v2, v3);
 }
 
-void SetInteger4(ShaderMaterial* material, char* name, int v1, int v2, int v3, int v4){
+void SetInteger4(Shader* material, char* name, int v1, int v2, int v3, int v4){
 	material->SetInteger4(name, v1, v2, v3, v4);
 }
 
-void UseInteger(ShaderMaterial* material, char* name, int* v1){
+void UseInteger(Shader* material, char* name, int* v1){
 	material->UseInteger(name, v1);
 }
 
-void UseInteger2(ShaderMaterial* material, char* name, int* v1, int* v2){
+void UseInteger2(Shader* material, char* name, int* v1, int* v2){
 	material->UseInteger2(name, v1, v2);
 }
 
-void UseInteger3(ShaderMaterial* material, char* name, int* v1, int* v2, int* v3){
+void UseInteger3(Shader* material, char* name, int* v1, int* v2, int* v3){
 	material->UseInteger3(name, v1, v2, v3);
 }
 
-void UseInteger4(ShaderMaterial* material, char* name, int* v1, int* v2, int* v3, int* v4){
+void UseInteger4(Shader* material, char* name, int* v1, int* v2, int* v3, int* v4){
 	material->UseInteger4(name, v1, v2, v3, v4);
 }
 
-void UseSurface(ShaderMaterial* material, char* name, Surface* surf, int vbo){
+void UseSurface(Shader* material, char* name, Surface* surf, int vbo){
 	material->UseSurface(name, surf, vbo);
 }
 
-void UseMatrix(ShaderMaterial* material, char* name, int mode){
+void UseMatrix(Shader* material, char* name, int mode){
 	material->UseMatrix(name, mode);
 }
 
-/*void SetParameter1S(ShaderMaterial* material, char* name, float v1){
+Material* LoadMaterial(char* filename,int flags, int frame_width,int frame_height,int first_frame,int frame_count){
+	return Material::LoadMaterial(filename, flags, frame_width, frame_height, first_frame, frame_count);
+}
+
+void ShaderMaterial(Shader* material, Material* tex, char* name, int index){
+	material->AddSampler3D(name, index, tex);
+}
+
+
+
+
+/*void SetParameter1S(Shader* material, char* name, float v1){
 	material->SetParameter1S(name, v1);
 }
 
-void SetParameter2S(ShaderMaterial* material, char* name, float v1, float v2){
+void SetParameter2S(Shader* material, char* name, float v1, float v2){
 	material->SetParameter2S(name, v1, v2);
 }
 
-void SetParameter3S(ShaderMaterial* material, char* name, float v1, float v2, float v3){
+void SetParameter3S(Shader* material, char* name, float v1, float v2, float v3){
 	material->SetParameter3S(name, v1, v2, v3);
 }
 
-void SetParameter4S(ShaderMaterial* material, char* name, float v1, float v2, float v3, float v4){
+void SetParameter4S(Shader* material, char* name, float v1, float v2, float v3, float v4){
 	material->SetParameter4S(name, v1, v2, v3, v4);
 }
 
-void SetParameter1I(ShaderMaterial* material, char* name, int v1){
+void SetParameter1I(Shader* material, char* name, int v1){
 	material->SetParameter1I(name, v1);
 }
 
-void SetParameter2I(ShaderMaterial* material, char* name, int v1, int v2){
+void SetParameter2I(Shader* material, char* name, int v1, int v2){
 	material->SetParameter2I(name, v1, v2);
 }
 
-void SetParameter3I(ShaderMaterial* material, char* name, int v1, int v2, int v3){
+void SetParameter3I(Shader* material, char* name, int v1, int v2, int v3){
 	material->SetParameter3I(name, v1, v2, v3);
 }
 
-void SetParameter4I(ShaderMaterial* material, char* name, int v1, int v2, int v3, int v4){
+void SetParameter4I(Shader* material, char* name, int v1, int v2, int v3, int v4){
 	material->SetParameter4I(name, v1, v2, v3, v4);
 }
 
-void SetVector1I(ShaderMaterial* material, char* name, int* v1){
+void SetVector1I(Shader* material, char* name, int* v1){
 	material->SetVector1I(name, v1);
 }
 
-void SetVector2I(ShaderMaterial* material, char* name, int* v1){
+void SetVector2I(Shader* material, char* name, int* v1){
 	material->SetVector2I(name, v1);
 }
 
-void SetVector3I(ShaderMaterial* material, char* name, int* v1){
+void SetVector3I(Shader* material, char* name, int* v1){
 	material->SetVector3I(name, v1);
 }
 
-void SetVector4I(ShaderMaterial* material, char* name, int* v1){
+void SetVector4I(Shader* material, char* name, int* v1){
 	material->SetVector4I(name, v1);
 }
 
-void SetParameter1F(ShaderMaterial* material, char* name, float v1){
+void SetParameter1F(Shader* material, char* name, float v1){
 	material->TurnOn();
 	material->SetParameter1F(name, v1);
 	material->TurnOff();
 }
 
-void SetParameter2F(ShaderMaterial* material, char* name, float v1, float v2){
+void SetParameter2F(Shader* material, char* name, float v1, float v2){
 	material->SetParameter2F(name, v1, v2);
 }
 
-void SetParameter3F(ShaderMaterial* material, char* name, float v1, float v2, float v3){
+void SetParameter3F(Shader* material, char* name, float v1, float v2, float v3){
 	material->SetParameter3F(name, v1, v2, v3);
 }
 
-void SetParameter4F(ShaderMaterial* material, char* name, float v1, float v2, float v3, float v4){
+void SetParameter4F(Shader* material, char* name, float v1, float v2, float v3, float v4){
 	material->SetParameter4F(name, v1, v2, v3, v4);
 }
 
-void SetVector1F(ShaderMaterial* material, char* name, float* v1){
+void SetVector1F(Shader* material, char* name, float* v1){
 	material->SetVector1F(name, v1);
 }
 
-void SetVector2F(ShaderMaterial* material, char* name, float* v1){
+void SetVector2F(Shader* material, char* name, float* v1){
 	material->SetVector2F(name, v1);
 }
 
-void SetVector3F(ShaderMaterial* material, char* name, float* v1){
+void SetVector3F(Shader* material, char* name, float* v1){
 	material->SetVector3F(name, v1);
 }
 
-void SetVector4F(ShaderMaterial* material, char* name, float* v1){
+void SetVector4F(Shader* material, char* name, float* v1){
 	material->SetVector4F(name, v1);
 }
 
-void SetMatrix2F(ShaderMaterial* material, char* name, float* m){
+void SetMatrix2F(Shader* material, char* name, float* m){
 	material->SetMatrix2F(name, m);
 }
 
-void SetMatrix3F(ShaderMaterial* material, char* name, float* m){
+void SetMatrix3F(Shader* material, char* name, float* m){
 	material->SetMatrix3F(name, m);
 }
 
-void SetMatrix4F(ShaderMaterial* material, char* name, float* m){
+void SetMatrix4F(Shader* material, char* name, float* m){
 	material->SetMatrix4F(name, m);
 }
 
-void SetParameter1D(ShaderMaterial* material, char* name, double v1){
+void SetParameter1D(Shader* material, char* name, double v1){
 	material->SetParameter1S(name, v1);
 }
 
-void SetParameter2D(ShaderMaterial* material, char* name, double v1, double v2){
+void SetParameter2D(Shader* material, char* name, double v1, double v2){
 	material->SetParameter2S(name, v1, v2);
 }
 
-void SetParameter3D(ShaderMaterial* material, char* name, double v1, double v2, double v3){
+void SetParameter3D(Shader* material, char* name, double v1, double v2, double v3){
 	material->SetParameter3S(name, v1, v2, v3);
 }
 
-void SetParameter4D(ShaderMaterial* material, char* name, double v1, double v2, double v3, double v4){
+void SetParameter4D(Shader* material, char* name, double v1, double v2, double v3, double v4){
 	material->SetParameter4S(name, v1, v2, v3, v4);
 }
 */

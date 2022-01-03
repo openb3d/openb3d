@@ -1,3 +1,19 @@
+V0.6
+
+Added:
+- CameraToTex: cubemapping will be easier.
+- Constructive Solid Geometry: with command MeshCSG it's possible to combine, subtract or intersect two meshes
+- Stencils: things like mirrors or portals are possible
+- UVW mapping: with the command UpdateTexCoords, the second texture map of a surface will be replaced with a UVW texture map, to apply materials (3D textures)
+- Materials: they are 3d textures, that can be stored in multiframe pictures (just like animated textures: they can be load with a similar syntax). Materials cannot be used on a surface directly, but they can be used in a shader template that can be applied to a surface. UVW data will be used to map it.
+- Voxel sprites: they are solid, and can be created from a material (as a 2D sprite can be created from a texture)
+
+Fixed:
+- a bug in TFormPoint: it didn't work correctly when a source entity and a destination entity were specified at the same time
+- a cubemap bug.
+- Some memory leaks (Thank D.J.Peters)
+- a bug in shadows: distance from the light was not computed correctly.
+
 V0.5
 
 Added:

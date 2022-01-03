@@ -48,7 +48,7 @@ public:
 	// brush applied to surface
 
 	Brush* brush;
-	ShaderMaterial* ShaderMat;
+	Shader* ShaderMat;
 	
 	// vbo
 	
@@ -109,6 +109,7 @@ public:
 	void UpdateVBO();
 	void FreeVBO();
 	void RemoveTri(int tri);
+	void UpdateTexCoords();
 
 };
 

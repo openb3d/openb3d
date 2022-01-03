@@ -989,6 +989,7 @@ int NewTag(string tag){
 	if(tag=="TRIS") return true;
 	if(tag=="BONE") return true;
 	if(tag=="KEYS") return true;
+	if(tag=="PHYS") return true;
 	return false;
 
 }

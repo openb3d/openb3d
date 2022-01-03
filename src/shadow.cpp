@@ -106,7 +106,7 @@ void ShadowObject::Update(Camera* Cam){
 		list<ShadowObject*>::iterator it2;
 		for(it2=shadow_list.begin();it2!=shadow_list.end();it2++){
 			ShadowObject* S=*it2;
-			if (Light->EntityDistance(S->ShadowMesh)<1/Light->range){
+			if (Light->EntityDistance(S->Parent)<1/Light->range){
 				VolumeLength=(Cam->range_far-S->Parent->EntityDistance(Cam))/(S->Parent->EntityDistance(Light)+abs(S->Parent->cull_radius));
 				S->ShadowMesh->reset_bounds = true;
 				S->ShadowMesh->GetBounds();

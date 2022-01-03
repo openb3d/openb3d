@@ -40,7 +40,7 @@ public:
 
 	Camera* eyepoint; 			//reference to camera
 
-	ShaderMaterial* ShaderMat;
+	Shader* ShaderMat;
 
 
 	static Terrain* CreateTerrain(int tsize=0, Entity* parent_ent=NULL);

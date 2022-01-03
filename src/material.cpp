@@ -10,15 +10,19 @@
 #include <gl\GLee.h>
 #endif
 
+#include <GL/glu.h>
+
 #include "surface.h"
 #include "camera.h"
 #include "shadermat.h"
 #include "file.h"
 #include "global.h"
+#include "stb_image.h"
+
 
 list<ShaderObject*> ShaderObject::ShaderObjectList;
 list<ProgramObject*> ProgramObject::ProgramObjectList;
-int ShaderMaterial::ShaderIDCount;
+int Shader::ShaderIDCount;
 
 
 /*ShaderObject* ShaderObject::CreateVertShader(string shaderFileName);
@@ -379,8 +383,8 @@ End Function
 
 //ShaderMat
 
-Sampler2D* Sampler2D::Create(string Name, int Slot, Texture* Tex){
-	Sampler2D* S = new Sampler2D;
+Sampler* Sampler::Create(string Name, int Slot, Texture* Tex){
+	Sampler* S = new Sampler;
 	S->Name = Name;
 	S->Slot = Slot;
 	S->texture = Tex;
@@ -389,8 +393,8 @@ Sampler2D* Sampler2D::Create(string Name, int Slot, Texture* Tex){
 
 
 	
-ShaderMaterial* ShaderMaterial::CreateShaderMaterial(string Name){
-	ShaderMaterial* s= new ShaderMaterial;
+Shader* Shader::CreateShaderMaterial(string Name){
+	Shader* s= new Shader;
 	s->texCount=0;
 	if (Name == ""){
 		Name = "NoName";
@@ -413,7 +417,7 @@ ShaderMaterial* ShaderMaterial::CreateShaderMaterial(string Name){
 	return s;
 }
 	
-/*void ShaderMaterial::UpdateData(Surface* surf) {
+/*void Shader::UpdateData(Surface* surf) {
 	for (unsigned int i=0;i<Parameters.size();i++){
 		switch(Parameters[i].type){
 		case 0:
@@ -451,7 +455,7 @@ ShaderMaterial* ShaderMaterial::CreateShaderMaterial(string Name){
 }
 	*/
 // internal 
-void ShaderMaterial::TurnOn(Surface* surf, Matrix& mat){
+void Shader::TurnOn(Surface* surf, Matrix& mat){
 	ProgramAttriBegin();
 	// Update Data
 
@@ -544,8 +548,29 @@ void ShaderMaterial::TurnOn(Surface* surf, Matrix& mat){
 			glActiveTexture(GL_TEXTURE0+ix);
 			glClientActiveTexture(GL_TEXTURE0+ix);
 
-			glEnable(GL_TEXTURE_2D);
-			glBindTexture(GL_TEXTURE_2D,texture); // call before glTexParameteri
+			if (Shader_Tex[ix]->is3D==0){
+				glEnable(GL_TEXTURE_2D);
+				glBindTexture(GL_TEXTURE_2D,texture); // call before glTexParameteri
+				// mipmapping texture flag
+				if(tex_flags&8){
+					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
+				}else{
+					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+				}
+			}else{
+				glEnable(GL_TEXTURE_3D);
+				glBindTexture(GL_TEXTURE_3D,texture); // call before glTexParameteri
+				// mipmapping texture flag
+				if(tex_flags&8){
+					glTexParameteri(GL_TEXTURE_3D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+					glTexParameteri(GL_TEXTURE_3D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
+				}else{
+					glTexParameteri(GL_TEXTURE_3D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+					glTexParameteri(GL_TEXTURE_3D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+				}
+			}
 
 			// masked texture flag
 			if(tex_flags&4){
@@ -554,14 +579,6 @@ void ShaderMaterial::TurnOn(Surface* surf, Matrix& mat){
 				glDisable(GL_ALPHA_TEST);
 			}
 		
-			// mipmapping texture flag
-			if(tex_flags&8){
-				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
-			}else{
-				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-			}
 		
 			// clamp u flag
 			if(tex_flags&16){
@@ -659,27 +676,44 @@ void ShaderMaterial::TurnOn(Surface* surf, Matrix& mat){
 
 			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-			if(surf->vbo_enabled==true && surf->no_tris>=Global::vbo_min_tris){
+			if (Shader_Tex[ix]->is3D==0){
+
+				if(surf->vbo_enabled==true && surf->no_tris>=Global::vbo_min_tris){
 			
-				if(tex_coords==0){
-					glBindBuffer(GL_ARRAY_BUFFER,surf->vbo_id[1]);
-					glTexCoordPointer(2,GL_FLOAT,0,NULL);
-				}else{
-					glBindBuffer(GL_ARRAY_BUFFER,surf->vbo_id[2]);
-					glTexCoordPointer(2,GL_FLOAT,0,NULL);
-				}
+					if(tex_coords==0){
+						glBindBuffer(GL_ARRAY_BUFFER,surf->vbo_id[1]);
+						glTexCoordPointer(2,GL_FLOAT,0,NULL);
+					}else{
+						glBindBuffer(GL_ARRAY_BUFFER,surf->vbo_id[2]);
+						glTexCoordPointer(2,GL_FLOAT,0,NULL);
+					}
 				
-			}else{
-			
-				if(tex_coords==0){
-					//glBindBufferARB(GL_ARRAY_BUFFER_ARB,0) already reset above
-					glTexCoordPointer(2,GL_FLOAT,0,&surf->vert_tex_coords0[0]);
 				}else{
-					//glBindBufferARB(GL_ARRAY_BUFFER_ARB,0)
-					glTexCoordPointer(2,GL_FLOAT,0,&surf->vert_tex_coords1[0]);
+			
+					if(tex_coords==0){
+						//glBindBufferARB(GL_ARRAY_BUFFER_ARB,0) already reset above
+						glTexCoordPointer(2,GL_FLOAT,0,&surf->vert_tex_coords0[0]);
+					}else{
+						//glBindBufferARB(GL_ARRAY_BUFFER_ARB,0)
+						glTexCoordPointer(2,GL_FLOAT,0,&surf->vert_tex_coords1[0]);
+					}
+
 				}
 
+			}else{
+				if(surf->vbo_enabled==true && surf->no_tris>=Global::vbo_min_tris){
+			
+					glBindBuffer(GL_ARRAY_BUFFER,surf->vbo_id[2]);
+					glTexCoordPointer(3,GL_FLOAT,0,NULL);
+				
+				}else{
+			
+					//glBindBufferARB(GL_ARRAY_BUFFER_ARB,0)
+					glTexCoordPointer(3,GL_FLOAT,0,&surf->vert_tex_coords1[0]);
+
+				}
 			}
+
 							
 			// reset texture matrix
 			glMatrixMode(GL_TEXTURE);
@@ -735,7 +769,7 @@ void ShaderMaterial::TurnOn(Surface* surf, Matrix& mat){
 
 }
 	
-void ShaderMaterial::TurnOff(){
+void Shader::TurnOff(){
 	ProgramAttriEnd();
 	for (int ix=0; ix<=254; ix++){
 		if (Shader_Tex[ix] == 0) break;
@@ -747,7 +781,11 @@ void ShaderMaterial::TurnOff(){
 		glMatrixMode(GL_TEXTURE);
 		glLoadIdentity();
 				
-		glDisable(GL_TEXTURE_2D);
+		if (Shader_Tex[ix]->is3D==0){
+			glDisable(GL_TEXTURE_2D);
+		}else{
+			glDisable(GL_TEXTURE_3D);
+		}
 				
 		glDisable(GL_TEXTURE_CUBE_MAP);
 		glDisable(GL_TEXTURE_GEN_S);
@@ -785,7 +823,7 @@ void ShaderMaterial::TurnOff(){
 '		EndIf
 '	End Method*/
 	
-void ShaderMaterial::AddShader(string _vert, string _frag){
+void Shader::AddShader(string _vert, string _frag){
 	if (arb_program == 0) return;
 	ShaderObject* Vert;
 	ShaderObject* Frag;
@@ -801,7 +839,7 @@ void ShaderMaterial::AddShader(string _vert, string _frag){
 	}
 }
 	
-void ShaderMaterial::AddShaderFromString(string _vert, string _frag){
+void Shader::AddShaderFromString(string _vert, string _frag){
 	if (arb_program == 0) return;
 	ShaderObject* Vert;
 	ShaderObject* Frag;
@@ -824,45 +862,54 @@ void ShaderMaterial::AddShaderFromString(string _vert, string _frag){
 		'arb_program.ListAttachedShaders()
 	End Method */
 
-void ShaderMaterial::AddSampler2D(string Name, int Slot, Texture* Tex){
-	Shader_Tex[Slot] = Sampler2D::Create(Name,Slot,Tex);
+void Shader::AddSampler2D(string Name, int Slot, Texture* Tex){
+	Shader_Tex[Slot] = Sampler::Create(Name,Slot,Tex);
 	UpdateSampler = 1;
+	Shader_Tex[Slot]->is3D=0;
 	texCount++;
 }
 	
-void ShaderMaterial::ProgramAttriBegin(){
+void Shader::AddSampler3D(string Name, int Slot, Texture* Tex){
+	Shader_Tex[Slot] = Sampler::Create(Name,Slot,Tex);
+	UpdateSampler = 1;
+	Shader_Tex[Slot]->is3D=1;
+	texCount++;
+}
+
+
+void Shader::ProgramAttriBegin(){
 	if (arb_program !=0){arb_program->Activate();}
 }	
 
-void ShaderMaterial::ProgramAttriEnd(){
+void Shader::ProgramAttriEnd(){
 	if (arb_program !=0){arb_program->DeActivate();}
 }	
 
-void ShaderMaterial::SetFloat(string name, float v1){
+void Shader::SetFloat(string name, float v1){
 	ProgramAttriBegin();
 	if (arb_program !=0){arb_program->SetParameter1F(name, v1);}
 	ProgramAttriEnd();
 }
 
-void ShaderMaterial::SetFloat2(string name, float v1, float v2){
+void Shader::SetFloat2(string name, float v1, float v2){
 	ProgramAttriBegin();
 	if (arb_program !=0){arb_program->SetParameter2F(name, v1, v2);}
 	ProgramAttriEnd();
 }
 
-void ShaderMaterial::SetFloat3(string name, float v1, float v2, float v3){
+void Shader::SetFloat3(string name, float v1, float v2, float v3){
 	ProgramAttriBegin();
 	if (arb_program !=0){arb_program->SetParameter3F(name, v1, v2, v3);}
 	ProgramAttriEnd();
 }
 
-void ShaderMaterial::SetFloat4(string name, float v1, float v2, float v3, float v4){
+void Shader::SetFloat4(string name, float v1, float v2, float v3, float v4){
 	ProgramAttriBegin();
 	if (arb_program !=0){arb_program->SetParameter4F(name, v1, v2, v3, v4);}
 	ProgramAttriEnd();
 }
 
-void ShaderMaterial::UseFloat(string name, float* v1){
+void Shader::UseFloat(string name, float* v1){
 	ShaderData data;
 	data.name=name;
 	data.type=0;
@@ -870,7 +917,7 @@ void ShaderMaterial::UseFloat(string name, float* v1){
 	Parameters.push_back(data);
 }
 
-void ShaderMaterial::UseFloat2(string name, float* v1, float* v2){
+void Shader::UseFloat2(string name, float* v1, float* v2){
 	ShaderData data;
 	data.name=name;
 	data.type=1;
@@ -879,7 +926,7 @@ void ShaderMaterial::UseFloat2(string name, float* v1, float* v2){
 	Parameters.push_back(data);
 }
 
-void ShaderMaterial::UseFloat3(string name, float* v1, float* v2, float* v3){
+void Shader::UseFloat3(string name, float* v1, float* v2, float* v3){
 	ShaderData data;
 	data.name=name;
 	data.type=2;
@@ -889,7 +936,7 @@ void ShaderMaterial::UseFloat3(string name, float* v1, float* v2, float* v3){
 	Parameters.push_back(data);
 }
 
-void ShaderMaterial::UseFloat4(string name, float* v1, float* v2, float* v3, float* v4){
+void Shader::UseFloat4(string name, float* v1, float* v2, float* v3, float* v4){
 	ShaderData data;
 	data.name=name;
 	data.type=3;
@@ -900,31 +947,31 @@ void ShaderMaterial::UseFloat4(string name, float* v1, float* v2, float* v3, flo
 	Parameters.push_back(data);
 }
 
-void ShaderMaterial::SetInteger(string name, int v1){
+void Shader::SetInteger(string name, int v1){
 	ProgramAttriBegin();
 	if (arb_program !=0){arb_program->SetParameter1I(name, v1);}
 	ProgramAttriEnd();
 }
 
-void ShaderMaterial::SetInteger2(string name, int v1, int v2){
+void Shader::SetInteger2(string name, int v1, int v2){
 	ProgramAttriBegin();
 	if (arb_program !=0){arb_program->SetParameter2I(name, v1, v2);}
 	ProgramAttriEnd();
 }
 
-void ShaderMaterial::SetInteger3(string name, int v1, int v2, int v3){
+void Shader::SetInteger3(string name, int v1, int v2, int v3){
 	ProgramAttriBegin();
 	if (arb_program !=0){arb_program->SetParameter3I(name, v1, v2, v3);}
 	ProgramAttriEnd();
 }
 
-void ShaderMaterial::SetInteger4(string name, int v1, int v2, int v3, int v4){
+void Shader::SetInteger4(string name, int v1, int v2, int v3, int v4){
 	ProgramAttriBegin();
 	if (arb_program !=0){arb_program->SetParameter4I(name, v1, v2, v3, v4);}
 	ProgramAttriEnd();
 }
 
-void ShaderMaterial::UseInteger(string name, int* v1){
+void Shader::UseInteger(string name, int* v1){
 	ShaderData data;
 	data.name=name;
 	data.type=4;
@@ -932,7 +979,7 @@ void ShaderMaterial::UseInteger(string name, int* v1){
 	Parameters.push_back(data);
 }
 
-void ShaderMaterial::UseInteger2(string name, int* v1, int* v2){
+void Shader::UseInteger2(string name, int* v1, int* v2){
 	ShaderData data;
 	data.name=name;
 	data.type=5;
@@ -941,7 +988,7 @@ void ShaderMaterial::UseInteger2(string name, int* v1, int* v2){
 	Parameters.push_back(data);
 }
 
-void ShaderMaterial::UseInteger3(string name, int* v1, int* v2, int* v3){
+void Shader::UseInteger3(string name, int* v1, int* v2, int* v3){
 	ShaderData data;
 	data.name=name;
 	data.type=6;
@@ -951,7 +998,7 @@ void ShaderMaterial::UseInteger3(string name, int* v1, int* v2, int* v3){
 	Parameters.push_back(data);
 }
 
-void ShaderMaterial::UseInteger4(string name, int* v1, int* v2, int* v3, int* v4){
+void Shader::UseInteger4(string name, int* v1, int* v2, int* v3, int* v4){
 	ShaderData data;
 	data.name=name;
 	data.type=7;
@@ -964,7 +1011,7 @@ void ShaderMaterial::UseInteger4(string name, int* v1, int* v2, int* v3, int* v4
 
 
 
-void ShaderMaterial::UseSurface(string name, Surface* surf, int vbo){
+void Shader::UseSurface(string name, Surface* surf, int vbo){
 	ShaderData data;
 	data.name=name;
 	data.type=13;
@@ -973,7 +1020,7 @@ void ShaderMaterial::UseSurface(string name, Surface* surf, int vbo){
 	Parameters.push_back(data);
 }
 
-void ShaderMaterial::UseMatrix(string name, int mode){
+void Shader::UseMatrix(string name, int mode){
 	ShaderData data;
 	data.name=name;
 	if (mode==1) {
@@ -983,55 +1030,55 @@ void ShaderMaterial::UseMatrix(string name, int mode){
 	}
 	Parameters.push_back(data);
 }
-/*void ShaderMaterial::SetParameter1S(string name, float v1){
+/*void Shader::SetParameter1S(string name, float v1){
 	if (arb_program !=0){arb_program->SetParameter1S(name, v1);}
 }
 
-void ShaderMaterial::SetParameter2S(string name, float v1, float v2){
+void Shader::SetParameter2S(string name, float v1, float v2){
 	if (arb_program !=0){arb_program->SetParameter2S(name, v1, v2);}
 }
 
-void ShaderMaterial::SetParameter3S(string name, float v1, float v2, float v3){
+void Shader::SetParameter3S(string name, float v1, float v2, float v3){
 	if (arb_program !=0){arb_program->SetParameter3S(name, v1, v2, v3);}
 }
 
-void ShaderMaterial::SetParameter4S(string name, float v1, float v2, float v3, float v4){
+void Shader::SetParameter4S(string name, float v1, float v2, float v3, float v4){
 	if (arb_program !=0){arb_program->SetParameter4S(name, v1, v2, v3, v4);}
 }
 
-void ShaderMaterial::SetParameter1I(string name, int v1){
+void Shader::SetParameter1I(string name, int v1){
 	if (arb_program !=0){arb_program->SetParameter1I(name, v1);}
 }
 
-void ShaderMaterial::SetParameter2I(string name, int v1, int v2){
+void Shader::SetParameter2I(string name, int v1, int v2){
 	if (arb_program !=0){arb_program->SetParameter2I(name, v1, v2);}
 }
 
-void ShaderMaterial::SetParameter3I(string name, int v1, int v2, int v3){
+void Shader::SetParameter3I(string name, int v1, int v2, int v3){
 	if (arb_program !=0){arb_program->SetParameter3I(name, v1, v2, v3);}
 }
 
-void ShaderMaterial::SetParameter4I(string name, int v1, int v2, int v3, int v4){
+void Shader::SetParameter4I(string name, int v1, int v2, int v3, int v4){
 	if (arb_program !=0){arb_program->SetParameter4I(name, v1, v2, v3, v4);}
 }
  
-void ShaderMaterial::SetVector1I(string name, int* v1){
+void Shader::SetVector1I(string name, int* v1){
 	if (arb_program !=0){arb_program->SetVector1I(name, v1);}
 }
 
-void ShaderMaterial::SetVector2I(string name, int* v1){
+void Shader::SetVector2I(string name, int* v1){
 	if (arb_program !=0){arb_program->SetVector2I(name, v1);}
 }
 
-void ShaderMaterial::SetVector3I(string name, int* v1){
+void Shader::SetVector3I(string name, int* v1){
 	if (arb_program !=0){arb_program->SetVector3I(name, v1);}
 }
 
-void ShaderMaterial::SetVector4I(string name, int* v1){
+void Shader::SetVector4I(string name, int* v1){
 	if (arb_program !=0){arb_program->SetVector4I(name, v1);}
 }
 
-void ShaderMaterial::SetParameter1F(string name, float v1){
+void Shader::SetParameter1F(string name, float v1){
 	//if (arb_program !=0){arb_program->SetParameter1F(name, v1);}
 	ShaderData data;
 	data.name=name;
@@ -1040,35 +1087,35 @@ void ShaderMaterial::SetParameter1F(string name, float v1){
 	Parameters.push_back(data);
 }
 
-void ShaderMaterial::SetParameter2F(string name, float v1, float v2){
+void Shader::SetParameter2F(string name, float v1, float v2){
 	if (arb_program !=0){arb_program->SetParameter2F(name, v1, v2);}
 }
 
-void ShaderMaterial::SetParameter3F(string name, float v1, float v2, float v3){
+void Shader::SetParameter3F(string name, float v1, float v2, float v3){
 	if (arb_program !=0){arb_program->SetParameter3F(name, v1, v2, v3);}
 }
 
-void ShaderMaterial::SetParameter4F(string name, float v1, float v2, float v3, float v4){
+void Shader::SetParameter4F(string name, float v1, float v2, float v3, float v4){
 	if (arb_program !=0){arb_program->SetParameter4F(name, v1, v2, v3, v4);}
 }
 
-void ShaderMaterial::SetVector1F(string name, float* v1){
+void Shader::SetVector1F(string name, float* v1){
 	if (arb_program !=0){arb_program->SetVector1F(name, v1);}
 }
 
-void ShaderMaterial::SetVector2F(string name, float* v1){
+void Shader::SetVector2F(string name, float* v1){
 	if (arb_program !=0){arb_program->SetVector2F(name, v1);}
 }
 
-void ShaderMaterial::SetVector3F(string name, float* v1){
+void Shader::SetVector3F(string name, float* v1){
 	if (arb_program !=0){arb_program->SetVector3F(name, v1);}
 }
 
-void ShaderMaterial::SetVector4F(string name, float* v1){
+void Shader::SetVector4F(string name, float* v1){
 	if (arb_program !=0){arb_program->SetVector4F(name, v1);}
 }
 
-void ShaderMaterial::SetMatrix2F(string name, float* m){
+void Shader::SetMatrix2F(string name, float* m){
 	//if (arb_program !=0){arb_program->SetMatrix2F(name, m);}
 	ShaderData data;
 	data.name=name;
@@ -1078,27 +1125,27 @@ void ShaderMaterial::SetMatrix2F(string name, float* m){
 
 }
 
-void ShaderMaterial::SetMatrix3F(string name, float* m){
+void Shader::SetMatrix3F(string name, float* m){
 	if (arb_program !=0){arb_program->SetMatrix3F(name, m);}
 }
 
-void ShaderMaterial::SetMatrix4F(string name, float* m){
+void Shader::SetMatrix4F(string name, float* m){
 	if (arb_program !=0){arb_program->SetMatrix4F(name, m);}
 }
 
-void ShaderMaterial::SetParameter1D(string name, double v1){
+void Shader::SetParameter1D(string name, double v1){
 	if (arb_program !=0){arb_program->SetParameter1D(name, v1);}
 }
 
-void ShaderMaterial::SetParameter2D(string name, double v1, double v2){
+void Shader::SetParameter2D(string name, double v1, double v2){
 	if (arb_program !=0){arb_program->SetParameter2D(name, v1, v2);}
 }
 
-void ShaderMaterial::SetParameter3D(string name, double v1, double v2, double v3){
+void Shader::SetParameter3D(string name, double v1, double v2, double v3){
 	if (arb_program !=0){arb_program->SetParameter3D(name, v1, v2, v3);}
 }
 
-void ShaderMaterial::SetParameter4D(string name, double v1, double v2, double v3, double v4){
+void Shader::SetParameter4D(string name, double v1, double v2, double v3, double v4){
 	if (arb_program !=0){arb_program->SetParameter4D(name, v1, v2, v3, v4);}
 }*/
 
@@ -1296,22 +1343,21 @@ void ProgramObject::SetParameterArray(string name, Surface* surf, int vbo){
 		case 2:
 			glBindBuffer(GL_ARRAY_BUFFER,surf2.vbo_id[1]);
 			glVertexAttribPointer(loc, 2, GL_FLOAT, GL_FALSE, 0, 0);
-			/*glBindBuffer(GL_ARRAY_BUFFER,vbo_id[1]);
-			glBufferData(GL_ARRAY_BUFFER,(no_verts*2*4),&vert_tex_coords0[0],GL_STATIC_DRAW);
 
-			glBindBuffer(GL_ARRAY_BUFFER,vbo_id[2]);
-			glBufferData(GL_ARRAY_BUFFER,(no_verts*2*4),&vert_tex_coords1[0],GL_STATIC_DRAW);*/
-			break;
 		case 3:
+			glBindBuffer(GL_ARRAY_BUFFER,surf2.vbo_id[2]);
+			glVertexAttribPointer(loc, 2, GL_FLOAT, GL_FALSE, 0, 0);
+			break;
+		case 4:
 			glBindBuffer(GL_ARRAY_BUFFER,surf2.vbo_id[3]);
 			glVertexAttribPointer(loc, 3, GL_FLOAT, GL_FALSE, 0, 0);
 			break;
-		case 4:
+		case 5:
 			glBindBuffer(GL_ARRAY_BUFFER,surf2.vbo_id[4]);
 			glVertexAttribPointer(loc, 3, GL_FLOAT, GL_FALSE, 16, 0);
 			break;
 
-		case 5:
+		case 6:
 			glBindBuffer(GL_ARRAY_BUFFER,surf2.vbo_id[4]);
 			glVertexAttribPointer(loc, 4, GL_FLOAT, GL_FALSE, 0, 0);
 			break;
@@ -1326,20 +1372,18 @@ void ProgramObject::SetParameterArray(string name, Surface* surf, int vbo){
 			break;
 		case 2:
 			glVertexAttribPointer(loc, 2, GL_FLOAT, GL_FALSE, 0, &surf2.vert_tex_coords0[0]);
-			/*glBindBuffer(GL_ARRAY_BUFFER,vbo_id[1]);
-			glBufferData(GL_ARRAY_BUFFER,(no_verts*2*4),&vert_tex_coords0[0],GL_STATIC_DRAW);
-
-			glBindBuffer(GL_ARRAY_BUFFER,vbo_id[2]);
-			glBufferData(GL_ARRAY_BUFFER,(no_verts*2*4),&vert_tex_coords1[0],GL_STATIC_DRAW);*/
 			break;
 		case 3:
-			glVertexAttribPointer(loc, 3, GL_FLOAT, GL_FALSE, 0, &surf2.vert_norm[0]);
+			glVertexAttribPointer(loc, 2, GL_FLOAT, GL_FALSE, 0, &surf2.vert_tex_coords1[0]);
 			break;
 		case 4:
+			glVertexAttribPointer(loc, 3, GL_FLOAT, GL_FALSE, 0, &surf2.vert_norm[0]);
+			break;
+		case 5:
 			glVertexAttribPointer(loc, 3, GL_FLOAT, GL_FALSE, 16, &surf2.vert_col[0]);
 			break;
 
-		case 5:
+		case 6:
 			glVertexAttribPointer(loc, 4, GL_FLOAT, GL_FALSE, 0, &surf2.vert_col[0]);
 			break;
 		}
@@ -1592,4 +1636,77 @@ Method ListAttachedShaders()
 	Print
 End Method*/
 
+void CopyPixels (unsigned char *src, unsigned int srcWidth, unsigned int srcHeight, unsigned int srcX, unsigned int srcY, unsigned char *dst, unsigned int dstWidth, unsigned int dstHeight, unsigned int bytesPerPixel);
+
+
+Material* Material::LoadMaterial(string filename,int flags, int frame_width,int frame_height,int first_frame,int frame_count){
+
+	filename=Strip(filename); // get rid of path info
+
+	if(File::ResourceFilePath(filename)==""){
+		cout << "Error: Cannot Find Texture: " << filename << endl;
+		return NULL;
+	}
+
+	Material* tex=new Material();
+	tex->file=filename;
+
+	// set tex.flags before TexInList
+	tex->flags=flags;
+	tex->FilterFlags();
+
+	/*// check to see if texture with same properties exists already, if so return existing texture
+	Texture* old_tex=tex->TexInList();
+	if(old_tex){
+		return old_tex;
+	}else{
+		tex_list.push_back(tex);
+	}*/
+
+	//const char* c_filename_left=filename_left.c_str();
+	//const char* c_filename_right=filename_right.c_str();
+
+
+	unsigned char* buffer;
+
+	buffer=stbi_load(filename.c_str(),&tex->width,&tex->height,0,4);
+
+	unsigned int name;
+
+	glGenTextures (1,&name);
+	glBindTexture (GL_TEXTURE_3D,name);
+
+	tex->no_frames=frame_count;
+	//tex->frames=new unsigned int[frame_count];
+
+	unsigned char* dstbuffer=new unsigned char[frame_width*frame_height*4*frame_count];
+
+	glGenTextures (1,&name);
+	glBindTexture (GL_TEXTURE_3D,name);
+
+
+	//tex.gltex=tex.gltex[..tex.no_frames]
+
+	int frames_in_row=tex->width/frame_width;
+
+	for (int i=0;i<frame_count;i++){
+		CopyPixels (buffer,tex->width, tex->height,frame_width*(i%frames_in_row), frame_height*(i/frames_in_row),
+		dstbuffer+i*(frame_width * frame_height * 4), frame_width, frame_height, 4);
+
+
+	}
+
+	glTexParameteri(GL_TEXTURE_3D, GL_GENERATE_MIPMAP, GL_TRUE);
+	glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA,frame_width, frame_height, frame_count, 0, GL_RGBA, GL_UNSIGNED_BYTE, dstbuffer);
+
+	tex->texture=name;
+	tex->width=frame_width;
+	tex->height=frame_height;
+	delete dstbuffer;
+	stbi_image_free(buffer);
+
+
+	return tex;
+
+}
 

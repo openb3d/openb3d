@@ -241,10 +241,17 @@ void Surface::VertexTexCoords(int vi,float u,float v,float w,int coords_set){
 		vert_tex_coords0[vi]=u;
 		vert_tex_coords0[vi+1]=v;
 
-	}else{
+	}else if(coords_set==1){
 
 		vert_tex_coords1[vi]=u;
 		vert_tex_coords1[vi+1]=v;
+
+	}else{
+		vi=vi*3/2;
+
+		vert_tex_coords1[vi]=u;
+		vert_tex_coords1[vi+1]=v;
+		vert_tex_coords1[vi+2]=w;
 
 	}
 
@@ -317,8 +324,10 @@ float Surface::VertexU(int vid,int coord_set){
 
 	if(coord_set==0){
 		return vert_tex_coords0[vid*2];
-	}else{
+	}else if(coord_set==1){
 		return vert_tex_coords1[vid*2];
+	}else{
+		return vert_tex_coords1[vid*3];
 	}
 
 }
@@ -327,15 +336,21 @@ float Surface::VertexV(int vid,int coord_set){
 
 	if(coord_set==0){
 		return vert_tex_coords0[(vid*2)+1];
-	}else{
+	}else if(coord_set==1){
 		return vert_tex_coords1[(vid*2)+1];
+	}else{
+		return vert_tex_coords1[(vid*3)+1];
 	}
 
 }
 
 float Surface::VertexW(int vid,int coord_set){
 
-	return 0;
+	if(coord_set==0 || coord_set==1){
+		return 0;
+	}else{
+		return vert_tex_coords1[(vid*3)+2];
+	}
 
 }
 
@@ -674,5 +689,57 @@ void Surface::RemoveTri(int tri){
 	}
 
 	delete[] tris;
+
+}
+
+void Surface::UpdateTexCoords(){
+	float min_x,min_y,min_z,max_x,max_y,max_z;
+
+	min_x=999999999;
+	max_x=-999999999;
+	min_y=999999999;
+	max_y=-999999999;
+	min_z=999999999;
+	max_z=-999999999;
+
+
+	for(int V=0;V<=CountVertices()-1;V++){
+
+		float x=vert_coords[V*3]; // surf.VertexX(v)
+		if(x<min_x) min_x=x;
+		if(x>max_x) max_x=x;
+
+		float y=vert_coords[(V*3)+1]; // surf.VertexY(v)
+		if(y<min_y) min_y=y;
+		if(y>max_y) max_y=y;
+
+		float z=-vert_coords[(V*3)+2]; // surf.VertexZ(v)
+		if(z<min_z) min_z=z;
+		if(z>max_z) max_z=z;
+
+	}
+
+	float width=max_x-min_x;
+	float height=max_y-min_y;
+	float depth=max_z-min_z;
+
+	vert_tex_coords1.clear();
+
+	for(int V=0;V<=CountVertices()-1;V++){
+
+		float x=vert_coords[V*3]; // surf.VertexX(v)
+		float y=vert_coords[(V*3)+1]; // surf.VertexY(v)
+		float z=-vert_coords[(V*3)+2]; // surf.VertexZ(v)
+
+		float u=(x-min_x)/width;
+		float v=(y-min_y)/height;
+		float w=(z-min_z)/depth;
+
+		vert_tex_coords1.push_back(u);
+		vert_tex_coords1.push_back(v);
+		vert_tex_coords1.push_back(w);
+
+	}
+
 
 }

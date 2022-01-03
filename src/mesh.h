@@ -109,6 +109,7 @@ public:
 	int Alpha();
 	void TreeCheck();
 	int MeshesIntersect(Mesh* mesh2);
+	Mesh* MeshCSG(Mesh* mesh2, int method);
 	void Update() {};
 	void Render();
 	void UpdateShadow();

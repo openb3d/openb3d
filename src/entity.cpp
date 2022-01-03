@@ -1023,8 +1023,8 @@ void Entity::TFormPoint(float x,float y,float z,Entity* src_ent,Entity* dest_ent
 		mat2 = dest_ent->MQ_GetInvMatrix(true);
 	}
 
-	if (src_ent  != 0) {mat1->TransformVec(x, y, z, 1);delete mat1;}//mesh to global
 	if (dest_ent != 0) {mat2->TransformVec(x, y, z, 1);delete mat2;}//global to mesh
+	if (src_ent  != 0) {mat1->TransformVec(x, y, z, 1);delete mat1;}//mesh to global
 
 	tformed_x=x;
 	tformed_y=y;
@@ -1054,8 +1054,8 @@ void Entity::TFormVector(float x,float y,float z,Entity* src_ent,Entity* dest_en
 	}
 
 	//transform point by matrix
-	if (src_ent  != 0) {mat1->TransformVec(x, y, z, 1);delete mat1;}//mesh to global
 	if (dest_ent != 0) {mat2->TransformVec(x, y, z, 1);delete mat2;}//global to mesh
+	if (src_ent  != 0) {mat1->TransformVec(x, y, z, 1);delete mat1;}//mesh to global
 
 	tformed_x=x;
 	tformed_y=y;
