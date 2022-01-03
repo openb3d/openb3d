@@ -13,8 +13,6 @@
 
 Bone* Bone::CopyEntity(Entity* parent_ent){
 
-	if(parent_ent==NULL) parent_ent=Global::root_ent;
-
 	// new bone
 	Bone* bone=new Bone;
 	

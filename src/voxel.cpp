@@ -36,8 +36,6 @@ void Add3DVertex(Surface* surf, float x, float y, float z,float u,float v,float 
 
 VoxelSprite* VoxelSprite::CreateVoxelSprite(int slices, Entity* parent_ent){
 
-	if(parent_ent==NULL) parent_ent=Global::root_ent;
-
 	VoxelSprite* voxelSprite=new VoxelSprite();
 
 	voxelSprite->class_name="VoxelSprite";

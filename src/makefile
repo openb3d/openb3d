@@ -1,7 +1,7 @@
 CCMPILER = g++
 CC=g++ -Wall -O3 
 
-OBJECTS = model.o string_helper.o surface.o bank.o bone.o brush.o collision.o entity.o functions.o geom.o global.o light.o matrix.o pick.o pivot.o project.o sprite.o tilt.o touch.o texture_filter.o tree.o animation.o animation_keys.o collision2.o maths_helper.o quaternion.o sprite_batch.o camera.o file.o mesh.o texture.o terrain.o stb_image.o 3ds.o collidetri.o shadow.o material.o stencil.o csg.o voxel.o x.o octree.o
+OBJECTS = model.o string_helper.o surface.o bank.o bone.o brush.o collision.o entity.o functions.o geom.o global.o light.o matrix.o pick.o pivot.o project.o sprite.o tilt.o touch.o texture_filter.o tree.o animation.o animation_keys.o collision2.o maths_helper.o quaternion.o sprite_batch.o camera.o file.o mesh.o texture.o terrain.o stb_image.o 3ds.o collidetri.o shadow.o material.o stencil.o csg.o voxel.o x.o octree.o geosphere.o
 
 main:$(OBJECTS) 
 ifeq ($(shell uname), Linux)
@@ -40,6 +40,9 @@ functions.o : functions.cpp
 
 geom.o : geom.cpp geom.h
 	$(CC) -c geom.cpp -o geom.o
+
+geosphere.o : geosphere.cpp geosphere.h
+	$(CC) -c geosphere.cpp -o geosphere.o
 
 global.o : global.cpp global.h
 	$(CC) -c global.cpp -o global.o

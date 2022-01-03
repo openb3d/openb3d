@@ -68,7 +68,7 @@ int PositionEntities(int update_old,int add_to_new){
 
 }
 
-void ClearCollisions(){
+void clearCollisions(){
 
 	list<CollisionPair*>::iterator cp_it;
 
@@ -238,7 +238,7 @@ void UpdateStaticCollisions(){
 				ent.new_z=C_CollisionPosZ();
 
 				// moved from PositionEntities
-				ent.PositionEntity(ent.new_x,ent.new_y,ent.new_z);
+				ent.PositionEntity(ent.new_x,ent.new_y,ent.new_z,true);
 			}
 			C_DeleteCollisionInfoObject(c_col_info);
 		} // end of src ent loop
@@ -427,7 +427,7 @@ void UpdateDynamicCollisions(){
 					ent.new_y=(ent.new_y-ent.EntityY(true))+ent.EntityY(true);
 					ent.new_z=(ent.new_z-ent.EntityZ(true))+ent.EntityZ(true);
 
-					ent.PositionEntity(ent.new_x,ent.new_y,ent.new_z);
+					ent.PositionEntity(ent.new_x,ent.new_y,ent.new_z,true);
 
 					//
 

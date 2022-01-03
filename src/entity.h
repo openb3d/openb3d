@@ -220,6 +220,7 @@ public:
 	// anim
 	void Animate(int mode=1,float speed=1.0,int seq=0,int trans=0);
 	void SetAnimTime(float time,int seq=0);
+	int AnimLength();
 	float AnimTime();
 	int ExtractAnimSeq(int first_frame,int last_frame,int seq=0);
 	int AddAnimSeq(int length);

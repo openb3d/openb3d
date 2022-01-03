@@ -301,6 +301,8 @@ bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CreateCube">O
 */
 Mesh* CreateCube(Entity* parent);
 
+Terrain* CreateGeosphere(int size, Entity* parent);
+
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CreateMesh">Online Help</a>
 */
@@ -317,6 +319,8 @@ bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CreatePivot">
 Pivot* CreatePivot(Entity* parent);
 
 Mesh* CreatePlane(int divisions,Entity* parent);
+
+Mesh* CreateQuad(Entity* parent);
 
 ShadowObject* CreateShadow(Mesh* parent, char Static);
 
@@ -631,6 +635,8 @@ bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=LoadBrush">On
 */
 Brush* LoadBrush(char *file,int flags,float u_scale,float v_scale);
 
+Terrain* LoadGeosphere(char* file,Entity* parent);
+
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=LoadMesh">Online Help</a>
 */
@@ -674,6 +680,7 @@ bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=MeshWidth">On
 */
 float MeshWidth(Mesh* mesh);
 
+void ModifyGeosphere(Geosphere* geo, int x, int z, float new_height);
 
 void ModifyTerrain(Terrain* terr, int x, int z, float new_height);
 

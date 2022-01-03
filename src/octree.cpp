@@ -40,7 +40,11 @@ void OcTreeChild::AddToOctree(Mesh* mesh1, int level, float X, float Y, float Z,
 	if (level==0){
 		mesh=mesh1;
 		if (block!=0){
-			mesh->parent->child_list.remove(mesh);
+			if (mesh->parent!=0) {
+				mesh->parent->child_list.remove(mesh);
+			}else{
+				Global::root_ent->child_list.remove(mesh);
+			}
 		}else{
 			mesh->hide=true;
 		}
@@ -201,7 +205,6 @@ void OcTree::OctreeBlock(Mesh* mesh, int level, float X, float Y, float Z, float
 
 OcTree* OcTree::CreateOcTree(float w, float h, float d, Entity* parent_ent){
 
-	if(parent_ent==NULL) parent_ent=Global::root_ent;
 	OcTree* oct=new OcTree;
 
 	oct->AddParent(*parent_ent);
@@ -627,8 +630,6 @@ void OcTree::FreeEntity(){
 
 
 OcTree* OcTree::CopyEntity(Entity* parent_ent){
-
-	if(parent_ent==NULL) parent_ent=Global::root_ent;
 
 	// new octree
 	OcTree* oct=new OcTree;

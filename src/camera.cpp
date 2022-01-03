@@ -24,8 +24,6 @@ float Camera::projected_x,Camera::projected_y,Camera::projected_z;
 
 Camera* Camera::CopyEntity(Entity* parent_ent){
 
-	if(parent_ent==NULL) parent_ent=Global::root_ent;
-
 	// new cam
 	Camera* cam=new Camera;
 	
@@ -137,8 +135,6 @@ void Camera::FreeEntity(){
 }
 
 Camera* Camera::CreateCamera(Entity* parent_ent){
-	
-	if(parent_ent==NULL) parent_ent=Global::root_ent;
 	
 	Camera* cam=new Camera;
 	

@@ -10,6 +10,7 @@
 #include "csg.h"
 #include "voxel.h"
 #include "octree.h"
+#include "geosphere.h"
 
 extern "C" {
 
@@ -111,8 +112,7 @@ int Animating(Entity* ent){
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=AnimLength">Online Help</a>
 */
 int AnimLength(Entity* ent){
-	//return ent->AnimLength();
-	return 0;
+	return ent->AnimLength();
 }
 
 /*
@@ -251,10 +251,11 @@ void  CameraZoom(Camera* cam,float zoom){
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=ClearCollisions">Online Help</a>
-int ClearCollisions(){
+*/
+void ClearCollisions(){
 	Global::ClearCollisions();
 }
-*/
+
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=ClearSurface">Online Help</a>
 */
@@ -438,6 +439,12 @@ Mesh* CreateCube(Entity* parent){
 }
 
 /*
+*/
+Terrain* CreateGeosphere(int size, Entity* parent){
+	return Geosphere::CreateGeosphere(size,parent);
+}
+
+/*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CreateMesh">Online Help</a>
 */
 Mesh* CreateMesh(Entity* parent){
@@ -460,6 +467,10 @@ Pivot* CreatePivot(Entity* parent){
 
 Mesh* CreatePlane(int divisions,Entity* parent){
 	return Mesh::CreatePlane(divisions,parent);
+}
+
+Mesh* CreateQuad(Entity* parent){
+    return Mesh::CreateQuad(parent);
 }
 
 ShadowObject* CreateShadow(Mesh* parent, char Static){
@@ -776,6 +787,12 @@ void FreeTexture(Texture* tex){
 	tex->FreeTexture();
 }
 
+
+void GeosphereHeight(Geosphere* geo, float h){
+	geo->vsize=h;
+}
+
+
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=GetBrushTexture">Online Help</a>
 */
@@ -907,6 +924,10 @@ Brush* LoadBrush(char *file,int flags,float u_scale,float v_scale){
 	return Brush::LoadBrush(file,flags,u_scale,v_scale);
 }
 
+Terrain* LoadGeosphere(char* file,Entity* parent){
+	return Geosphere::LoadGeosphere(file,parent);
+}
+
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=LoadMesh">Online Help</a>
 */
@@ -966,6 +987,10 @@ bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=MeshWidth">On
 */
 float MeshWidth(Mesh* mesh){
 	return mesh->MeshWidth();
+}
+
+void ModifyGeosphere(Geosphere* geo, int x, int z, float new_height){
+	geo->ModifyGeosphere ( x,  z, new_height);
 }
 
 

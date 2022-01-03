@@ -1,3 +1,11 @@
+Added:
+- ClearCollisions
+- Geospheres: now it's possible to make planets (spherical terrains)
+Fixed:
+- Collisions of child entities now works
+- if an entity has no parent, GeTParent returns 0: also, EntityParent ent,0 now works
+- AnimLength
+
 V0.7
 Added:
 - Octrees

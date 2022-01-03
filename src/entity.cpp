@@ -39,6 +39,8 @@ void Entity::FreeEntity(void){
 	// free self from parent's child_list
 	if(parent!=NULL){
 		parent->child_list.remove(this);
+	}else{
+		Global::root_ent->child_list.remove(this);
 	}
 
 	// free child entities
@@ -71,7 +73,7 @@ void Entity::EntityParent(Entity* parent_ent,int glob){
 		orgx = tformed_x;
 		orgy = tformed_y;
 		orgz = tformed_z;
-		m1 = MQ_GetMatrix(false);
+		m1 = MQ_GetMatrix(true);
 		m1->grid[3][0] = 0; //remove translation
 		m1->grid[3][1] = 0;
 		m1->grid[3][2] = 0;
@@ -83,6 +85,8 @@ void Entity::EntityParent(Entity* parent_ent,int glob){
 	if (parent != 0) {
 		parent->child_list.remove(this);
 		parent = 0;
+	}else{
+		Global::root_ent->child_list.remove(this);
 	}
 
 	//retain global position/rotation
@@ -104,7 +108,7 @@ void Entity::EntityParent(Entity* parent_ent,int glob){
 			m2 = new Matrix; //no parent
 			m2->LoadIdentity();
 		}else{
-			m2 = parent_ent->MQ_GetInvMatrix(false);
+			m2 = parent_ent->MQ_GetInvMatrix(true);
 			m2->grid[3][0] = 0; //remove translation
 			m2->grid[3][1] = 0;
 			m2->grid[3][2] = 0;
@@ -116,9 +120,10 @@ void Entity::EntityParent(Entity* parent_ent,int glob){
 		delete m1;
 	}
 
-	if (parent_ent == 0) 
-		{parent_ent = Global::root_ent;} 
-	else{
+	if (parent_ent == 0) {
+		parent = 0;
+		Global::root_ent->child_list.push_back(this); 
+	}else{
 		//set parent
 		parent = parent_ent;
 		parent->child_list.push_back(this);
@@ -285,10 +290,11 @@ void Entity::RotateEntity(float x,float y,float z,int global){
 		//get parent inverted rotation matrix
 		if (parent != 0) {
 			Matrix* m2;
-			m2 = parent->MQ_GetInvMatrix(false);
+			m2 = parent->MQ_GetInvMatrix(true);
 			m2->grid[3][0] = 0; //remove translation
 			m2->grid[3][1] = 0;
 			m2->grid[3][2] = 0;
+			m2->Scale(parent->sx, parent->sy, parent->sz);
 			//apply rotation matrix
 			rotmat.Multiply2(*m2);
 			delete m2;
@@ -682,6 +688,12 @@ void Entity::SetAnimTime(float time,int seq){
 	}
 
 	anim_time=time; // update anim_time# to equal time#
+
+}
+
+int Entity::AnimLength(){
+
+	return anim_seqs_last[anim_seq]-anim_seqs_first[anim_seq]; // no of frames in anim sequence
 
 }
 
@@ -1102,6 +1114,8 @@ void Entity::AddParent(Entity &parent_ent){
 	if(parent!=NULL){
 		mat.Overwrite(parent->mat);
 		parent->child_list.push_back(this);
+	}else{
+		Global::root_ent->child_list.push_back(this);
 	}
 }
 

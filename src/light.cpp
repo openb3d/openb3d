@@ -20,8 +20,6 @@ vector<Light*> Light::light_list;
 
 Light* Light::CopyEntity(Entity* parent_ent){
 
-	if(parent_ent==NULL) parent_ent=Global::root_ent;
-
 	// new light
 	Light* light=new Light;
 	
@@ -117,8 +115,6 @@ void Light::FreeEntity(){
 }
 
 Light* Light::CreateLight(int l_type,Entity* parent_ent){
-
-	if(parent_ent==NULL) parent_ent=Global::root_ent;
 
 	Light* light=new Light;
 	light->light_type=l_type;

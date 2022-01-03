@@ -40,8 +40,6 @@ using namespace std;
 
 Mesh* Mesh::CopyEntity(Entity* parent_ent){
 
-	if(parent_ent==NULL) parent_ent=Global::root_ent;
-
 	// new mesh
 	Mesh* mesh=new Mesh();
 
@@ -265,8 +263,6 @@ void Mesh::FreeEntity(){
 
 Mesh* Mesh::CreateMesh(Entity* parent_ent){
 
-	if(parent_ent==NULL) parent_ent=Global::root_ent;
-
 	Mesh* mesh=new Mesh();
 
 	mesh->class_name="Mesh";
@@ -308,8 +304,6 @@ Surface* Mesh::CreateSurface(Brush* bru){
 
 Mesh* Mesh::LoadMesh(string filename,Entity* parent_ent){
 
-	if(parent_ent==NULL) parent_ent=Global::root_ent;
-
 	if(Right(filename,4)==".3ds") return load3ds::Load3ds(filename, parent_ent);//filename=Replace(filename,".3ds",".b3d");
 	if(Right(filename,2)==".x") return loadX::LoadX(filename, parent_ent);
 
@@ -336,8 +330,6 @@ Mesh* Mesh::LoadMesh(string filename,Entity* parent_ent){
 }
 
 Mesh* Mesh::LoadAnimMesh(string filename,Entity* parent_ent){
-
-	if(parent_ent==NULL) parent_ent=Global::root_ent;
 
 	if(Right(filename,4)==".3ds") return load3ds::Load3ds(filename, parent_ent);//filename=Replace(filename,".3ds",".b3d");
 

@@ -43,8 +43,6 @@ list<Terrain*> Terrain::terrain_list;
 
 Terrain* Terrain::CopyEntity(Entity* parent_ent){
 
-	if(parent_ent==NULL) parent_ent=Global::root_ent;
-
 	// new terr
 	Terrain* terr=new Terrain;
 
@@ -147,7 +145,6 @@ Terrain* Terrain::CopyEntity(Entity* parent_ent){
 
 Terrain* Terrain::CreateTerrain(int tsize, Entity* parent_ent){
 
-	if(parent_ent==NULL) parent_ent=Global::root_ent;
 	Terrain* terr=new Terrain;
 
 	for (int i = 0; i<= ROAM_LMAX; i++){

@@ -80,7 +80,7 @@ public:
 void UpdateCollisions();
 void UpdateStaticCollisions();
 void UpdateDynamicCollisions();
-void ClearCollisions();
+void clearCollisions();
 int PositionEntities(int update_old=true,int add_to_new=false);
 int QuickCheck(Entity& ent,Entity& ent2);
 

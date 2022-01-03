@@ -24,7 +24,11 @@ Stencil* Stencil::CreateStencil(){
 }
 
 void Stencil::StencilMesh(Mesh* mesh, int mode){
-	mesh->parent->child_list.remove(mesh);
+	if (mesh->parent != 0) {
+		mesh->parent->child_list.remove(mesh);
+	}else{
+		Global::root_ent->child_list.remove(mesh);
+	}
 	StencilMesh_list.push_back(mesh);
 	StencilMode_list.push_back(mode);
 
@@ -51,7 +55,7 @@ void Stencil::StencilAlpha(float a){
 
 void Stencil::StencilMode(int m, int o){
 	stencil_mode=m;
-	stencil_operator=1;
+	stencil_operator=o;
 }
 
 

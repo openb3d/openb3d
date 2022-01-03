@@ -16,8 +16,6 @@
 
 Sprite* Sprite::CopyEntity(Entity* parent_ent){
 
-	if(parent_ent==NULL) parent_ent=Global::root_ent;
-
 	// new sprite
 	Sprite* sprite=new Sprite;
 
@@ -119,9 +117,6 @@ void Sprite::FreeEntity(){
 }
 
 Sprite* Sprite::CreateSprite(Entity* parent_ent){
-
-	if (parent_ent==NULL)
-	  parent_ent=Global::root_ent;
 
 	Sprite* sprite=new Sprite;
 	sprite->class_name="Sprite";
