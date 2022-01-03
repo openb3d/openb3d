@@ -529,7 +529,7 @@ void Geosphere::UpdateTerrain(){
 			glDisable(GL_TEXTURE_GEN_S);
 			glDisable(GL_TEXTURE_GEN_T);
 			glDisable(GL_TEXTURE_GEN_R);
-			DisableCubeSphereMapping=0;
+			//DisableCubeSphereMapping=0;
 		}
 
 	}
@@ -574,12 +574,12 @@ void Geosphere::RecreateGeoROAM(){
 	{ h2,  0,  0, size, hsize},
 	{ 0,  0,  h3, hsize, size},
 	{ h4,  0,  0, 0, hsize},
-	{ 0,  0,  h5, hsize, 0},
+	{ 0,  0,  h5, hsize, 1},
 
 	{ 0,  h6,  0, size, size},
 	{ 0,  h6,  0, 0, size},
-	{ 0,  h6,  0, 0, 0},
-	{ 0,  h6,  0, size, 0}};
+	{ 0,  h6,  0, 0, 1},
+	{ 0,  h6,  0, size, 1}};
 
 
 
@@ -887,17 +887,17 @@ void Geosphere::TOASTsub(int l, float v2[], float v1[], float v0[]){
 
 
 	float u,v;
-	u=0.5f * (-1.0 +atan2( v0[2] , v0[0] ) * (-1 / M_PI ));
+	u=0.5f * (-1.0 +atan2( v0[2] , -v0[0] ) * (1 / M_PI ));
 	v=acos( v0[1] ) * ( 1 / M_PI );
 	NormalsMap[5*(int)((int)v0[3]*(int)size+ v0[4])+3]=u*size;
 	NormalsMap[5*(int)((int)v0[3]*(int)size+ v0[4])+4]=v*size;
 
-	u=0.5f * (-1.0 +atan2( v1[2] , v1[0] ) * (-1 / M_PI ));
+	u=0.5f * (-1.0 +atan2( v1[2] , -v1[0] ) * (1 / M_PI ));
 	v=acos( v1[1] ) * ( 1 / M_PI );
 	NormalsMap[5*(int)((int)v1[3]*(int)size+ v1[4])+3]=u*size;
 	NormalsMap[5*(int)((int)v1[3]*(int)size+ v1[4])+4]=v*size;
 
-	u=0.5f * (-1.0 +atan2( v2[2] , v2[0] ) * (-1 / M_PI ));
+	u=0.5f * (-1.0 +atan2( v2[2] , -v2[0] ) * (1 / M_PI ));
 	v=acos( v2[1] ) * ( 1 / M_PI );
 	NormalsMap[5*(int)((int)v2[3]*(int)size+ v2[4])+3]=u*size;
 	NormalsMap[5*(int)((int)v2[3]*(int)size+ v2[4])+4]=v*size;
@@ -1019,12 +1019,12 @@ void Geosphere::EquirectangularToTOAST (){
 	{ 1,  0,  0, size, hsize},
 	{ 0,  0,  1, hsize, size},
 	{-1,  0,  0, 0, hsize},
-	{ 0,  0, -1, hsize, 0},
+	{ 0,  0, -1, hsize, 1},
 
 	{ 0, -1,  0, size, size},
 	{ 0, -1,  0, 0, size},
-	{ 0, -1,  0, 0, 0},
-	{ 0, -1,  0, size, 0}};
+	{ 0, -1,  0, 0, 1},
+	{ 0, -1,  0, size, 1}};
 
 	int l=(int)(log(hsize)/log(2));
 
@@ -1111,7 +1111,7 @@ Geosphere* Geosphere::LoadGeosphere(string filename,Entity* parent_ent){
 		geo=Geosphere::CreateGeosphere(width, parent_ent);
 
 		for (int y=0;y<geo->size;y++){
-			for (int x=0;x<geo->size;x++){
+			for (int x=0;x<=geo->size;x++){
 				int x1=geo->NormalsMap[5*(x*(int)geo->size+ y)+3]*2;
 				int y1=geo->NormalsMap[5*(x*(int)geo->size+ y)+4];
 
@@ -1120,9 +1120,11 @@ Geosphere* Geosphere::LoadGeosphere(string filename,Entity* parent_ent){
 				}
 
 				geo->height[x*(int)geo->size+y]=((float)*(buffer+x1+y1*width))/255.0;
-				geo->NormalsMap[5*(x*(int)geo->size+ y)]=(float)tmpNormals[2*(y1*(int)width+x1)];
-				geo->NormalsMap[5*(x*(int)geo->size+ y)+1]=256;
-				geo->NormalsMap[5*(x*(int)geo->size+ y)+2]=(float)tmpNormals[2*(y1*(int)width+x1)+1];
+				if (x<geo->size) {
+					geo->NormalsMap[5*(x*(int)geo->size+ y)]=(float)tmpNormals[2*(y1*(int)width+x1)];
+					geo->NormalsMap[5*(x*(int)geo->size+ y)+1]=256;
+					geo->NormalsMap[5*(x*(int)geo->size+ y)+2]=(float)tmpNormals[2*(y1*(int)width+x1)+1];
+				}
 			}
 		}
 		stbi_image_free(pixels);
@@ -1171,12 +1173,12 @@ void Geosphere::TreeCheck(CollisionInfo* ci){
 	{ h2,  0,  0, size, hsize},
 	{ 0,  0,  h3, hsize, size},
 	{ h4,  0,  0, 0, hsize},
-	{ 0,  0,  h5, hsize, 0},
+	{ 0,  0,  h5, hsize, 1},
 
 	{ 0,  h6,  0, size, size},
 	{ 0,  h6,  0, 0, size},
-	{ 0,  h6,  0, 0, 0},
-	{ 0,  h6,  0, size, 0}};
+	{ 0,  h6,  0, 0, 1},
+	{ 0,  h6,  0, size, 1}};
 
 
 	// diamond radius - apply entity scale

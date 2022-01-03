@@ -524,7 +524,7 @@ void Terrain::UpdateTerrain(){
 			glDisable(GL_TEXTURE_GEN_S);
 			glDisable(GL_TEXTURE_GEN_T);
 			glDisable(GL_TEXTURE_GEN_R);
-			DisableCubeSphereMapping=0;
+			//DisableCubeSphereMapping=0;
 		}
 
 	}
@@ -557,9 +557,16 @@ void Terrain::RecreateROAM(){
 
 
 	v[0][0] = 0.0; 		v[0][2] = size;
+	v[0][1] = height[(int)size] * vsize;
+
 	v[1][0] = size; 	v[1][2] = size;
+	v[1][1] = height[(int)(size*(size+1))] * vsize;
+
 	v[2][0] = size; 	v[2][2] = 0;
+	v[2][1] = height[(int)(size*size)] * vsize;
+
 	v[3][0] = 0.0; 		v[3][2] = 0;
+	v[3][1] = height[0] * vsize;
 
 	// diamond radius - apply entity scale
 	float rx=EntityScaleX(true);

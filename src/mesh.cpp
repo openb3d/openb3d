@@ -174,6 +174,7 @@ Mesh* Mesh::CopyEntity(Entity* parent_ent){
 		new_surf->tris=surf->tris;
 
 		// copy brush
+		delete new_surf->brush;
 		new_surf->brush=surf->brush->Copy();
 
 		new_surf->vert_array_size=surf->vert_array_size;
@@ -2720,7 +2721,7 @@ void Mesh::Render(){
 				glDisable(GL_TEXTURE_GEN_S);
 				glDisable(GL_TEXTURE_GEN_T);
 				glDisable(GL_TEXTURE_GEN_R);
-				DisableCubeSphereMapping=0;
+				//DisableCubeSphereMapping=0;
 			}
 
 		}

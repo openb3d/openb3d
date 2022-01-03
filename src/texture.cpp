@@ -61,6 +61,7 @@ Texture* Texture::LoadTexture(string filename,int flags){
 		// check to see if texture with same properties exists already, if so return existing texture
 		Texture* old_tex=tex->TexInList();
 		if(old_tex){
+			delete tex;
 			return old_tex;
 		}else{
 			tex_list.push_back(tex);
@@ -140,6 +141,7 @@ Texture* Texture::LoadAnimTexture(string filename,int flags, int frame_width,int
 	// check to see if texture with same properties exists already, if so return existing texture
 	Texture* old_tex=tex->TexInList();
 	if(old_tex){
+		delete tex;
 		return old_tex;
 	}else{
 		tex_list.push_back(tex);
