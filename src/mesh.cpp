@@ -30,6 +30,7 @@
 #include "string_helper.h"
 #include "csg.h"
 #include "3ds.h"
+#include "x.h"
 
 #include <iostream>
 #include <vector>
@@ -308,6 +309,7 @@ Mesh* Mesh::LoadMesh(string filename,Entity* parent_ent){
 	if(parent_ent==NULL) parent_ent=Global::root_ent;
 
 	if(Right(filename,4)==".3ds") return load3ds::Load3ds(filename, parent_ent);//filename=Replace(filename,".3ds",".b3d");
+	if(Right(filename,2)==".x") return loadX::LoadX(filename, parent_ent);
 
 	Entity* ent=LoadAnimMesh(filename);
 	ent->HideEntity();

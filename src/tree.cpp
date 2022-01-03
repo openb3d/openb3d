@@ -1,5 +1,9 @@
 #include "tree.h"
 
+#ifndef NULL
+	#define NULL    0
+#endif
+
 static const unsigned int MAX_COLL_TRIS=16;
 static vector<Vector> tri_centres;
 

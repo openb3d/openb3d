@@ -170,7 +170,7 @@ void ReadFaceMatList(){
     //Stream->SeekFile(Stream->FilePos()+Count*2);
     for (Index = 0; Index<Count;Index++){
       v = Stream->ReadShort();
-      int v0[2];
+      int v0[3];
       for (int i=0;i <3;i++){
         v0[i]=surface->TriangleVertex(v,i);
         float x,y,z,u,v,w;
@@ -379,7 +379,7 @@ Mesh* Load3ds(string URL, Entity* parent_ent){
   if (surface!=0){
     MovedTris.sort();
     int CheckSurface=0;
-    for(list<int>::const_iterator it = MovedTris.end(); it != MovedTris.begin(); it--){
+    for(list<int>::const_reverse_iterator it = MovedTris.rbegin(); it != MovedTris.rend(); it--){
       surface->RemoveTri(*it);
       CheckSurface=1;
     }

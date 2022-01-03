@@ -1103,7 +1103,7 @@ void PositionMesh(Mesh* mesh,float px,float py,float pz){
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=PositionTexture">Online Help</a>
 */
-void PositionTexture(Texture* tex,int u_pos,int v_pos){
+void PositionTexture(Texture* tex,float u_pos,float v_pos){
 	tex->PositionTexture(u_pos,v_pos);
 }
 

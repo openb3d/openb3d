@@ -1,3 +1,10 @@
+V0.62
+Added:
+-Can load some DirectX (.x) files
+
+Fixed:
+-Hiding an entity will hide its shadow, too
+
 V0.6
 
 Added:

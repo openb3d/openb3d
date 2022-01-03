@@ -221,10 +221,9 @@ Entity* Pick::PickMain(float ax,float ay,float az,float bx,float by,float bz,flo
 		
 			m->TreeCheck(); // create collision tree for mesh if necessary
 			tree=m->c_col_tree;
-		}
-		if(dynamic_cast<Terrain*>(&ent)!=0){
+		} else if(dynamic_cast<Terrain*>(&ent)!=0){
 			Terrain* t=dynamic_cast<Terrain*>(&ent);
-			t->TreeCheck(c_col_info); // create collision tree for mesh if necessary
+			t->TreeCheck(c_col_info); // create collision tree for terrain if necessary
 			tree=t->c_col_tree;
 		}
 	

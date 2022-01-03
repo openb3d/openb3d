@@ -3,7 +3,7 @@ list<CSGTriangle*> CSGTriangle::CSGTriangle_list;
 
 namespace CSG{
 
-float npicked[2], tpicked[2];
+float npicked[3], tpicked[3];
 
 float dist(float x, float y, float z, float x2, float y2, float z2){
 
