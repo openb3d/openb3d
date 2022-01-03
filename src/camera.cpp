@@ -117,6 +117,8 @@ Camera* Camera::CopyEntity(Entity* parent_ent){
 	cam->fog_b=fog_b;
 	cam->fog_range_near=fog_range_near;
 	cam->fog_range_far=fog_range_far;
+
+	cam->UpdateProjMatrix();
 	
 	return cam;
 	
@@ -156,6 +158,8 @@ Camera* Camera::CreateCamera(Entity* parent_ent){
 		cam->UpdateMat(true);
 	}
 	
+	cam->UpdateProjMatrix();
+
 	return cam;
 	
 }
@@ -165,6 +169,7 @@ void Camera::CameraViewport(int x,int y,int w,int h){
 	vy=y;
 	vwidth=w;
 	vheight=h;
+	UpdateProjMatrix();
 }
 	
 void Camera::CameraClsColor(float r,float g,float b){
@@ -192,6 +197,7 @@ void Camera::CameraRange(float near,float far){
 void Camera::CameraZoom(float zoom_val){
 
 	zoom=zoom_val;
+	UpdateProjMatrix();
 
 }
 
@@ -509,11 +515,13 @@ void Camera::Update(){
 
 	accPerspective(atan((1.0/(zoom*ratio)))*2.0,ratio,range_near,range_far,0.0,0.0,0.0,0.0,1.0);
 
-	Matrix* new_mat=mat.Inverse();
-	
-	glLoadMatrixf(&new_mat->grid[0][0]);
+	Matrix new_mat=mat.Inverse();
+	//mat.Inverse(Camera::InverseMat);
 
-	delete new_mat;
+	//glLoadMatrixf(&Camera::InverseMat.grid[0][0]);
+
+	glLoadMatrixf(&new_mat.grid[0][0]);
+
 	
 	if(project_enabled){ // only get these directly after a cameraproject/camerapick call, as they are expensive calls
 	
@@ -981,4 +989,33 @@ void Camera::accFrustum(float left_,float right_,float bottom,float top,float zN
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	
+}
+
+void Camera::UpdateProjMatrix(){
+	float ratio=(float(vwidth)/vheight);
+
+	float fov=atan((1.0/(zoom*ratio)));
+	float top=range_near/(cos(fov)/sin(fov));
+	float right_=top*ratio;
+
+	proj_mat[0]=range_near/right_;
+	proj_mat[1]=0;
+	proj_mat[2]=0;
+	proj_mat[3]=0;
+
+	proj_mat[4]=0;
+	proj_mat[5]=range_near/top;
+	proj_mat[6]=0;
+	proj_mat[7]=0;
+
+	proj_mat[8]=0;
+	proj_mat[9]=0;
+	proj_mat[10]=-(range_far+range_near)/(range_far-range_near);
+	proj_mat[11]=-1;
+
+	proj_mat[12]=0;
+	proj_mat[13]=0;
+	proj_mat[14]=(-2*range_far*range_near)/(range_far-range_near);
+	proj_mat[15]=0;
+
 }

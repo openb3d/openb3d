@@ -11,6 +11,7 @@
 #define SURFACE_H
 
 #include "brush.h"
+#include "shadermat.h"
 
 #include <vector>
 using namespace std;
@@ -47,6 +48,7 @@ public:
 	// brush applied to surface
 
 	Brush* brush;
+	ShaderMaterial* ShaderMat;
 	
 	// vbo
 	

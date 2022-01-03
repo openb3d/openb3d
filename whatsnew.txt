@@ -1,0 +1,21 @@
+V0.5
+
+Added:
+- Shader support
+- Command RepeatMesh: creates a new mesh using surfaces of another one: any change to surface of one mesh will affect its clones, too.
+- LightRange now affects shadows, too.
+- MeshCullRadius now works
+- LoadAnimTextures now can extract frames from more than one strip.
+
+Fixed:
+- fixed a bug in FreeEntity that caused memory leaks
+- Shadow anomalies: should be fixed
+- Mesh attached to animated bones were updated only when the animated mesh was turned/moved. Fixed.
+- CreateCylinder (solid mode)
+- EntityParent: when parenting to 0, scale was not restored
+- TranslateEntity: it worked in the wrong way. Fixed.
+- MeshesIntersect: fixed
+- Cleaned the source (thanks to D.J. Peters)
+- CopyEntity terrain: if entitytype was set, it crashed. Fixed.
+- CopyEntity terrain: now brush info are copied, too.
+

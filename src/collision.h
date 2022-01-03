@@ -7,6 +7,7 @@
 #include <set>
 #include <map>
 #include <vector>
+
 using namespace std;
 
 class MeshCollider;
@@ -35,18 +36,16 @@ struct Collision{
 	int surface;
 	int index;
 
-	Collision():time(1){}
+	Collision():time(1){
+  }
 
 	//Collision():time(1),surface(0),index(~0){}
 
-	bool update( const Line &line,float time,const Vector &normal );
-
-	bool sphereCollide( const Line &src_line,float src_radius,const Vector &dest,float dest_radius );
-	bool sphereCollide( const Line &line,float radius,const Vector &dest,const Vector &radii );
-
+	bool update         ( const Line &line,float time,const Vector &normal );
+	bool sphereCollide  ( const Line &src_line,float src_radius,const Vector &dest,float dest_radius );
+	bool sphereCollide  ( const Line &line    ,float radius    ,const Vector &dest,const Vector &radii );
 	bool triangleCollide( const Line &src_line,float src_radius,const Vector &v0,const Vector &v1,const Vector &v2 );
-
-	bool boxCollide( const Line &src_line,float src_radius,const Box &box );
+	bool boxCollide     ( const Line &src_line,float src_radius,const Box &box );
 };
 
 struct CollisionInfo{
@@ -58,7 +57,7 @@ struct CollisionInfo{
 	Vector panic;
 
 	Transform y_tform;
-	
+
 	float radius,inv_y_scale;
 	float y_scale;
 
@@ -67,12 +66,12 @@ struct CollisionInfo{
 
 	Line coll_line;
 	Vector dir;
-	
+
 	float td;
 	float td_xz;
-	
+
 	int hits;
-	
+
 	float dst_radius;
 	float ax;
 	float ay;
@@ -127,7 +126,7 @@ float C_CollisionNX();
 float C_CollisionNY();
 float C_CollisionNZ();
 float C_CollisionTime();
-int C_CollisionSurface();
-int C_CollisionTriangle();
+int   C_CollisionSurface();
+int   C_CollisionTriangle();
 
 #endif

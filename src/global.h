@@ -13,6 +13,8 @@
 #include "pivot.h"
 #include "mesh.h"
 
+class Camera;
+
 class Global{
 
 public:
@@ -30,6 +32,8 @@ public:
 	static int fog_enabled; // used to keep track of whether fog is enabled between camera update and mesh render
 
 	static Pivot* root_ent;
+
+	static Camera* camera_in_use;
 	
 	static void Graphics();
 	

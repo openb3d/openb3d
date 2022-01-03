@@ -1,3 +1,6 @@
+#ifndef TEXTURE_H
+#define TEXTURE_H
+
 /*
  *  texture.h
  *  iminib3d
@@ -7,22 +10,20 @@
  *
  */
 
-#ifndef TEXTURE_H
-#define TEXTURE_H
-
 //#import "Texture2D.h"
 
 #include <list>
 #include <string>
 #include <iostream>
+
 using namespace std;
 
 class Texture{
-	
+
 public:
-	
+
 	unsigned int texture;
-	
+
 	static list<Texture*> tex_list;
 
 	string file;
@@ -35,9 +36,9 @@ public:
 	int no_frames;
 	int no_mipmaps;
 	int cube_face,cube_mode;
-	
+
 	Texture(){
-	
+
 		//texture=NULL;
 		file="";
 		flags=0,blend=2,coords=0;
@@ -47,9 +48,9 @@ public:
 		no_frames=1;
 		no_mipmaps=0;
 		cube_face=0,cube_mode=1;
-	
+
 	};
-	
+
 	static Texture* LoadTexture(string filename,int flags=0);
 	static Texture* LoadAnimTexture(string filename,int flags=0, int frame_width=0,int frame_height=0,int first_frame=0,int frame_count=1);
 	static Texture* CreateTexture(int width=256,int height=256,int flags=3, int frames=0);

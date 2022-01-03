@@ -54,34 +54,34 @@ Terrain* Terrain::CopyEntity(Entity* parent_ent){
 		Entity* ent=*it;
 		ent->CopyEntity(terr);
 	}
-	
+
 	// lists
-	
+
 	// add parent, add to list
 	terr->AddParent(*parent_ent);
 	entity_list.push_back(terr);
-	
+
 	// add to collision entity list
 	if(collision_type!=0){
 		CollisionPair::ent_lists[collision_type].push_back(terr);
 	}
-	
+
 	// add to pick entity list
 	if(pick_mode){
 		Pick::ent_list.push_back(terr);
 	}
-	
+
 	// update matrix
 	if(terr->parent){
 		terr->mat.Overwrite(terr->parent->mat);
 	}else{
 		terr->mat.LoadIdentity();
 	}
-	
+
 	// copy entity info
-	
+
 	terr->mat.Multiply(mat);
-	
+
 	terr->px=px;
 	terr->py=py;
 	terr->pz=pz;
@@ -100,7 +100,7 @@ Terrain* Terrain::CopyEntity(Entity* parent_ent){
 	terr->class_name=class_name;
 	terr->order=order;
 	terr->hide=false;
-	
+
 	terr->cull_radius=cull_radius;
 	terr->radius_x=radius_x;
 	terr->radius_y=radius_y;
@@ -114,11 +114,15 @@ Terrain* Terrain::CopyEntity(Entity* parent_ent){
 	terr->obscurer=obscurer;
 
 	//copy terrain info
+	terr->brush=*brush.Copy();
+
+	terr->ShaderMat=ShaderMat;
+
 	terr->size=size;
 	terr->vsize=vsize;
 	for (int i = 0; i<= ROAM_LMAX+1; i++){
 		terr->level2dzsize[i] = level2dzsize[i];
-	}		
+	}
 	int tsize=size;
 	terr->height=new float[(tsize+1)*(tsize+1)];
 	for (int i = 0; i<= (tsize+1)*(tsize+1); i++){
@@ -128,6 +132,12 @@ Terrain* Terrain::CopyEntity(Entity* parent_ent){
 	for (int i = 0; i<= (tsize+1)*(tsize+1)*3; i++){
 		terr->NormalsMap[i]=NormalsMap[i];
 	}
+
+	mesh_info=C_NewMeshInfo();
+	terr->c_col_tree=C_CreateColTree(mesh_info);
+	C_DeleteMeshInfo(mesh_info);
+
+	terrain_list.push_back(terr);
 
 
 	return terr;
@@ -142,15 +152,15 @@ Terrain* Terrain::CreateTerrain(int tsize, Entity* parent_ent){
 
 	for (int i = 0; i<= ROAM_LMAX; i++){
 		terr->level2dzsize[i] = 0;
-	}		
+	}
         int lmax=tsize/100+10;
 	if (lmax>=ROAM_LMAX) lmax=ROAM_LMAX;
 
 	for (int i = 0; i<= lmax; i++){
 		terr->level2dzsize[i] = (float)pow((float)tsize/2048 / sqrt((float)(1 << i)),2);	// <-------------terrain detail here
-	}		
+	}
 
-
+	terr->ShaderMat=0;
 
 	//terr->brush=new brush;
 	mesh_info=C_NewMeshInfo();
@@ -167,14 +177,14 @@ Terrain* Terrain::CreateTerrain(int tsize, Entity* parent_ent){
 	}
 
 	return terr;
-	
+
 }
 
 void Terrain::UpdateTerrain(){
 
 	int fog=false;
 	if (glIsEnabled(GL_FOG)==GL_TRUE) fog=true; // if fog enabled, we'll enable it again at end of each surf loop in case of fx flag disabling it
-		
+
 	glDisable(GL_ALPHA_TEST);
 
 	if (order!=0){
@@ -199,7 +209,7 @@ void Terrain::UpdateTerrain(){
 			glBlendFunc(GL_SRC_ALPHA,GL_ONE); // additive and alpha
 			break;
 		}
-		
+
 	float ambient_red,ambient_green,ambient_blue;
 
 	// fx flag 1 - full bright ***todo*** disable all lights?
@@ -219,7 +229,7 @@ void Terrain::UpdateTerrain(){
 	}else{
 			glDisable(GL_COLOR_MATERIAL);
 	}
-		
+
 	// fx flag 4 - flatshaded
 	if(brush.fx&4){
 		glShadeModel(GL_FLAT);
@@ -231,7 +241,7 @@ void Terrain::UpdateTerrain(){
 	if(brush.fx&8){
 			glDisable(GL_FOG);
 	}
-		
+
 	// fx flag 16 - disable backface culling
 	if(brush.fx&16){
 		glDisable(GL_CULL_FACE);
@@ -240,8 +250,8 @@ void Terrain::UpdateTerrain(){
 	}
 
 	// light + material color
-		
-	float ambient[]={ambient_red,ambient_green,ambient_blue};	
+
+	float ambient[]={ambient_red,ambient_green,ambient_blue};
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT,ambient);
 
 	float mat_ambient[]={brush.red,brush.green,brush.blue,brush.alpha};
@@ -255,15 +265,20 @@ void Terrain::UpdateTerrain(){
 	glMaterialfv(GL_FRONT_AND_BACK,GL_SHININESS,mat_shininess);
 
 	// textures
-			
+
 	int tex_count=0;
+
+	if(ShaderMat!=NULL){
+		ShaderMat->TurnOn(0, mat);
+	}
+
 	tex_count=brush.no_texs;
 
 	int DisableCubeSphereMapping=0;
 	for(int ix=0;ix<tex_count;ix++){
 
 		if(brush.tex[ix]){
-				
+
 			// Main brush texture takes precedent over surface brush texture
 			unsigned int texture=0;
 			int tex_flags=0,tex_blend=0,tex_coords=0;
@@ -295,7 +310,7 @@ void Terrain::UpdateTerrain(){
 			}else{
 				glDisable(GL_ALPHA_TEST);
 			}
-			
+
 			// mipmapping texture flag
 			if(tex_flags&8){
 				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
@@ -304,21 +319,21 @@ void Terrain::UpdateTerrain(){
 				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
 				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 			}
-				
+
 			// clamp u flag
 			if(tex_flags&16){
 				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
-			}else{						
+			}else{
 				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
 			}
-				
+
 			// clamp v flag
 			if(tex_flags&32){
 				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
 			}else{
 				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
 			}
-		
+
 				// ***!ES***
 
 			// spherical environment map texture flag
@@ -332,19 +347,19 @@ void Terrain::UpdateTerrain(){
 				glDisable(GL_TEXTURE_GEN_S);
 				glDisable(GL_TEXTURE_GEN_T);
 			}*/
-			
+
 				// cubic environment map texture flag
 				if(tex_flags&128){
-	
+
 					glEnable(GL_TEXTURE_CUBE_MAP);
 					glBindTexture(GL_TEXTURE_CUBE_MAP,texture); // call before glTexParameteri
-					
+
 					glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
 					glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
 					glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_WRAP_R,GL_CLAMP_TO_EDGE);
 					glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
 					glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
-					
+
 					glEnable(GL_TEXTURE_GEN_S);
 					glEnable(GL_TEXTURE_GEN_T);
 					glEnable(GL_TEXTURE_GEN_R);
@@ -355,30 +370,30 @@ void Terrain::UpdateTerrain(){
 						glTexGeni(GL_T,GL_TEXTURE_GEN_MODE,GL_REFLECTION_MAP);
 						glTexGeni(GL_R,GL_TEXTURE_GEN_MODE,GL_REFLECTION_MAP);
 					}
-					
+
 					if(tex_cube_mode==2){
 						glTexGeni(GL_S,GL_TEXTURE_GEN_MODE,GL_NORMAL_MAP);
 						glTexGeni(GL_T,GL_TEXTURE_GEN_MODE,GL_NORMAL_MAP);
 						glTexGeni(GL_R,GL_TEXTURE_GEN_MODE,GL_NORMAL_MAP);
 					}
 					DisableCubeSphereMapping=1;
-		
+
 				}else  if (DisableCubeSphereMapping!=0){
 
 					glDisable(GL_TEXTURE_CUBE_MAP);
-					
+
 					// only disable tex gen s and t if sphere mapping isn't using them
-					if(tex_flags&64==0){
+					if((tex_flags & 64)==0){
 						glDisable(GL_TEXTURE_GEN_S);
 						glDisable(GL_TEXTURE_GEN_T);
 					}
-					
+
 					glDisable(GL_TEXTURE_GEN_R);
 					//glDisable(GL_TEXTURE_GEN_Q)
-	
+
 				}
-				
-				
+
+
 			switch(tex_blend){
 				case 0: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);
 				break;
@@ -401,11 +416,11 @@ void Terrain::UpdateTerrain(){
 				default: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
 			}
 
-						
+
 			// reset texture matrix
 			glMatrixMode(GL_TEXTURE);
 			glLoadIdentity();
-						
+
 			if(tex_u_pos!=0.0 || tex_v_pos!=0.0){
 				glTranslatef(tex_u_pos,tex_v_pos,0.0);
 			}
@@ -415,18 +430,18 @@ void Terrain::UpdateTerrain(){
 			if(tex_u_scale!=1.0 || tex_v_scale!=1.0){
 				glScalef(tex_u_scale,tex_v_scale,1.0);
 			}
-	
+
 			// ***!ES***
 			// if spheremap flag=true then flip tex
 			if(tex_flags&64){
 				glScalef(1.0,-1.0,-1.0);
 			}
-				
-			// if cubemap flag=true then manipulate texture matrix so that cubemap is displayed properly 
+
+			// if cubemap flag=true then manipulate texture matrix so that cubemap is displayed properly
 			if(tex_flags&128){
 
 				glScalef(1.0,-1.0,-1.0);
-					
+
 				// get current modelview matrix (set in last camera update)
 				float mod_mat[16];
 				glGetFloatv(GL_MODELVIEW_MATRIX,&mod_mat[0]);
@@ -434,7 +449,7 @@ void Terrain::UpdateTerrain(){
 				// get rotational inverse of current modelview matrix
 				Matrix new_mat;
 				new_mat.LoadIdentity();
-					
+
 				new_mat.grid[0][0] = mod_mat[0];
 				new_mat.grid[1][0] = mod_mat[1];
 				new_mat.grid[2][0] = mod_mat[2];
@@ -446,17 +461,17 @@ void Terrain::UpdateTerrain(){
 				new_mat.grid[0][2] = mod_mat[8];
 				new_mat.grid[1][2] = mod_mat[9];
 				new_mat.grid[2][2] = mod_mat[10];
-				
+
 				glMultMatrixf(&new_mat.grid[0][0]);
 
 			}
-			
-								
+
+
 		}
-		
+
 	}
 
-	// draw tris		
+	// draw tris
 	glMatrixMode(GL_MODELVIEW);
 
 	glPushMatrix();
@@ -466,16 +481,16 @@ void Terrain::UpdateTerrain(){
 
 	// disable all texture layers
 	for(int ix=0;ix<tex_count;ix++){
-	
+
 		glActiveTexture(GL_TEXTURE0+ix);
 		glClientActiveTexture(GL_TEXTURE0+ix);
-			
+
 		// reset texture matrix
 		glMatrixMode(GL_TEXTURE);
 		glLoadIdentity();
-			
+
 		glDisable(GL_TEXTURE_2D);
-			
+
 		// ***!ES***
 		if (DisableCubeSphereMapping!=0){
 			glDisable(GL_TEXTURE_CUBE_MAP);
@@ -484,13 +499,16 @@ void Terrain::UpdateTerrain(){
 			glDisable(GL_TEXTURE_GEN_R);
 			DisableCubeSphereMapping=0;
 		}
-	
+
 	}
 
 	if (fog==true){
 		glEnable(GL_FOG);
 	}
 
+	if(ShaderMat!=NULL){
+		ShaderMat->TurnOff();
+	}
 
 }
 
@@ -505,10 +523,10 @@ void Terrain::RecreateROAM(){
 	ycf = tformed_y;
 	zcf = -tformed_z;
 
-	int i;
+	//int i;
 	float v[4][3];
-	
-			
+
+
 	v[0][0] = 0.0; 		v[0][2] = size;
 	v[1][0] = size; 	v[1][2] = size;
 	v[2][0] = size; 	v[2][2] = 0;
@@ -540,7 +558,7 @@ void Terrain::RecreateROAM(){
 	triangleindex = 0;
 
 	glBegin(GL_TRIANGLES);
-			
+
 	/* recurse on the two base triangles */
 	drawsub(0, v[0], v[1], v[2]);
 	drawsub(0, v[2], v[3], v[0]);
@@ -560,16 +578,16 @@ void Terrain::drawsub(int l, float v0[], float v1[], float v2[]){
 	float dx,dy,dz;	/* difference vector */
 	float rd;	/* squared sphere bound radius */
 	float rc;	/* squared distance from vc To camera position */
-	
+
 	if (l < ROAM_LMAX) {
-		/* compute split point of base edge */				
+		/* compute split point of base edge */
 		vc[0] = (v0[0] + v2[0]) / 2;
 		vc[2] = (v0[2] + v2[2]) / 2;
 		vc[1] = height[(int)(vc[0]*size+ vc[2])] * vsize;
 
-	
+
 		ds = level2dzsize[l];
-	
+
 		/* compute radius of diamond bounding sphere (squared) */
 		float x,y,z;
 		x = vc[0];
@@ -592,9 +610,8 @@ void Terrain::drawsub(int l, float v0[], float v1[], float v2[]){
 		rc = dx * dx + dy * dy + dz * dz;
 		if (rc > rd) {rd = rc;}
 		rd = sqrt(rd)*dradius;
-					
-		int i, m;
-		m = 1;
+
+		int m = 1;
 
 		/*TFormPoint(vc[0],vc[1],vc[2],this,0);
 		float vcx=tformed_x;
@@ -611,20 +628,20 @@ void Terrain::drawsub(int l, float v0[], float v1[], float v2[]){
 			if (d <= -rd) return;//{ds=ds/10; break;}
 			m = m << 1;
 		}
-	
+
 		/* compute distance from split point To camera (squared) */
 		dx = vc[0] - xcf;
 		dy = vc[1] - ycf;
 		dz = vc[2] - zcf;
 		rc = dx*dx+dy*dy+dz*dz;
-					
+
 		/* If not error large on screen, recursively split */
 		if (ds > (rc * 0.000000003)) {/*<---------terrain detail here*/
 			drawsub(l + 1, v1, vc, v0);
 			drawsub(l + 1, v2, vc, v1);
 			return;
 		}
-		
+
 	 }
 	float uv[3];
 
@@ -646,7 +663,7 @@ void Terrain::drawsub(int l, float v0[], float v1[], float v2[]){
 	nz /= ns;*/
 
 
-									
+
 	uv[0]=v0[0]; uv[1]=v0[2]; uv[2]=0;
 	glMultiTexCoord2f(GL_TEXTURE0, uv[0], uv[1]);
 	glMultiTexCoord2f(GL_TEXTURE1, uv[0], uv[1]);
@@ -654,7 +671,7 @@ void Terrain::drawsub(int l, float v0[], float v1[], float v2[]){
 	glNormal3fv (&NormalsMap[3*(int)(v0[0]*size+ v0[2])]);
 	glTexCoord2fv(&uv[0]);
 	glVertex3fv(&v0[0]);
-		
+
 	uv[0]=v1[0]; uv[1]=v1[2]; uv[2]=0;
 	glMultiTexCoord2f(GL_TEXTURE0, uv[0], uv[1]);
 	glMultiTexCoord2f(GL_TEXTURE1, uv[0], uv[1]);
@@ -662,7 +679,7 @@ void Terrain::drawsub(int l, float v0[], float v1[], float v2[]){
 	glNormal3fv (&NormalsMap[3*(int)(v1[0]*size+ v1[2])]);
 	glTexCoord2fv(&uv[0]);
 	glVertex3fv(&v1[0]);
-		
+
 	uv[0]=v2[0]; uv[1]=v2[2]; uv[2]=0;
 	glMultiTexCoord2f(GL_TEXTURE0, uv[0], uv[1]);
 	glMultiTexCoord2f(GL_TEXTURE1, uv[0], uv[1]);
@@ -677,13 +694,13 @@ void Terrain::drawsub(int l, float v0[], float v1[], float v2[]){
 	C_AddVertex(mesh_info,v2[0],v2[1],-v2[2],0);
 	C_AddTriangle(mesh_info, triangleindex, triangleindex*3+2, triangleindex*3+1, triangleindex*3+0, 0);
 	triangleindex++;
-*/	
-						
+*/
+
 }
 
 
 void Terrain::UpdateNormals(){
-	float v0[3],v1[3],v2[3];
+	//float v0[3],v1[3],v2[3];
 	for (int x=1;x<=size-1;x++){
 		for (int y=1;y<=size-1;y++){
 			NormalsMap[3*(x*(int)size+y)]=height[(x-1)*(int)size+y] - height[(x+1)*(int)size+y];
@@ -711,16 +728,16 @@ Terrain* Terrain::LoadTerrain(string filename,Entity* parent_ent){
 		cout << "Error: Cannot Find Terrain: " << filename << endl;
 		return NULL;
 	}
-	
+
 	string filename_left=Left(filename,Len(filename)-4);
 	string filename_right=Right(filename,3);
-	
-	const char* c_filename_left=filename_left.c_str();
-	const char* c_filename_right=filename_right.c_str();
+
+	//const char* c_filename_left=filename_left.c_str();
+	//const char* c_filename_right=filename_right.c_str();
 
 
 	unsigned char* buffer;
-	
+
 	int width,height;
 
 	buffer=stbi_load(filename.c_str(),&width,&height,0,1);
@@ -734,7 +751,7 @@ Terrain* Terrain::LoadTerrain(string filename,Entity* parent_ent){
 	for (int x=0;x<=terr->size-1;x++){
 		for (int y=0;y<=terr->size-1;y++){
 			terr->height[x*(int)terr->size+y]=((float)*buffer)/255.0;
-			buffer++;		
+			buffer++;
 		}
 	}
 
@@ -762,10 +779,10 @@ void Terrain::TreeCheck(CollisionInfo* ci){
 	Ray.d.z = -tformed_z;*/
 
 
-	int i;
+	//int i;
 	float v[4][3];
-	
-			
+
+
 	v[0][0] = 0.0; 		v[0][2] = size;
 	v[1][0] = size; 	v[1][2] = size;
 	v[2][0] = size; 	v[2][2] = 0;
@@ -796,7 +813,7 @@ void Terrain::TreeCheck(CollisionInfo* ci){
 	mesh_info=C_NewMeshInfo();
 	triangleindex = 0;
 
-			
+
 	/* recurse on the two base triangles */
 	col_tree_sub(0, v[0], v[1], v[2]);
 	col_tree_sub(0, v[2], v[3], v[0]);
@@ -816,16 +833,16 @@ void Terrain::col_tree_sub(int l, float v0[], float v1[], float v2[]){
 	float dx,dy,dz;	/* difference vector */
 	float rd;	/* squared sphere bound radius */
 	float rc;	/* squared distance from vc To camera position */
-	
+
 	if (l < ROAM_LMAX) {
-		/* compute split point of base edge */				
+		/* compute split point of base edge */
 		vc[0] = (v0[0] + v2[0]) / 2;
 		vc[2] = (v0[2] + v2[2]) / 2;
 		vc[1] = height[(int)(vc[0]*size+ vc[2])] * vsize;
 
-	
+
 		ds = level2dzsize[l];
-	
+
 		/* compute radius of diamond bounding sphere (squared) */
 		float x,y,z;
 		x = vc[0];
@@ -848,9 +865,8 @@ void Terrain::col_tree_sub(int l, float v0[], float v1[], float v2[]){
 		rc = dx * dx + dy * dy + dz * dz;
 		if (rc > rd) {rd = rc;}
 		rd = sqrt(rd)*dradius;
-					
-		int i, m;
-		m = 1;
+
+		//int m = 1;
 
 		/*TFormPoint(vc[0],vc[1],vc[2],this,0);
 		float vcx=tformed_x;
@@ -879,20 +895,20 @@ void Terrain::col_tree_sub(int l, float v0[], float v1[], float v2[]){
 
 		if (d<0) return;
 
-	
+
 		/* compute distance from split point To camera (squared) */
 		dx = vc[0] - xcf;
 		dy = vc[1] - ycf;
 		dz = vc[2] - zcf;
 		rc = dx*dx+dy*dy+dz*dz;
-					
+
 		/* If not error large on screen, recursively split */
 		if (ds > (rc * 0.000000003)) {/*<---------terrain detail here*/
 			col_tree_sub(l + 1, v1, vc, v0);
 			col_tree_sub(l + 1, v2, vc, v1);
 			return;
 		}
-		
+
 	 }
 
 
@@ -948,5 +964,20 @@ float Terrain::TerrainY (float x, float y, float z){
 float Terrain::TerrainZ (float x, float y, float z){
 	TFormPoint(x, y, z, 0, this);
 	return tformed_z;
+}
+
+void Terrain::FreeEntity(){
+
+	delete[] height;
+	delete[] NormalsMap;		
+
+	delete c_col_tree;
+
+	Entity::FreeEntity();
+
+	delete this;
+
+	return;
+
 }
 

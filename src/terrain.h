@@ -12,6 +12,9 @@
 #include <iostream>
 #include <string>
 
+#include "shadermat.h"
+
+
 using namespace std;
 
 const int ROAM_LMAX = 20; 		//<-----------terrain detail here	
@@ -20,6 +23,8 @@ class Terrain : public Entity{
 private:
 	Matrix* tmat;
 	float dradius;
+	float* NormalsMap;
+	float xcf,ycf,zcf; 			//used to store camera position
 
 public:
 	static list<Terrain*> terrain_list;
@@ -31,15 +36,18 @@ public:
 
 	float level2dzsize[ROAM_LMAX+1]; 	/* Max midpoint displacement per level     */
 	float* height; 				//heightmap
-	float* NormalsMap;
-	float xcf,ycf,zcf; 			//used to store camera position
-	Camera* eyepoint; 			//reference to camera
 	MeshCollider* c_col_tree;
+
+	Camera* eyepoint; 			//reference to camera
+
+	ShaderMaterial* ShaderMat;
 
 
 	static Terrain* CreateTerrain(int tsize=0, Entity* parent_ent=NULL);
 	static Terrain* LoadTerrain(string filename,Entity* parent_ent=NULL);
 	Terrain* CopyEntity(Entity* parent_ent=NULL);
+	void FreeEntity(void);
+
 	void UpdateTerrain();
 	void RecreateROAM();
 	void drawsub(int l, float v0[], float v1[], float v2[]);
@@ -54,6 +62,7 @@ public:
 
 	Terrain(){
 		size=0;
+		ShaderMat=0;
 	};
 
 

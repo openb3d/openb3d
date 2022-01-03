@@ -1,3 +1,6 @@
+#ifndef ANIMATION_KEYS_H
+#define ANIMATION_KEYS_H
+
 /*
  *  animation_keys.h
  *  iminib3d
@@ -7,8 +10,6 @@
  *
  */
 
-#ifndef ANIMATION_KEYS_H
-#define ANIMATION_KEYS_H
 
 #include <vector>
 using namespace std;
@@ -29,17 +30,15 @@ public:
 	vector<float> qx;
 	vector<float> qy;
 	vector<float> qz;
-	
+
 	AnimationKeys(){
-	
-		frames=0;
-		
+    frames=0;
 	}
 
 	AnimationKeys* Copy(){
-	
+
 		AnimationKeys* keys=new AnimationKeys;
-	
+
 		keys->frames=frames;
 		keys->flags=flags;
 		keys->px=px;
@@ -54,9 +53,9 @@ public:
 		keys->qz=qz;
 
 		return keys;
-	
+
 	}
-	
+
 };
 
 #endif

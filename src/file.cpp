@@ -34,7 +34,7 @@ using namespace std;
 	if(c_docs_dir==NULL){
 		success=CFStringGetCString(documentsDirectory,localBuffer,300,kCFStringEncodingMacRoman);
 	}
-	
+
 	string docs_dir="";
 
 	if(success){
@@ -51,13 +51,13 @@ string File::ResourceFilePath(string filename){
 
 	if(filename==""){
 		return "";
-	}	
+	}
 
 	if(filename==""){
 		return "";
 	}
-	
-	const char* c_filename=filename.c_str();
+
+	//const char* c_filename=filename.c_str();
 
 	/*NSString* ns_string = [NSString stringWithUTF8String: c_filename];
 
@@ -80,7 +80,7 @@ string File::ResourceFilePath(string filename){
 	//cout << "fileString: " << fileString << endl;
 
 	const char* filename2=CFStringGetCStringPtr(fileString,CFStringGetSystemEncoding());*/
-	
+
 	return filename;
 
 }
@@ -88,7 +88,7 @@ string File::ResourceFilePath(string filename){
 File* File::ReadResourceFile(string filename){
 
 	string filename2=ResourceFilePath(filename);
-	
+
 	if(filename2==""){
 		cout << "Error: No Filename: " << filename << endl;
 	}
@@ -96,15 +96,15 @@ File* File::ReadResourceFile(string filename){
 	const char* c_filename=filename2.c_str();
 
 	FILE* pFile=fopen(c_filename,"rb");
-	
+
 	if(pFile==NULL){
 		cout << "Error: Cannot Find Resource File: " << filename << endl;
 		return NULL;
 	}
-	
+
 	File* file=new File();
 	file->pFile=pFile;
-	
+
 	return file;
 
 }
@@ -114,7 +114,7 @@ File* File::ReadFile(string filename){
 /*	if(filename==""){
 		RuntimeError("Error: No Filename");
 	}*/
-	
+
 	string filename2=filename;
 
 	FILE* pFile=fopen(filename2.c_str(),"rb");
@@ -123,7 +123,7 @@ File* File::ReadFile(string filename){
 		cout << "Error: Can't Find Document File '"+filename+"'" << endl;
 		return NULL;
 	}
-	
+
 	File* file=new File();
 	file->pFile=pFile;
 
@@ -136,19 +136,19 @@ File* File::WriteFile(string filename){
 /*	if(filename==""){
 		RuntimeError("Error: No Filename");
 	}*/
-	
+
 	string filename2=filename;
 
 	FILE* pFile=fopen(filename2.c_str(), "wb" );
-	
+
 	if(pFile==NULL){
 		cout << "Error: Can't Write File '"+filename+"'" << endl;
 		return NULL;
 	}
-	
+
 	File* file=new File();
 	file->pFile=pFile;
-	
+
 	return file;
 
 }
@@ -156,7 +156,7 @@ File* File::WriteFile(string filename){
 void File::CloseFile(){
 
 	fclose(pFile);
-	
+
 	delete this;
 
 }
@@ -167,7 +167,7 @@ char File::ReadByte(){
 	fread(&c,1,1,pFile);
 
 	return c;
-	
+
 }
 
 short File::ReadShort(){
@@ -176,7 +176,7 @@ short File::ReadShort(){
 	fread(&s,1,2,pFile);
 
 	return s;
-	
+
 }
 
 int File::ReadInt(){
@@ -185,7 +185,7 @@ int File::ReadInt(){
 	fread(&i,1,4,pFile);
 
 	return i;
-	
+
 }
 
 long File::ReadLong(){
@@ -194,7 +194,7 @@ long File::ReadLong(){
 	fread(&l,1,8,pFile);
 
 	return l;
-	
+
 }
 
 float File::ReadFloat(){
@@ -203,27 +203,27 @@ float File::ReadFloat(){
 	fread(&f,1,4,pFile);
 
 	return f;
-	
+
 }
 
 string File::ReadString(){
 
 	int length=ReadInt();
-	
+
 	char* c=new char[length+1];
 	fgets(c,length+1,pFile);
 
 	string s=c;
 
 	return s;
-	
+
 }
 
 string File::ReadLine(){
 
 	string s;
 	char c=ReadByte();
-	
+
 	// get string up to first new line character of end of file
 	while(c!=13 && c!=10 && Eof()!=true){
 
@@ -231,11 +231,11 @@ string File::ReadLine(){
 			s=s+c;
 		}
 		c=ReadByte();
-		
+
 	}
-	
+
 	int pos=-1;
-	
+
 	// pass possible remaining new line character
 	if(Eof()!=true){
 		pos=FilePos();
@@ -244,7 +244,7 @@ string File::ReadLine(){
 	}
 
 	return s;
-	
+
 }
 
 void File::WriteByte(char c){
@@ -252,7 +252,7 @@ void File::WriteByte(char c){
 	fwrite(&c,1,1,pFile);
 
 	return;
-	
+
 }
 
 void File::WriteShort(short s){
@@ -260,7 +260,7 @@ void File::WriteShort(short s){
 	fwrite(&s,1,2,pFile);
 
 	return;
-	
+
 }
 
 void File::WriteInt(int i){
@@ -268,7 +268,7 @@ void File::WriteInt(int i){
 	fwrite(&i,1,4,pFile);
 
 	return;
-	
+
 }
 
 void File::WriteLong(long l){
@@ -276,7 +276,7 @@ void File::WriteLong(long l){
 	fwrite(&l,1,8,pFile);
 
 	return;
-	
+
 }
 
 void File::WriteFloat(float f){
@@ -284,38 +284,38 @@ void File::WriteFloat(float f){
 	fwrite(&f,1,4,pFile);
 
 	return;
-	
+
 }
 
 void File::WriteString(string s){
 
 	const char* cs=s.c_str();
-	
+
 	fputs(cs,pFile);
 
 	return;
-	
+
 }
 
 void File::WriteLine(string s){
 
-	for(int i=0;i<s.length();i++){
+	for(unsigned int i=0;i<s.length();i++){
 
 		string sc=&s[i];
 		const char* c=sc.c_str();
-		
+
 		WriteByte(*c);
-		
+
 	}
-	
+
 	char c13=13;
 	char c10=10;
-	
+
 	WriteByte(c13);
 	WriteByte(c10);
-	
+
 	return;
-	
+
 }
 
 void File::SeekFile(int pos){
@@ -333,16 +333,16 @@ int File::FilePos(){
 int File::Eof(){
 
 	int endof=0;
-	
+
 	int pos=ftell(pFile);
 
 	char c;
 	fread(&c,1,1,pFile);
 
 	endof=feof(pFile);
-	
+
 	fseek(pFile,pos,SEEK_SET);
-	
+
 	return endof;
 
 }

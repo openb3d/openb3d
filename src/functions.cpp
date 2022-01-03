@@ -1,48 +1,23 @@
-// Procedural Interfaces
+#include "texture.h"
+#include "entity.h"
+#include "mesh.h"
+#include "global.h"
+#include "camera.h"
+#include "pick.h"
+#include "light.h"
+#include "shadow.h"
 
-/*
-bbdoc: Minib3d Only
-about:
-This command is included as MiniB3D currently does not have the same buffer commands as Blitz3D.
+extern "C" {
 
-Use this command to copy a region of the backbuffer to a texture.
-
-The region copied from the backbuffer will start at (0,0), and end at the texture's width and height.
-
-Therefore if you want to copy the whole of a 3D scene to a texture, you must first resize the camera viewport to the size of 
-the texture, use RenderWorld to render the camera, then use this command to copy the backbuffer to the texture.
-
-Note that if a texture has the mipmap flag enabled (by default it does), then this command must be called for each mipmap,
-otherwise the texture will appear to fade into a different, non-matching mipmap as you move away from it. A routine similar to
-the one below will copy the backbuffer to each mipmap, making sure the camera viewport is the same size as the mipmap.
-
-For i=0 Until tex.CountMipmaps()
-	CameraViewport 0,0,tex.MipmapWidth(),tex.MipmapHeight()
-	Renderworld
-	BackBufferToTex(tex,i)
-Next
-
-It may be easier to disable the mipmap flag for the texture. To do so, use ClearTextureFilters after calling Graphics3D 
-(the mipmap flag is a default filter).
-
-If you are using this command to copy to a cubemap texture, use SetCubeFace to first select which portion of the texture you
-will be copying to. Note that in MiniB3D mipmaps are not used by cubemaps, so ignore the information about mipmaps for normal 
-textures above.
-
-See the cubemap.bmx example included with MiniB3D to learn more about cubemapping.
-*/
-
-extern "C" { 
-
-int BufferToTex(Texture* tex,unsigned char* buffer, int frame){
+void BufferToTex(Texture* tex,unsigned char* buffer, int frame){
 	tex->BufferToTex(buffer,frame);
 }
 
-int BackBufferToTex(Texture* tex,int frame){
+void BackBufferToTex(Texture* tex,int frame){
 	tex->BackBufferToTex(frame);
 }
 
-int TexToBuffer(Texture* tex,unsigned char* buffer, int frame){
+void TexToBuffer(Texture* tex,unsigned char* buffer, int frame){
 	tex->TexToBuffer(buffer,frame);
 }
 
@@ -52,16 +27,16 @@ bbdoc: Minib3d Only
 about:
 This command is the equivalent of Blitz3D's MeshCullBox command.
 
-It is used to set the radius of a mesh's 'cull sphere' - if the 'cull sphere' is not inside the viewing area, the mesh will not 
+It is used to set the radius of a mesh's 'cull sphere' - if the 'cull sphere' is not inside the viewing area, the mesh will not
 be rendered.
 
 A mesh's cull radius is set automatically, therefore in most cases you will not have to use this command.
 
-One time you may have to use it is for animated meshes where the default cull radius may not take into account all animation 
+One time you may have to use it is for animated meshes where the default cull radius may not take into account all animation
 positions, resulting in the mesh being wrongly culled at extreme positions.
 */
-int MeshCullRadius(Entity* ent, float radius){
-//	ent->MeshCullRadius(radius);
+void MeshCullRadius(Entity* ent, float radius){
+  	ent->cull_radius=-radius;
 }
 
 // Blitz3D functions, A-Z
@@ -76,7 +51,7 @@ int AddAnimSeq(Entity* ent,int length){
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=AddMesh">Online Help</a>
 */
-int AddMesh(Mesh* mesh1,Mesh* mesh2){
+void AddMesh(Mesh* mesh1,Mesh* mesh2){
 	mesh1->AddMesh(mesh2);
 }
 
@@ -90,28 +65,28 @@ int AddTriangle(Surface* surf,int v0,int v1,int v2){
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=AddVertex">Online Help</a>
 */
-int AddVertex(Surface* surf,float x, float y,float z,float u=0.0, float v=0.0,float w=0.0){
+int AddVertex(Surface* surf,float x, float y,float z,float u, float v,float w){
 	return surf->AddVertex(x,y,z,u,v,w);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=AmbientLight">Online Help</a>
 */
-int AmbientLight(float r,float g,float b){
+void AmbientLight(float r,float g,float b){
 	Global::AmbientLight(r,g,b);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=AntiAlias">Online Help</a>
 */
-int AntiAlias(int samples){
+void AntiAlias(int samples){
 	//Global::AntiAlias(samples);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=Animate">Online Help</a>
 */
-int Animate(Entity* ent,int mode=1,float speed=1.0,int seq=0,int trans=0){
+void Animate(Entity* ent,int mode,float speed,int seq,int trans){
 	ent->Animate(mode,speed,seq,trans);
 }
 
@@ -129,6 +104,7 @@ bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=AnimLength">O
 */
 int AnimLength(Entity* ent){
 	//return ent->AnimLength();
+	return 0;
 }
 
 /*
@@ -149,77 +125,77 @@ float AnimTime(Entity* ent){
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=BrushAlpha">Online Help</a>
 */
-int BrushAlpha(Brush* brush, float a){
+void BrushAlpha(Brush* brush, float a){
 	brush->BrushAlpha(a);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=BrushBlend">Online Help</a>
 */
-int BrushBlend(Brush* brush,int blend){
+void BrushBlend(Brush* brush,int blend){
 	brush->BrushBlend(blend);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=BrushColor">Online Help</a>
 */
-int BrushColor(Brush* brush,float r,float g,float b){
+void BrushColor(Brush* brush,float r,float g,float b){
 	brush->BrushColor(r,g,b);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=BrushFX">Online Help</a>
 */
-int BrushFX(Brush* brush,int fx){
+void BrushFX(Brush* brush,int fx){
 	brush->BrushFX(fx);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=BrushShininess">Online Help</a>
 */
-int BrushShininess(Brush* brush,float s){
+void BrushShininess(Brush* brush,float s){
 	brush->BrushShininess(s);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=BrushTexture">Online Help</a>
 */
-int BrushTexture(Brush* brush,Texture* tex,int frame=0,int index=0){
+void BrushTexture(Brush* brush,Texture* tex,int frame,int index){
 	brush->BrushTexture(tex,frame,index);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CameraClsColor">Online Help</a>
 */
-int CameraClsColor(Camera* cam, float r,float g,float b){
+void CameraClsColor(Camera* cam, float r,float g,float b){
 	cam->CameraClsColor(r,g,b);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CameraClsMode">Online Help</a>
 */
-int CameraClsMode(Camera* cam,int cls_depth,int cls_zbuffer){
+void CameraClsMode(Camera* cam,int cls_depth,int cls_zbuffer){
 	cam->CameraClsMode(cls_depth,cls_zbuffer);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CameraFogColor">Online Help</a>
 */
-int CameraFogColor(Camera* cam,float r,float g,float b){
+void CameraFogColor(Camera* cam,float r,float g,float b){
 	cam->CameraFogColor(r,g,b);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CameraFogMode">Online Help</a>
 */
-int CameraFogMode(Camera* cam,int mode){
+void CameraFogMode(Camera* cam,int mode){
 	cam->CameraFogMode(mode);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CameraFogRange">Online Help</a>
 */
-int CameraFogRange(Camera* cam,float nnear,float nfar){
+void CameraFogRange(Camera* cam,float nnear,float nfar){
 	cam->CameraFogRange(nnear,nfar);
 }
 
@@ -233,35 +209,35 @@ Entity* CameraPick(Camera* cam,float x,float y){
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CameraProject">Online Help</a>
 */
-int CameraProject(Camera* cam,float x,float y,float z){
+void CameraProject(Camera* cam,float x,float y,float z){
 	cam->CameraProject(x,y,z);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CameraProjMode">Online Help</a>
 */
-int CameraProjMode(Camera* cam,int mode){
+void  CameraProjMode(Camera* cam,int mode){
 	cam->CameraProjMode(mode);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CameraRange">Online Help</a>
 */
-int CameraRange(Camera* cam,float nnear,float nfar){
+void  CameraRange(Camera* cam,float nnear,float nfar){
 	cam->CameraRange(nnear,nfar);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CameraViewport">Online Help</a>
 */
-int CameraViewport(Camera* cam,int x,int y,int width,int height){
+void  CameraViewport(Camera* cam,int x,int y,int width,int height){
 	cam->CameraViewport(x,y,width,height);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CameraZoom">Online Help</a>
 */
-int CameraZoom(Camera* cam,float zoom){
+void  CameraZoom(Camera* cam,float zoom){
 	cam->CameraZoom(zoom);
 }
 
@@ -274,21 +250,21 @@ int ClearCollisions(){
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=ClearSurface">Online Help</a>
 */
-int ClearSurface(Surface* surf,bool clear_verts=true,bool clear_tris=true){
+void ClearSurface(Surface* surf,bool clear_verts,bool clear_tris){
 	surf->ClearSurface(clear_verts,clear_tris);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=ClearTextureFilters">Online Help</a>
 */
-int ClearTextureFilters(){
+void ClearTextureFilters(){
 	Texture::ClearTextureFilters();
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=ClearWorld">Online Help</a>
 */
-int ClearWorld(bool entities=true,bool brushes=true,bool textures=true){
+void ClearWorld(bool entities,bool brushes,bool textures){
 	Global::ClearWorld(entities,brushes,textures);
 }
 
@@ -302,31 +278,31 @@ Entity* CollisionEntity(Entity* ent,int index){
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=Collisions">Online Help</a>
 */
-int Collisions(int src_no,int dest_no,int method_no,int response_no=0){
+void Collisions(int src_no,int dest_no,int method_no,int response_no){
 	Global::Collisions(src_no,dest_no,method_no,response_no);
 }
-	
+
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CollisionNX">Online Help</a>
 */
 float CollisionNX(Entity* ent,int index){
 	return ent->CollisionNX(index);
 }
-	
+
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CollisionNY">Online Help</a>
 */
 float CollisionNY(Entity* ent,int index){
 	return ent->CollisionNY(index);
 }
-	
+
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CollisionNZ">Online Help</a>
 */
 float CollisionNZ(Entity* ent,int index){
 	return ent->CollisionNZ(index);
 }
-	
+
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CollisionSurface">Online Help</a>
 */
@@ -354,7 +330,7 @@ bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CollisionX">O
 float CollisionX(Entity* ent,int index){
 	return ent->CollisionX(index);
 }
-	
+
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CollisionY">Online Help</a>
 */
@@ -386,14 +362,14 @@ int CountCollisions(Entity* ent){
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CopyEntity">Online Help</a>
 */
-Entity* CopyEntity(Entity* ent,Entity* parent=0){
+Entity* CopyEntity(Entity* ent,Entity* parent){
 	return ent->CopyEntity(parent);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CopyMesh">Online Help</a>
 */
-Mesh* CopyMesh(Mesh* mesh,Entity* parent=0){
+Mesh* CopyMesh(Mesh* mesh,Entity* parent){
 	return mesh->CopyMesh(parent);
 }
 
@@ -421,98 +397,98 @@ int CountVertices(Surface* surf){
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CreateBrush">Online Help</a>
 */
-Brush* CreateBrush(float r=255.0,float g=255.0,float b=255.0){
+Brush* CreateBrush(float r,float g,float b){
 	return Brush::CreateBrush(r,g,b);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CreateCamera">Online Help</a>
 */
-Camera* CreateCamera(Entity* parent=0){
+Camera* CreateCamera(Entity* parent){
 	return Camera::CreateCamera(parent);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CreateCone">Online Help</a>
 */
-Mesh* CreateCone(int segments=8,bool solid=true,Entity* parent=0){
+Mesh* CreateCone(int segments,bool solid,Entity* parent){
 	return Mesh::CreateCone(segments,solid,parent);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CreateCylinder">Online Help</a>
 */
-Mesh* CreateCylinder(int segments=8,bool solid=true,Entity* parent=0){
+Mesh* CreateCylinder(int segments,bool solid,Entity* parent){
 	return Mesh::CreateCylinder(segments,solid,parent);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CreateCube">Online Help</a>
 */
-Mesh* CreateCube(Entity* parent=0){
+Mesh* CreateCube(Entity* parent){
 	return Mesh::CreateCube(parent);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CreateMesh">Online Help</a>
 */
-Mesh* CreateMesh(Entity* parent=0){
+Mesh* CreateMesh(Entity* parent){
 	return Mesh::CreateMesh(parent);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CreateLight">Online Help</a>
 */
-Light* CreateLight(int light_type=1,Entity* parent=0){
+Light* CreateLight(int light_type,Entity* parent){
 	return Light::CreateLight(light_type,parent);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CreatePivot">Online Help</a>
 */
-Pivot* CreatePivot(Entity* parent=0){
+Pivot* CreatePivot(Entity* parent){
 	return Pivot::CreatePivot(parent);
 }
 
-Mesh* CreatePlane(int divisions=1,Entity* parent=0){
+Mesh* CreatePlane(int divisions,Entity* parent){
 	return Mesh::CreatePlane(divisions,parent);
 }
 
-ShadowObject* CreateShadow(Mesh* parent, char Static = false){
+ShadowObject* CreateShadow(Mesh* parent, char Static){
 	return ShadowObject::Create(parent, Static);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CreateSphere">Online Help</a>
 */
-Mesh* CreateSphere(int segments=8,Entity* parent=0){
+Mesh* CreateSphere(int segments,Entity* parent){
 	return Mesh::CreateSphere(segments,parent);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CreateSprite">Online Help</a>
 */
-Sprite* CreateSprite(Entity* parent=0){
+Sprite* CreateSprite(Entity* parent){
 	return Sprite::CreateSprite(parent);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CreateSurface">Online Help</a>
 */
-Surface* CreateSurface(Mesh* mesh,Brush* brush=0){
+Surface* CreateSurface(Mesh* mesh,Brush* brush){
 	return mesh->CreateSurface(brush);
 }
 
 /*
 */
-Terrain* CreateTerrain(int size, Entity* parent=0){
+Terrain* CreateTerrain(int size, Entity* parent){
 	return Terrain::CreateTerrain(size,parent);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CreateTexture">Online Help</a>
 */
-Texture* CreateTexture(int width,int height,int flags=1,int frames=1){
+Texture* CreateTexture(int width,int height,int flags,int frames){
 	return Texture::CreateTexture(width,height,flags,frames);
 }
 
@@ -533,28 +509,28 @@ float DeltaYaw(Entity* ent1,Entity* ent2){
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=EntityAlpha">Online Help</a>
 */
-int EntityAlpha(Entity* ent,float alpha){
+void EntityAlpha(Entity* ent,float alpha){
 	ent->EntityAlpha(alpha);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=EntityAutoFade">Online Help</a>
 */
-int EntityAutoFade(Entity* ent,float near,float far){
+void EntityAutoFade(Entity* ent,float near,float far){
 //	ent->EntityAutoFade(near,far);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=EntityBlend">Online Help</a>
 */
-int EntityBlend(Entity* ent, int blend){
+void EntityBlend(Entity* ent, int blend){
 	ent->EntityBlend(blend);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=EntityBox">Online Help</a>
 */
-int EntityBox(Entity* ent,float x,float y,float z,float w,float h,float d){
+void EntityBox(Entity* ent,float x,float y,float z,float w,float h,float d){
 	ent->EntityBox(x,y,z,w,h,d);
 }
 
@@ -575,7 +551,7 @@ Entity* EntityCollided(Entity* ent,int type_no){
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=EntityColor">Online Help</a>
 */
-int EntityColor(Entity* ent,float red,float green,float blue){
+void EntityColor(Entity* ent,float red,float green,float blue){
 	ent->EntityColor(red,green,blue);
 }
 
@@ -589,7 +565,7 @@ float EntityDistance(Entity* ent1,Entity* ent2){
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=EntityFX">Online Help</a>
 */
-int EntityFX(Entity* ent,int fx){
+void EntityFX(Entity* ent,int fx){
 	ent->EntityFX(fx);
 }
 
@@ -610,14 +586,14 @@ const char* EntityName(Entity* ent){
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=EntityOrder">Online Help</a>
 */
-int EntityOrder(Entity* ent,int order){
+void EntityOrder(Entity* ent,int order){
 	ent->EntityOrder(order);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=EntityParent">Online Help</a>
 */
-int EntityParent(Entity* ent,Entity* parent_ent,bool glob=true){
+void EntityParent(Entity* ent,Entity* parent_ent,bool glob){
 	ent->EntityParent(parent_ent,glob);
 }
 
@@ -631,42 +607,42 @@ Entity* EntityPick(Entity* ent,float range){
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=EntityPickMode">Online Help</a>
 */
-int EntityPickMode(Entity* ent,int pick_mode,bool obscurer=true){
+void EntityPickMode(Entity* ent,int pick_mode,bool obscurer){
 	ent->EntityPickMode(pick_mode,obscurer);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=EntityPitch">Online Help</a>
 */
-float EntityPitch(Entity* ent,bool glob=false){
+float EntityPitch(Entity* ent,bool glob){
 	return ent->EntityPitch(glob);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=EntityRadius">Online Help</a>
 */
-int EntityRadius(Entity* ent,float radius_x,float radius_y=0.0){
+void EntityRadius(Entity* ent,float radius_x,float radius_y){
 	ent->EntityRadius(radius_x,radius_y);
 }
-	
+
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=EntityRoll">Online Help</a>
 */
-float EntityRoll(Entity* ent,bool glob=false){
+float EntityRoll(Entity* ent,bool glob){
 	return ent->EntityRoll(glob);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=EntityShininess">Online Help</a>
 */
-int EntityShininess(Entity* ent,float shine){
+void EntityShininess(Entity* ent,float shine){
 	ent->EntityShininess(shine);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=EntityTexture">Online Help</a>
 */
-int EntityTexture(Entity* ent,Texture* tex,int frame=0,int index=0){
+void EntityTexture(Entity* ent,Texture* tex,int frame,int index){
 //	Mesh*(ent).EntityTexture(Texture* tex,frame,index);
 	ent->EntityTexture(tex,frame,index);
 }
@@ -674,7 +650,7 @@ int EntityTexture(Entity* ent,Texture* tex,int frame=0,int index=0){
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=EntityType">Online Help</a>
 */
-int EntityType(Entity* ent,int type_no,bool recursive=false){
+void EntityType(Entity* ent,int type_no,bool recursive){
 	ent->EntityType(type_no,recursive);
 }
 
@@ -688,35 +664,35 @@ int EntityVisible(Entity* src_ent,Entity* dest_ent){
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=EntityX">Online Help</a>
 */
-float EntityX(Entity* ent,bool glob=false){
+float EntityX(Entity* ent,bool glob){
 	return ent->EntityX(glob);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=EntityY">Online Help</a>
 */
-float EntityY(Entity* ent,bool glob=false){
+float EntityY(Entity* ent,bool glob){
 	return ent->EntityY(glob);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=EntityYaw">Online Help</a>
 */
-float EntityYaw(Entity* ent,bool glob=false){
+float EntityYaw(Entity* ent,bool glob){
 	return ent->EntityYaw(glob);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=EntityZ">Online Help</a>
 */
-float EntityZ(Entity* ent,bool glob=false){
+float EntityZ(Entity* ent,bool glob){
 	return ent->EntityZ(glob);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=ExtractAnimSeq">Online Help</a>
 */
-int ExtractAnimSeq(Entity* ent,int first_frame,int last_frame,int seq=0){
+int ExtractAnimSeq(Entity* ent,int first_frame,int last_frame,int seq){
 	return ent->ExtractAnimSeq(first_frame,last_frame,seq);
 }
 
@@ -731,38 +707,39 @@ Entity* FindChild(Entity* ent,char* child_name){
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=FindSurface">Online Help</a>
 */
 Surface* FindSurface(Mesh* mesh,Brush* brush){
-//	return mesh->FindSurface(brush);
+  //	return mesh->FindSurface(brush);
+  return 0;
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=FitMesh">Online Help</a><p>
 */
-Mesh* FitMesh(Mesh* mesh,float x,float y,float z,float width,float height,float depth,bool uniform=false){
+void FitMesh(Mesh* mesh,float x,float y,float z,float width,float height,float depth,bool uniform){
 	mesh->FitMesh(x,y,z,width,height,depth,uniform);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=FlipMesh">Online Help</a>
 */
-Mesh* FlipMesh(Mesh* mesh){
+void FlipMesh(Mesh* mesh){
 	mesh->FlipMesh();
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=FreeBrush">Online Help</a>
 */
-int  FreeBrush(Brush* brush){
+void  FreeBrush(Brush* brush){
 	brush->FreeBrush();
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=FreeEntity">Online Help</a>
 */
-int FreeEntity(Entity* ent){
+void FreeEntity(Entity* ent){
 	ent->FreeEntity();
 }
 
-int FreeShadow(ShadowObject* shad){
+void FreeShadow(ShadowObject* shad){
 	shad->FreeShadow();
 }
 
@@ -770,15 +747,16 @@ int FreeShadow(ShadowObject* shad){
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=FreeTexture">Online Help</a>
 */
-int FreeTexture(Texture* tex){
+void FreeTexture(Texture* tex){
 	tex->FreeTexture();
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=GetBrushTexture">Online Help</a>
 */
-Texture* GetBrushTexture(Brush* brush,int index=0){
-//	return Texture::GetBrushTexture(brush,index);
+Texture* GetBrushTexture(Brush* brush,int index){
+   return brush->GetBrushTexture(index);
+  //return Texture::GetBrushTexture(brush,index);
 }
 
 /*
@@ -807,6 +785,7 @@ bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=ResetEntity">
 */
 float GetMatElement(Entity* ent,int row,int col){
 //	ent->GetMatElement(row,col);
+  return 0.0f;
 }
 
 /*
@@ -833,7 +812,7 @@ Brush* GetSurfaceBrush(Surface* surf){
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=Graphics3D">Online Help</a>
 */
-int Graphics3D(int width,int height,int depth=0,int mode=0,int rate=60){
+void Graphics3D(int width,int height,int depth,int mode,int rate){
 	Global::Graphics(); //(width,height,depth,mode,rate);
 	Global::width=width;
 	Global::height=height;
@@ -842,28 +821,28 @@ int Graphics3D(int width,int height,int depth=0,int mode=0,int rate=60){
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=HandleSprite">Online Help</a>
 */
-int HandleSprite(Sprite* sprite,float h_x,float h_y){
+void HandleSprite(Sprite* sprite,float h_x,float h_y){
 	sprite->HandleSprite(h_x,h_y);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=HideEntity">Online Help</a>
 */
-int HideEntity(Entity* ent){
+void HideEntity(Entity* ent){
 	ent->HideEntity();
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=LightColor">Online Help</a>
 */
-int LightColor(Light* light,float red,float green,float blue){
+void LightColor(Light* light,float red,float green,float blue){
 	light->LightColor(red,green,blue);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=LightConeAngles">Online Help</a>
 */
-int LightConeAngles(Light* light,float inner_ang,float outer_ang){
+void LightConeAngles(Light* light,float inner_ang,float outer_ang){
 	light->LightConeAngles(inner_ang,outer_ang);
 }
 
@@ -871,21 +850,21 @@ int LightConeAngles(Light* light,float inner_ang,float outer_ang){
 
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=LightRange">Online Help</a>
 */
-int LightRange(Light* light,float range){
+void LightRange(Light* light,float range){
 	light->LightRange(range);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=LinePick">Online Help</a>
 */
-Entity* LinePick(float x,float y,float z,float dx,float dy,float dz,float radius=0.0){
+Entity* LinePick(float x,float y,float z,float dx,float dy,float dz,float radius){
 	return Pick::LinePick(x,y,z,dx,dy,dz,radius);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=LoadAnimMesh">Online Help</a>
 */
-Mesh* LoadAnimMesh(char* file,Entity* parent=0){
+Mesh* LoadAnimMesh(char* file,Entity* parent){
 	return Mesh::LoadAnimMesh(file,parent);
 }
 
@@ -899,19 +878,19 @@ Texture* LoadAnimTexture(char* file,int flags,int frame_width,int frame_height,i
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=LoadBrush">Online Help</a>
 */
-Brush* LoadBrush(char *file,int flags=1,float u_scale=1.0,float v_scale=1.0){
+Brush* LoadBrush(char *file,int flags,float u_scale,float v_scale){
 	return Brush::LoadBrush(file,flags,u_scale,v_scale);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=LoadMesh">Online Help</a>
 */
-Mesh* LoadMesh(char* file,Entity* parent=0){
+Mesh* LoadMesh(char* file,Entity* parent){
 	return Mesh::LoadMesh(file,parent);
 }
 
 
-Terrain* LoadTerrain(char* file,Entity* parent=0){
+Terrain* LoadTerrain(char* file,Entity* parent){
 	return Terrain::LoadTerrain(file,parent);
 }
 
@@ -919,14 +898,14 @@ Terrain* LoadTerrain(char* file,Entity* parent=0){
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=LoadTexture">Online Help</a>
 */
-Texture* LoadTexture(char* file,int flags=1){
+Texture* LoadTexture(char* file,int flags){
 	return Texture::LoadTexture(file,flags);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=LoadSprite">Online Help</a>
 */
-Sprite* LoadSprite(char* tex_file,int tex_flag=1,Entity* parent=0){
+Sprite* LoadSprite(char* tex_file,int tex_flag,Entity* parent){
 	return Sprite::LoadSprite(tex_file,tex_flag,parent);
 }
 
@@ -941,7 +920,7 @@ float MeshDepth(Mesh* mesh){
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=MeshesIntersect">Online Help</a>
 */
 int MeshesIntersect(Mesh* mesh1,Mesh* mesh2){
-	mesh1->MeshesIntersect(mesh2);
+	return mesh1->MeshesIntersect(mesh2);
 }
 
 /*
@@ -959,42 +938,42 @@ float MeshWidth(Mesh* mesh){
 }
 
 
-int ModifyTerrain(Terrain* terr, int x, int z, float new_height){
+void ModifyTerrain(Terrain* terr, int x, int z, float new_height){
 	terr->ModifyTerrain ( x,  z, new_height);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=MoveEntity">Online Help</a>
 */
-int MoveEntity(Entity* ent,float x,float y,float z){
+void MoveEntity(Entity* ent,float x,float y,float z){
 	ent->MoveEntity(x,y,z);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=NameEntity">Online Help</a>
 */
-int NameEntity(Entity* ent,char* name){
+void NameEntity(Entity* ent,char* name){
 	ent->NameEntity(name);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=PaintEntity">Online Help</a>
 */
-int PaintEntity(Entity* ent,Brush* brush){
+void PaintEntity(Entity* ent,Brush* brush){
 //	mesh(ent)->PaintEntity(brush);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=PaintMesh">Online Help</a>
 */
-Mesh* PaintMesh(Mesh* mesh,Brush* brush){
+void PaintMesh(Mesh* mesh,Brush* brush){
 	mesh->PaintMesh(brush);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=PaintSurface">Online Help</a>
 */
-int PaintSurface(Surface* surf,Brush* brush){
+void PaintSurface(Surface* surf,Brush* brush){
 	surf->PaintSurface(brush);
 }
 
@@ -1073,28 +1052,28 @@ float PickedZ(){
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=PointEntity">Online Help</a>
 */
-int PointEntity(Entity* ent,Entity* target_ent,float roll=0){
+void PointEntity(Entity* ent,Entity* target_ent,float roll){
 	ent->PointEntity(target_ent,roll);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=PositionEntity">Online Help</a>
 */
-int PositionEntity(Entity* ent,float x,float y,float z,bool glob=false){
+void PositionEntity(Entity* ent,float x,float y,float z,bool glob){
 	ent->PositionEntity(x,y,z,glob);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=PositionMesh">Online Help</a>
 */
-int PositionMesh(Mesh* mesh,float px,float py,float pz){
+void PositionMesh(Mesh* mesh,float px,float py,float pz){
 	mesh->PositionMesh(px,py,pz);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=PositionTexture">Online Help</a>
 */
-int PositionTexture(Texture* tex,int u_pos,int v_pos){
+void PositionTexture(Texture* tex,int u_pos,int v_pos){
 	tex->PositionTexture(u_pos,v_pos);
 }
 
@@ -1122,105 +1101,112 @@ float ProjectedZ(){
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=RenderWorld">Online Help</a>
 */
-int RenderWorld(){
+void RenderWorld(){
 	Global::RenderWorld();
+}
+
+/*
+bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=RepeatMesh">Online Help</a>
+*/
+Mesh* RepeatMesh(Mesh* mesh,Entity* parent){
+	return mesh->RepeatMesh(parent);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=ResetEntity">Online Help</a>
 */
-int ResetEntity(Entity* ent){
+void ResetEntity(Entity* ent){
 	ent->ResetEntity();
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=RotateEntity">Online Help</a>
 */
-int RotateEntity(Entity* ent,float x,float y,float z,bool glob=false){
+void RotateEntity(Entity* ent,float x,float y,float z,bool glob){
 	ent->RotateEntity(x,y,z,glob);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=RotateMesh">Online Help</a>
 */
-Mesh* RotateMesh(Mesh* mesh,float pitch,float yaw,float roll){
+void RotateMesh(Mesh* mesh,float pitch,float yaw,float roll){
 	mesh->RotateMesh(pitch,yaw,roll);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=RotateSprite">Online Help</a>
 */
-int RotateSprite(Sprite* sprite,float ang){
+void RotateSprite(Sprite* sprite,float ang){
 	sprite->RotateSprite(ang);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=RotateTexture">Online Help</a>
 */
-int RotateTexture(Texture* tex,float ang){
+void RotateTexture(Texture* tex,float ang){
 	tex->RotateTexture(ang);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=ScaleEntity">Online Help</a>
 */
-int ScaleEntity(Entity* ent,float x,float y,float z,bool glob=false){
+void ScaleEntity(Entity* ent,float x,float y,float z,bool glob){
 	ent->ScaleEntity(x,y,z,glob);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=ScaleMesh">Online Help</a>
 */
-int ScaleMesh(Mesh* mesh,float sx,float sy,float sz){
+void ScaleMesh(Mesh* mesh,float sx,float sy,float sz){
 	mesh->ScaleMesh(sx,sy,sz);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=ScaleSprite">Online Help</a>
 */
-int ScaleSprite(Sprite* sprite,float s_x,float s_y){
+void ScaleSprite(Sprite* sprite,float s_x,float s_y){
 	sprite->ScaleSprite(s_x,s_y);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=ScaleTexture">Online Help</a>
 */
-int ScaleTexture(Texture* tex,float u_scale,float v_scale){
+void ScaleTexture(Texture* tex,float u_scale,float v_scale){
 	tex->ScaleTexture(u_scale,v_scale);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=SetAnimTime">Online Help</a>
 */
-int SetAnimTime(Entity* ent,float time,int seq=0){
+void SetAnimTime(Entity* ent,float time,int seq){
 	ent->SetAnimTime(time,seq);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=SetCubeFace">Online Help</a>
 */
-int SetCubeFace(Texture* tex,int face){
+void SetCubeFace(Texture* tex,int face){
 	tex->cube_face=face;
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=SetCubeMode">Online Help</a>
 */
-int SetCubeMode(Texture* tex,int mode){
+void SetCubeMode(Texture* tex,int mode){
 	tex->cube_mode=mode;
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=ShowEntity">Online Help</a>
 */
-int ShowEntity(Entity* ent){
+void ShowEntity(Entity* ent){
 	ent->ShowEntity();
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=SpriteViewMode">Online Help</a>
 */
-int SpriteViewMode(Sprite* sprite,int mode){
+void SpriteViewMode(Sprite* sprite,int mode){
 	sprite->SpriteViewMode(mode);
 }
 
@@ -1256,14 +1242,14 @@ float TerrainZ (Terrain* terr, float x, float y, float z){
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=TextureBlend">Online Help</a>
 */
-int TextureBlend(Texture* tex,int blend){
+void TextureBlend(Texture* tex,int blend){
 	tex->TextureBlend(blend);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=TextureCoords">Online Help</a>
 */
-int TextureCoords(Texture* tex,int coords){
+void TextureCoords(Texture* tex,int coords){
 	tex->TextureCoords(coords);
 }
 
@@ -1271,13 +1257,13 @@ int TextureCoords(Texture* tex,int coords){
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=TextureHeight">Online Help</a>
 */
 int TextureHeight(Texture* tex){
-//	return tex->TextureHeight();
+  return tex->height;
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=TextureFilter">Online Help</a>
 */
-int TextureFilter(char* match_text,int flags){
+void TextureFilter(char* match_text,int flags){
 //	Texture::TextureFilter(match_text,flags);
 }
 
@@ -1292,7 +1278,7 @@ const char* TextureName(Texture* tex){
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=TextureWidth">Online Help</a>
 */
 int TextureWidth(Texture* tex){
-//	return tex->TextureWidth()
+  return tex->width;
 }
 
 /*
@@ -1319,28 +1305,28 @@ float TFormedZ(){
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=TFormNormal">Online Help</a>
 */
-int TFormNormal(float x,float y,float z,Entity* src_ent,Entity* dest_ent){
+void TFormNormal(float x,float y,float z,Entity* src_ent,Entity* dest_ent){
 	Entity::TFormNormal(x,y,z,src_ent,dest_ent);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=TFormPoint">Online Help</a>
 */
-int TFormPoint(float x,float y,float z,Entity* src_ent,Entity* dest_ent){
+void TFormPoint(float x,float y,float z,Entity* src_ent,Entity* dest_ent){
 	Entity::TFormPoint(x,y,z,src_ent,dest_ent);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=TFormVector">Online Help</a>
 */
-int TFormVector(float x,float y,float z,Entity* src_ent,Entity* dest_ent){
+void TFormVector(float x,float y,float z,Entity* src_ent,Entity* dest_ent){
 	Entity::TFormVector(x,y,z,src_ent,dest_ent);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=TranslateEntity">Online Help</a>
 */
-int TranslateEntity(Entity* ent,float x,float y,float z,bool glob=false){
+void TranslateEntity(Entity* ent,float x,float y,float z,bool glob){
 	ent->TranslateEntity(x,y,z,glob);
 }
 
@@ -1354,21 +1340,21 @@ int TriangleVertex(Surface* surf,int tri_no,int corner){
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=TurnEntity">Online Help</a>
 */
-int TurnEntity(Entity* ent,float x,float y,float z,bool glob=false){
+void TurnEntity(Entity* ent,float x,float y,float z,bool glob){
 	ent->TurnEntity(x,y,z,glob);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=UpdateNormals">Online Help</a>
 */
-int UpdateNormals(Mesh* mesh){
+void UpdateNormals(Mesh* mesh){
 	mesh->UpdateNormals();
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=UpdateWorld">Online Help</a>
 */
-int UpdateWorld(float anim_speed=1.0){
+void UpdateWorld(float anim_speed){
 	Global::UpdateWorld(anim_speed);
 }
 
@@ -1380,7 +1366,7 @@ float VectorPitch(float vx,float vy,float vz){
 	float ang=atan2deg(sqrt(vx*vx+vz*vz),vy)-90.0;
 
 	if (ang<=0.0001 && ang>=-0.0001) ang=0;
-	
+
 	return -ang;
 
 }
@@ -1411,7 +1397,7 @@ float VertexBlue(Surface* surf,int vid){
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=VertexColor">Online Help</a>
 */
-int VertexColor(Surface* surf,int vid,float r,float g,float b,float a=1.0){
+void VertexColor(Surface* surf,int vid,float r,float g,float b,float a){
 	surf->VertexColor(vid,r,g,b,a);
 }
 
@@ -1420,6 +1406,7 @@ bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=VertexCoords"
 */
 void VertexCoords(Surface* surf,int vid,float x,float y,float z){
 	surf->VertexCoords(vid,x,y,z);
+
 }
 
 /*
@@ -1432,7 +1419,7 @@ float VertexGreen(Surface* surf,int vid){
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=VertexNormal">Online Help</a>
 */
-int VertexNormal(Surface* surf,int vid,float nx,float ny,float nz){
+void VertexNormal(Surface* surf,int vid,float nx,float ny,float nz){
 	surf->VertexNormal(vid,nx,ny,nz);
 }
 
@@ -1467,28 +1454,28 @@ float VertexRed(Surface* surf,int vid){
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=VertexTexCoords">Online Help</a>
 */
-int VertexTexCoords(Surface* surf,int vid,float u,float v,float w=0.0,int coord_set=0){
+void VertexTexCoords(Surface* surf,int vid,float u,float v,float w,int coord_set){
 	surf->VertexTexCoords(vid,u,v,w,coord_set);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=VertexU">Online Help</a>
 */
-float VertexU(Surface* surf,int vid,int coord_set=0){
+float VertexU(Surface* surf,int vid,int coord_set){
 	return surf->VertexU(vid,coord_set);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=VertexV">Online Help</a>
 */
-float VertexV(Surface* surf,int vid,int coord_set=0){
+float VertexV(Surface* surf,int vid,int coord_set){
 	return surf->VertexV(vid,coord_set);
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=VertexW">Online Help</a>
 */
-float VertexW(Surface* surf,int vid,int coord_set=0){
+float VertexW(Surface* surf,int vid,int coord_set){
 	return surf->VertexW(vid,coord_set);
 }
 
@@ -1516,8 +1503,12 @@ float VertexZ(Surface* surf,int vid){
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=Wireframe">Online Help</a>
 */
-int Wireframe(int enable){
-	if (enable!=0) glPolygonMode(GL_FRONT,GL_LINE); else glPolygonMode(GL_FRONT,GL_FILL);
+void Wireframe(int enable){
+	if (enable!=0)
+	  glPolygonMode(GL_FRONT,GL_LINE);
+	else
+	  glPolygonMode(GL_FRONT,GL_FILL);
+
 }
 
 //' Blitz2D
@@ -1536,17 +1527,243 @@ int EndMax2D(){
 */
 //' ***extras***
 
-float EntityScaleX(Entity* ent,bool glob=false){
+float EntityScaleX(Entity* ent,bool glob){
 	return ent->EntityScaleX(glob);
 }
 
-float EntityScaleY(Entity* ent,bool glob=false){
+float EntityScaleY(Entity* ent,bool glob){
 	return ent->EntityScaleY(glob);
 }
 
-float EntityScaleZ(Entity* ent,bool glob=false){
+float EntityScaleZ(Entity* ent,bool glob){
 	return ent->EntityScaleZ(glob);
 }
+
+ShaderMaterial* LoadShader(char* ShaderName, char* VshaderFileName, char* FshaderFileName){
+	ShaderMaterial* s=ShaderMaterial::CreateShaderMaterial(ShaderName);
+	s->AddShader(VshaderFileName, FshaderFileName);
+	return s;
+}
+
+ShaderMaterial* CreateShader(char* ShaderName, char* VshaderString, char* FshaderString){
+	ShaderMaterial* s=ShaderMaterial::CreateShaderMaterial(ShaderName);
+	s->AddShaderFromString(VshaderString, FshaderString);
+	return s;
+}
+
+void ShadeSurface(Surface* surf, ShaderMaterial* material){
+	surf->ShaderMat = material;
+}
+
+void ShadeMesh(Mesh* mesh, ShaderMaterial* material){
+	for(int s=1;s<=mesh->CountSurfaces();s++){
+
+		Surface* surf=mesh->GetSurface(s);
+		surf->ShaderMat = material;
+	}
+}
+
+void ShadeEntity(Entity* ent, ShaderMaterial* material){
+	Mesh* mesh=dynamic_cast<Mesh*>(ent);
+	Terrain* terr=dynamic_cast<Terrain*>(ent);
+
+	if (terr)
+		terr->ShaderMat = material;
+	if (mesh)
+		ShadeMesh(mesh, material);
+}
+
+void ShaderTexture(ShaderMaterial* material, Texture* tex, char* name, int index){
+	material->AddSampler2D(name, index, tex);
+}
+
+
+void SetFloat(ShaderMaterial* material, char* name, float v1){
+	material->SetFloat(name, v1);
+}
+
+void SetFloat2(ShaderMaterial* material, char* name, float v1, float v2){
+	material->SetFloat2(name, v1, v2);
+}
+
+void SetFloat3(ShaderMaterial* material, char* name, float v1, float v2, float v3){
+	material->SetFloat3(name, v1, v2, v3);
+}
+
+void SetFloat4(ShaderMaterial* material, char* name, float v1, float v2, float v3, float v4){
+	material->SetFloat4(name, v1, v2, v3, v4);
+}
+
+void UseFloat(ShaderMaterial* material, char* name, float* v1){
+	material->UseFloat(name, v1);
+}
+
+void UseFloat2(ShaderMaterial* material, char* name, float* v1, float* v2){
+	material->UseFloat2(name, v1, v2);
+}
+
+void UseFloat3(ShaderMaterial* material, char* name, float* v1, float* v2, float* v3){
+	material->UseFloat3(name, v1, v2, v3);
+}
+
+void UseFloat4(ShaderMaterial* material, char* name, float* v1, float* v2, float* v3, float* v4){
+	material->UseFloat4(name, v1, v2, v3, v4);
+}
+
+void SetInteger(ShaderMaterial* material, char* name, int v1){
+	material->SetInteger(name, v1);
+}
+
+void SetInteger2(ShaderMaterial* material, char* name, int v1, int v2){
+	material->SetInteger2(name, v1, v2);
+}
+
+void SetInteger3(ShaderMaterial* material, char* name, int v1, int v2, int v3){
+	material->SetInteger3(name, v1, v2, v3);
+}
+
+void SetInteger4(ShaderMaterial* material, char* name, int v1, int v2, int v3, int v4){
+	material->SetInteger4(name, v1, v2, v3, v4);
+}
+
+void UseInteger(ShaderMaterial* material, char* name, int* v1){
+	material->UseInteger(name, v1);
+}
+
+void UseInteger2(ShaderMaterial* material, char* name, int* v1, int* v2){
+	material->UseInteger2(name, v1, v2);
+}
+
+void UseInteger3(ShaderMaterial* material, char* name, int* v1, int* v2, int* v3){
+	material->UseInteger3(name, v1, v2, v3);
+}
+
+void UseInteger4(ShaderMaterial* material, char* name, int* v1, int* v2, int* v3, int* v4){
+	material->UseInteger4(name, v1, v2, v3, v4);
+}
+
+void UseSurface(ShaderMaterial* material, char* name, Surface* surf, int vbo){
+	material->UseSurface(name, surf, vbo);
+}
+
+void UseMatrix(ShaderMaterial* material, char* name, int mode){
+	material->UseMatrix(name, mode);
+}
+
+/*void SetParameter1S(ShaderMaterial* material, char* name, float v1){
+	material->SetParameter1S(name, v1);
+}
+
+void SetParameter2S(ShaderMaterial* material, char* name, float v1, float v2){
+	material->SetParameter2S(name, v1, v2);
+}
+
+void SetParameter3S(ShaderMaterial* material, char* name, float v1, float v2, float v3){
+	material->SetParameter3S(name, v1, v2, v3);
+}
+
+void SetParameter4S(ShaderMaterial* material, char* name, float v1, float v2, float v3, float v4){
+	material->SetParameter4S(name, v1, v2, v3, v4);
+}
+
+void SetParameter1I(ShaderMaterial* material, char* name, int v1){
+	material->SetParameter1I(name, v1);
+}
+
+void SetParameter2I(ShaderMaterial* material, char* name, int v1, int v2){
+	material->SetParameter2I(name, v1, v2);
+}
+
+void SetParameter3I(ShaderMaterial* material, char* name, int v1, int v2, int v3){
+	material->SetParameter3I(name, v1, v2, v3);
+}
+
+void SetParameter4I(ShaderMaterial* material, char* name, int v1, int v2, int v3, int v4){
+	material->SetParameter4I(name, v1, v2, v3, v4);
+}
+
+void SetVector1I(ShaderMaterial* material, char* name, int* v1){
+	material->SetVector1I(name, v1);
+}
+
+void SetVector2I(ShaderMaterial* material, char* name, int* v1){
+	material->SetVector2I(name, v1);
+}
+
+void SetVector3I(ShaderMaterial* material, char* name, int* v1){
+	material->SetVector3I(name, v1);
+}
+
+void SetVector4I(ShaderMaterial* material, char* name, int* v1){
+	material->SetVector4I(name, v1);
+}
+
+void SetParameter1F(ShaderMaterial* material, char* name, float v1){
+	material->TurnOn();
+	material->SetParameter1F(name, v1);
+	material->TurnOff();
+}
+
+void SetParameter2F(ShaderMaterial* material, char* name, float v1, float v2){
+	material->SetParameter2F(name, v1, v2);
+}
+
+void SetParameter3F(ShaderMaterial* material, char* name, float v1, float v2, float v3){
+	material->SetParameter3F(name, v1, v2, v3);
+}
+
+void SetParameter4F(ShaderMaterial* material, char* name, float v1, float v2, float v3, float v4){
+	material->SetParameter4F(name, v1, v2, v3, v4);
+}
+
+void SetVector1F(ShaderMaterial* material, char* name, float* v1){
+	material->SetVector1F(name, v1);
+}
+
+void SetVector2F(ShaderMaterial* material, char* name, float* v1){
+	material->SetVector2F(name, v1);
+}
+
+void SetVector3F(ShaderMaterial* material, char* name, float* v1){
+	material->SetVector3F(name, v1);
+}
+
+void SetVector4F(ShaderMaterial* material, char* name, float* v1){
+	material->SetVector4F(name, v1);
+}
+
+void SetMatrix2F(ShaderMaterial* material, char* name, float* m){
+	material->SetMatrix2F(name, m);
+}
+
+void SetMatrix3F(ShaderMaterial* material, char* name, float* m){
+	material->SetMatrix3F(name, m);
+}
+
+void SetMatrix4F(ShaderMaterial* material, char* name, float* m){
+	material->SetMatrix4F(name, m);
+}
+
+void SetParameter1D(ShaderMaterial* material, char* name, double v1){
+	material->SetParameter1S(name, v1);
+}
+
+void SetParameter2D(ShaderMaterial* material, char* name, double v1, double v2){
+	material->SetParameter2S(name, v1, v2);
+}
+
+void SetParameter3D(ShaderMaterial* material, char* name, double v1, double v2, double v3){
+	material->SetParameter3S(name, v1, v2, v3);
+}
+
+void SetParameter4D(ShaderMaterial* material, char* name, double v1, double v2, double v3, double v4){
+	material->SetParameter4S(name, v1, v2, v3, v4);
+}
+*/
+
+
+
+
 
 //' ***todo***
 
@@ -1564,4 +1781,6 @@ End Function
 Function SetAnimKey(ent:TEntity,frame,pos_key=True,rot_key=True,scale_key=True)
 End Function
 */
-}
+
+} /* extern "C" */
+

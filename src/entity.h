@@ -168,7 +168,7 @@ public:
 	}
 	
 	virtual Entity* CopyEntity(Entity* ent)=0;
-	void FreeEntity(void);
+	virtual void FreeEntity(void);
 	// relations
 	void EntityParent(Entity* parent_ent,int glob=true);
 	Entity* GetParent();

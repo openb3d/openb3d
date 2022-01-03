@@ -1,3 +1,6 @@
+#ifndef COLLISION2_H
+#define COLLISION2_H
+
 /*
  *  collision2.h
  *  iminib3d
@@ -6,9 +9,6 @@
  *  Copyright Si Design. All rights reserved.
  *
  */
-
-#ifndef COLLISION2_H
-#define COLLISION2_H
 
 #include "entity.h"
 #include "surface.h"
@@ -32,14 +32,14 @@ public:
 	int des_type;
 	int col_method;
 	int response;
-	
+
 	CollisionPair(){
-	
+
 		src_type=0;
 		des_type=0;
 		col_method=0;
 		response=0;
-	
+
 	}
 
 };
@@ -56,12 +56,12 @@ public:
 	int tri;
 
 	CollisionImpact(){
-	
+
 		x=y=z=nx=ny=nz=time=0.0;
 		ent=NULL;
 		surf=NULL;
 		tri=0;
-	
+
 	}
 
 };

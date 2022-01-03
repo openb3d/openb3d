@@ -63,7 +63,7 @@ public:
 		
 		reset_bounds=true;
 		
-		min_x=0.0,min_y=0.0,min_z=0.0;max_x=0.0,max_y==0.0,max_z=0.0;
+		min_x=0.0;min_y=0.0;min_z=0.0;max_x=0.0;max_y=0.0;max_z=0.0;
 		
 	}
 	
@@ -81,6 +81,7 @@ public:
 	static Mesh* CreateCylinder(int verticalsegments=8,int solid=true,Entity* parent_ent=NULL);
 	static Mesh* CreateCone(int segments=8,int solid=true,Entity* parent_ent=NULL);
 	Mesh* CopyMesh(Entity* parent_ent=NULL);
+	Mesh* RepeatMesh(Entity* parent_ent=NULL);
 	void AddMesh(Mesh* mesh2);
 	void FlipMesh();
 	void PaintMesh(Brush* bru);

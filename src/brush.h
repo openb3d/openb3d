@@ -1,3 +1,6 @@
+#ifndef BRUSH_H
+#define BRUSH_H
+
 /*
  *  brush.h
  *  iminib3d
@@ -7,13 +10,12 @@
  *
  */
 
-#ifndef BRUSH_H
-#define BRUSH_H
 
 #include "texture.h"
 
 #include <string>
 #include <iostream>
+
 using namespace std;
 
 class Brush{
@@ -29,20 +31,20 @@ public:
 	Texture* tex[8];
 
 	Brush(){
-	
+
 		no_texs=0;
 		name="";
-	
+
 		red=1.0,green=1.0,blue=1.0,alpha=1.0,shine=0.0;
 		blend=0,fx=0;
 		//tex_frame=0;
-		
+
 		for(int i=0;i<8;i++){
 			tex[i]=NULL;
 		}
-		
+
 	};
-	
+
 	Brush* Copy();
 	void FreeBrush();
 	static Brush* CreateBrush(float r=255.0,float g=255.0,float b=255.0);

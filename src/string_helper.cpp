@@ -14,12 +14,14 @@ using namespace std;
 
 string Left(string s,int length){
 
+	if (length <= 0) return ""; // SK: fix out of bounds.
 	return s.substr(0,length);
 
 }
 
 string Right(string s,int length){
 
+	if (length > s.size()) return ""; // SK: fix out of bounds.
 	return s.substr(s.length()-length);
 
 }

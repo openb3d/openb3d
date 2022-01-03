@@ -27,89 +27,76 @@ void CopyPixels (unsigned char *src, unsigned int srcWidth, unsigned int srcHeig
 
 
 Texture* Texture::LoadTexture(string filename,int flags){
-	if (flags&128)
-		{
-			filename=Strip(filename); // get rid of path info
-
-			if(File::ResourceFilePath(filename)==""){
-				cout << "Error: Cannot Find Texture: " << filename << endl;
-				return NULL;
-			}
-	
-			Texture* tex=new Texture();
-			tex->file=filename;
-
-			// set tex.flags before TexInList
-			tex->flags=flags;
-			tex->FilterFlags();
-		
-			// check to see if texture with same properties exists already, if so return existing texture
-			Texture* old_tex=tex->TexInList();
-			if(old_tex){
-				return old_tex;
-			}else{
-				tex_list.push_back(tex);
-			}	
-		
-			string filename_left=Left(filename,Len(filename)-4);
-			string filename_right=Right(filename,3);
-	
-			const char* c_filename_left=filename_left.c_str();
-			const char* c_filename_right=filename_right.c_str();
-
-
-
-			unsigned char* buffer;
-	
-			buffer=stbi_load(filename.c_str(),&tex->width,&tex->height,0,4);
-
-			unsigned int name;
-			tex->no_frames=1;
-			tex->width=tex->width/6;
-			tex->frames=new unsigned int[6];
-
-			unsigned char* dstbuffer=new unsigned char[tex->width*tex->height*4];
-
-			glGenTextures (1,&name);
-			glBindTexture (GL_TEXTURE_CUBE_MAP,name);
-		
-		//tex.gltex=tex.gltex[..tex.no_frames]
-
-			for (int i=0;i<6;i++){
-				CopyPixels (buffer,tex->width*6, tex->height,tex->width*i, 0, dstbuffer, tex->width, tex->height, 4);
-				switch(i){
-					case 0:
-						gluBuild2DMipmaps(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, GL_RGBA,tex->width, tex->height, GL_RGBA, GL_UNSIGNED_BYTE, dstbuffer);
-						break;
-					case 1:
-						gluBuild2DMipmaps(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, GL_RGBA,tex->width, tex->height, GL_RGBA, GL_UNSIGNED_BYTE, dstbuffer);
-						break;
-					case 2:
-						gluBuild2DMipmaps(GL_TEXTURE_CUBE_MAP_POSITIVE_X, GL_RGBA,tex->width, tex->height, GL_RGBA, GL_UNSIGNED_BYTE, dstbuffer);
-						break;
-					case 3:
-						gluBuild2DMipmaps(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, GL_RGBA,tex->width, tex->height, GL_RGBA, GL_UNSIGNED_BYTE, dstbuffer);
-						break;
-					case 4:
-						gluBuild2DMipmaps(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, GL_RGBA,tex->width, tex->height, GL_RGBA, GL_UNSIGNED_BYTE, dstbuffer);
-						break;
-					case 5:
-						gluBuild2DMipmaps(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, GL_RGBA,tex->width, tex->height, GL_RGBA, GL_UNSIGNED_BYTE, dstbuffer);
-						break;
-
-					}
-
-			
-			}
-
-			delete dstbuffer;
-
-			tex->texture=name;
-			return tex;
-
+	if (flags&128) {
+		filename=Strip(filename); // get rid of path info
+		if (File::ResourceFilePath(filename)==""){
+			cout << "Error: Cannot Find Texture: " << filename << endl;
+			return NULL;
 		}
+
+		Texture* tex=new Texture();
+		tex->file=filename;
+
+		// set tex.flags before TexInList
+		tex->flags=flags;
+		tex->FilterFlags();
+
+		// check to see if texture with same properties exists already, if so return existing texture
+		Texture* old_tex=tex->TexInList();
+		if(old_tex){
+			return old_tex;
+		}else{
+			tex_list.push_back(tex);
+		}
+
+		string filename_left=Left(filename,Len(filename)-4);
+		string filename_right=Right(filename,3);
+		//const char* c_filename_left=filename_left.c_str();
+		//const char* c_filename_right=filename_right.c_str();
+		unsigned char* buffer;
+		buffer=stbi_load(filename.c_str(),&tex->width,&tex->height,0,4);
+
+		unsigned int name;
+		tex->no_frames=1;
+		tex->width=tex->width/6;
+		tex->frames=new unsigned int[6];
+
+		unsigned char* dstbuffer=new unsigned char[tex->width*tex->height*4];
+		glGenTextures (1,&name);
+		glBindTexture (GL_TEXTURE_CUBE_MAP,name);
+
+		//tex.gltex=tex.gltex[..tex.no_frames]
+		for (int i=0;i<6;i++){
+			CopyPixels (buffer,tex->width*6, tex->height,tex->width*i, 0, dstbuffer, tex->width, tex->height, 4);
+			switch(i){
+				case 0:
+					gluBuild2DMipmaps(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, GL_RGBA,tex->width, tex->height, GL_RGBA, GL_UNSIGNED_BYTE, dstbuffer);
+					break;
+				case 1:
+					gluBuild2DMipmaps(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, GL_RGBA,tex->width, tex->height, GL_RGBA, GL_UNSIGNED_BYTE, dstbuffer);
+					break;
+				case 2:
+					gluBuild2DMipmaps(GL_TEXTURE_CUBE_MAP_POSITIVE_X, GL_RGBA,tex->width, tex->height, GL_RGBA, GL_UNSIGNED_BYTE, dstbuffer);
+					break;
+				case 3:
+					gluBuild2DMipmaps(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, GL_RGBA,tex->width, tex->height, GL_RGBA, GL_UNSIGNED_BYTE, dstbuffer);
+					break;
+				case 4:
+					gluBuild2DMipmaps(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, GL_RGBA,tex->width, tex->height, GL_RGBA, GL_UNSIGNED_BYTE, dstbuffer);
+					break;
+				case 5:
+					gluBuild2DMipmaps(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, GL_RGBA,tex->width, tex->height, GL_RGBA, GL_UNSIGNED_BYTE, dstbuffer);
+					break;
+			}
+		}
+		delete dstbuffer;
+		tex->texture=name;
+		return tex;
+	}
 	else
-		{return Texture::LoadAnimTexture(filename,flags,0,0,0,1);}
+	{
+	  return Texture::LoadAnimTexture(filename,flags,0,0,0,1);
+	}
 }
 
 
@@ -121,32 +108,32 @@ Texture* Texture::LoadAnimTexture(string filename,int flags, int frame_width,int
 		cout << "Error: Cannot Find Texture: " << filename << endl;
 		return NULL;
 	}
-	
+
 	Texture* tex=new Texture();
 	tex->file=filename;
 
 	// set tex.flags before TexInList
 	tex->flags=flags;
 	tex->FilterFlags();
-		
+
 	// check to see if texture with same properties exists already, if so return existing texture
 	Texture* old_tex=tex->TexInList();
 	if(old_tex){
 		return old_tex;
 	}else{
 		tex_list.push_back(tex);
-	}	
-		
+	}
+
 	string filename_left=Left(filename,Len(filename)-4);
 	string filename_right=Right(filename,3);
-	
-	const char* c_filename_left=filename_left.c_str();
-	const char* c_filename_right=filename_right.c_str();
+
+	//const char* c_filename_left=filename_left.c_str();
+	//const char* c_filename_right=filename_right.c_str();
 
 
 
 	unsigned char* buffer;
-	
+
 	buffer=stbi_load(filename.c_str(),&tex->width,&tex->height,0,4);
 
 	unsigned int name;
@@ -166,11 +153,15 @@ Texture* Texture::LoadAnimTexture(string filename,int flags, int frame_width,int
 
 		unsigned char* dstbuffer=new unsigned char[frame_width*frame_height*4];
 
-		
+
 		//tex.gltex=tex.gltex[..tex.no_frames]
 
+		int frames_in_row=tex->width/frame_width;
+
+
 		for (int i=0;i<frame_count;i++){
-			CopyPixels (buffer,tex->width, tex->height,frame_width*i, 0, dstbuffer, frame_width, frame_height, 4);
+			CopyPixels (buffer,tex->width, tex->height,frame_width*(i%frames_in_row), frame_height*(i/frames_in_row),
+			dstbuffer, frame_width, frame_height, 4);
 
 			glGenTextures (1,&name);
 			glBindTexture (GL_TEXTURE_2D,name);
@@ -185,13 +176,13 @@ Texture* Texture::LoadAnimTexture(string filename,int flags, int frame_width,int
 		delete dstbuffer;
 
 	}
-	
+
 	return tex;
-	
+
 }
 
 Texture* Texture::CreateTexture(int width,int height,int flags, int frames){
-	
+
 	Texture* tex=new Texture();
 
 	tex->flags=flags;
@@ -205,55 +196,38 @@ Texture* Texture::CreateTexture(int width,int height,int flags, int frames){
 
 
 	return tex;
-	
+
 }
 
 void Texture::FreeTexture(){
-
-//	[texture release];
-	
 	tex_list.remove(this);
-	
 	delete this;
-
 }
 
 void Texture::DrawTexture(int x,int y){
-
-//	[texture drawAtPoint:CGPointMake(x,y)];
-
+  //	[texture drawAtPoint:CGPointMake(x,y)];
 }
 
 void Texture::TextureBlend(int blend_no){
-	
 	blend=blend_no;
-	
 }
 
 void Texture::TextureCoords(int coords_no){
-
 	coords=coords_no;
-
 }
 
 void Texture::ScaleTexture(float u_s,float v_s){
-
 	u_scale=1.0/u_s;
 	v_scale=1.0/v_s;
-
 }
 
 void Texture::PositionTexture(float u_p,float v_p){
-
 	u_pos=-u_p;
 	v_pos=-v_p;
-
 }
 
 void Texture::RotateTexture(float ang){
-
 	angle=ang;
-
 }
 
 /*
@@ -269,30 +243,23 @@ Method TextureHeight()
 
 End Method
 */
-	
+
 string Texture::TextureName(){
-
 	return file;
-
 }
-	
+
 void Texture::ClearTextureFilters(){
-
 	TextureFilter::tex_filter_list.clear();
-
 }
 
 void Texture::AddTextureFilter(string text_match,int flags){
-
 	TextureFilter* filter=new TextureFilter();
 	filter->text_match=text_match;
 	filter->flags=flags;
 	TextureFilter::tex_filter_list.push_back(filter);
-
 }
 
 Texture* Texture::TexInList(){
-
 	// check if tex already exists in list and if so return it
 	list<Texture*>::iterator it;
 	for(it=tex_list.begin();it!=tex_list.end();it++){
@@ -303,38 +270,33 @@ Texture* Texture::TexInList(){
 			//}
 		}
 	}
-
 	return NULL;
-
 }
 
 void Texture::FilterFlags(){
-
 	// combine specifieds flag with texture filter flags
 	list<TextureFilter*>::iterator it;
 	for(it=TextureFilter::tex_filter_list.begin();it!=TextureFilter::tex_filter_list.end();it++){
 		TextureFilter* filter=*it;
 		if(Instr(file,filter->text_match)) flags=flags|filter->flags;
 	}
-
 }
 
 // used in LoadTexture, strips path info from filename
 string Texture::Strip(string filename){
-
 	string stripped_filename=filename;
 	string::size_type idx;
-	
+
 	idx=filename.find('/');
 	if(idx!=string::npos){
 		stripped_filename=filename.substr(filename.rfind('/')+1);
 	}
-	
+
 	idx=filename.find("\\");
 	if(idx!=string::npos){
 		stripped_filename=filename.substr(filename.rfind("\\")+1);
 	}
-	
+
 	return stripped_filename;
 
 }
@@ -406,15 +368,10 @@ void Texture::TexToBuffer(unsigned char* buffer, int frame){
 
 }
 
-
-
-
 void CopyPixels (unsigned char *src, unsigned int srcWidth, unsigned int srcHeight, unsigned int srcX, unsigned int srcY, unsigned char *dst, unsigned int dstWidth, unsigned int dstHeight, unsigned int bytesPerPixel) {
-    // Copy image data line by line
-    unsigned int y;
-    for (y = 0; y < dstHeight; y++)
-        memcpy (    dst + y * dstWidth * bytesPerPixel,
-                    src + ((y + srcY) * srcWidth + srcX) * bytesPerPixel,
-                    dstWidth * bytesPerPixel);
+  // Copy image data line by line
+  unsigned int y;
+  for (y = 0; y < dstHeight; y++)
+    memcpy (dst + y * dstWidth * bytesPerPixel, src + ((y + srcY) * srcWidth + srcX) * bytesPerPixel, dstWidth * bytesPerPixel);
 }
 

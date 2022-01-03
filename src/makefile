@@ -1,11 +1,11 @@
 CCMPILER = g++
-CC=g++ -O3
+CC=g++ -Wall -O3 
 
-OBJECTS = model.o string_helper.o surface.o bank.o bone.o brush.o collision.o entity.o geom.o global.o minib3d.o light.o matrix.o pick.o pivot.o project.o sprite.o tilt.o touch.o texture_filter.o tree.o animation.o animation_keys.o collision2.o maths_helper.o quaternion.o sprite_batch.o camera.o file.o mesh.o texture.o terrain.o stb_image.o 3ds.o collidetri.o shadow.o
+OBJECTS = model.o string_helper.o surface.o bank.o bone.o brush.o collision.o entity.o functions.o geom.o global.o light.o matrix.o pick.o pivot.o project.o sprite.o tilt.o touch.o texture_filter.o tree.o animation.o animation_keys.o collision2.o maths_helper.o quaternion.o sprite_batch.o camera.o file.o mesh.o texture.o terrain.o stb_image.o 3ds.o collidetri.o shadow.o material.o
 
 main:$(OBJECTS) 
 ifeq ($(shell uname), Linux)
-	$(CC) -shared -o libopenb3d.so $(OBJECTS)  -lGL -lGLU
+	$(CC) -shared -o libOpenB3D.so $(OBJECTS)  -lGL -lGLU
 else
 	$(CC) -shared -o openb3d.dll $(OBJECTS)  -lGLee -lopengl32 -lglu32 -lGDI32
 endif
@@ -35,14 +35,14 @@ entity.o : entity.cpp entity.h
 file.o : file.cpp file.h
 	$(CC) -c file.cpp -o file.o
 
+functions.o : functions.cpp
+	$(CC) -c functions.cpp -o functions.o	
+
 geom.o : geom.cpp geom.h
 	$(CC) -c geom.cpp -o geom.o
 
 global.o : global.cpp global.h
 	$(CC) -c global.cpp -o global.o
-
-minib3d.o : minib3d.cpp minib3d.h
-	$(CC) -c minib3d.cpp -o minib3d.o
 
 light.o : light.cpp light.h
 	$(CC) -c light.cpp -o light.o
@@ -100,6 +100,9 @@ animation_keys.o : animation_keys.cpp animation_keys.h
 
 collision2.o : collision2.cpp collision2.h
 	$(CC) -c collision2.cpp -o collision2.o
+
+material.o : material.cpp 
+	$(CC) -c material.cpp -o material.o
 
 maths_helper.o : maths_helper.cpp maths_helper.h
 	$(CC) -c maths_helper.cpp -o maths_helper.o

@@ -37,9 +37,9 @@
 #include <iostream>
 using namespace std;
 
-static void transform_point(GLfloat out[4], const GLfloat m[16], const GLfloat in[4]);
-static void matmul(GLfloat * product, const GLfloat * a, const GLfloat * b);
-static GLboolean invert_matrix(const GLfloat * m, GLfloat * out);
+// !!! static void transform_point(GLfloat out[4], const GLfloat m[16], const GLfloat in[4]);
+// !!! static void matmul(GLfloat * product, const GLfloat * a, const GLfloat * b);
+// !!! static GLboolean invert_matrix(const GLfloat * m, GLfloat * out);
 GLint gluProject(GLfloat objx, GLfloat objy, GLfloat objz,const GLfloat model[16], const GLfloat proj[16],const GLint viewport[4],GLfloat * winx, GLfloat * winy, GLfloat * winz);
 GLint gluUnProject(GLfloat winx, GLfloat winy, GLfloat winz,const GLfloat model[16], const GLfloat proj[16],const GLint viewport[4],GLfloat * objx, GLfloat * objy, GLfloat * objz);
 //GLint gluUnProject4(GLfloat winx, GLfloat winy, GLfloat winz, GLfloat clipw,const GLfloat modelMatrix[16],const GLfloat projMatrix[16],const GLint viewport[4],GLclampd nearZ, GLclampd farZ,GLfloat * objx, GLfloat * objy, GLfloat * objz,GLfloat * objw);
