@@ -255,9 +255,15 @@ void Animation::AnimateMesh(Mesh* ent1,float framef,int start_frame,int end_fram
 
 			// update bone children
 			//if(bent.child_list.size()!=0) Entity::UpdateChildren(&bent);
-			bent.MQ_Update();
+			//bent.MQ_Update();
 
 		}
+		for(bone_it=ent1->bones.begin();bone_it!=ent1->bones.end();bone_it++){
+				
+			Bone& bent=**bone_it;
+			if(bent.parent==NULL) bent.MQ_Update();
+		}
+
 							
 		// --- vertex deform ---
 		VertexDeform(ent1);
@@ -459,8 +465,14 @@ void Animation::AnimateMesh2(Mesh* ent1,float framef,int start_frame,int end_fra
 
 			// update bone children
 			//if(bent.child_list.size()!=0) Entity::UpdateChildren(&bent);
-			bent.MQ_Update();
+			//bent.MQ_Update();
 							
+		}
+
+		for(it=ent1->bones.begin();it!=ent1->bones.end();it++){
+				
+			Bone& bent=**it;
+			if(bent.parent==NULL) bent.MQ_Update();
 		}
 							
 		// --- vertex deform ---

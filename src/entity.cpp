@@ -128,7 +128,7 @@ void Entity::EntityParent(Entity* parent_ent,int glob){
 		delete m1;
 	}
 
-	if (parent_ent == 0) return;
+	if (parent_ent == 0) {parent_ent = Global::root_ent;return;}
 		
 	//set parent
 	parent = parent_ent;
@@ -1380,7 +1380,7 @@ void Entity::TFormPoint(float x,float y,float z,Entity* src_ent,Entity* dest_ent
 	}
 
 	if (src_ent  != 0) {mat1->TransformVec(x, y, z, 1);delete mat1;}//mesh to global
-	if (dest_ent != 0) {mat2->TransformVec2(x, y, z, 1);delete mat2;}//global to mesh
+	if (dest_ent != 0) {mat2->TransformVec(x, y, z, 1);delete mat2;}//global to mesh
 	
 	tformed_x=x;
 	tformed_y=y;
@@ -1411,7 +1411,7 @@ void Entity::TFormVector(float x,float y,float z,Entity* src_ent,Entity* dest_en
 	
 	//transform point by matrix
 	if (src_ent  != 0) {mat1->TransformVec(x, y, z, 1);delete mat1;}//mesh to global
-	if (dest_ent != 0) {mat2->TransformVec2(x, y, z, 1);delete mat2;}//global to mesh
+	if (dest_ent != 0) {mat2->TransformVec(x, y, z, 1);delete mat2;}//global to mesh
 
 	tformed_x=x;
 	tformed_y=y;
@@ -1449,6 +1449,7 @@ float Entity::TFormedZ(){
 }
 
 // helper funcs
+
 
 
 void Entity::UpdateMat(bool load_identity){

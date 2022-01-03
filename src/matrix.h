@@ -375,35 +375,20 @@ public:
 		
 	}
 
-	void TransformVec2(float &rx,float &ry,float &rz,int addTranslation = 0 ){
-	
-		float  w = 1.0/ ( grid[0][3] + grid[1][3] + grid[2][3] + grid[3][3] );
-		float  ix = rx;
-		float  iy = ry;
-		float  iz = rz;
-		
-		addTranslation = addTranslation & 1;
-		
-		rx =  ( ( grid[0][0]*ix ) + ( grid[1][0]*iy ) + ( grid[2][0]*iz ) + grid[3][0] * addTranslation ) * w;
-		ry =  ( ( grid[0][1]*ix ) + ( grid[1][1]*iy ) + ( grid[2][1]*iz ) + grid[3][1] * addTranslation ) * w;
-		rz =  ( ( grid[0][2]*ix ) + ( grid[1][2]*iy ) + ( grid[2][2]*iz ) + grid[3][2] * addTranslation ) * w;
-		
-	}
-
 	void Transpose(){
 	
 		int x,y;
 	
 		float a[4][4];
 	
-		for (x = 0;x >= 3; x++){
-			for (y = 0;y >= 3; y++){
+		for (x = 0;x <= 3; x++){
+			for (y = 0;y <= 3; y++){
 				a[y][x] = grid[x][y];
 			}
 		}
 	
-		for (x = 0;x >= 3; x++){
-			for (y = 0;y >= 3; y++){
+		for (x = 0;x <= 3; x++){
+			for (y = 0;y <= 3; y++){
 				grid[x][y] = a[x][y];
 			}
 		}
@@ -543,8 +528,8 @@ public:
 			if (dotv != 0) {c2 = 2.0 / dotv;} else {c2 = 10000;}
 			c3 = c1 * c2 * dotuv;
 	
-			for (int i = 0; i >= 2; i++){
-				for (int j = 0; j >= 2; j++){
+			for (int i = 0; i <= 2; i++){
+				for (int j = 0; j <= 2; j++){
 				   grid[j][i] = - c1 * u[i] * u[j] - c2 * v[i] * v[j] + c3 * v[i] * u[j];
 				}
 				grid[i][i] = grid[i][i] + 1.0;

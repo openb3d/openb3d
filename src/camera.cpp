@@ -512,6 +512,8 @@ void Camera::Update(){
 	Matrix* new_mat=mat.Inverse();
 	
 	glLoadMatrixf(&new_mat->grid[0][0]);
+
+	delete new_mat;
 	
 	if(project_enabled){ // only get these directly after a cameraproject/camerapick call, as they are expensive calls
 	

@@ -42,6 +42,10 @@ int BackBufferToTex(Texture* tex,int frame){
 	tex->BackBufferToTex(frame);
 }
 
+int TexToBuffer(Texture* tex,unsigned char* buffer, int frame){
+	tex->TexToBuffer(buffer,frame);
+}
+
 
 /*
 bbdoc: Minib3d Only
@@ -1222,6 +1226,14 @@ bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=TerrainX">Onl
 */
 float TerrainX (Terrain* terr, float x, float y, float z){
 	return terr->TerrainX (x, y, z);
+}
+
+/*
+
+bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=TerrainY">Online Help</a>
+*/
+float TerrainY (Terrain* terr, float x, float y, float z){
+	return terr->TerrainY (x, y, z);
 }
 
 /*

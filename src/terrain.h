@@ -49,6 +49,7 @@ public:
 	void col_tree_sub(int l, float v0[], float v1[], float v2[]);
 	float TerrainHeight (int x, int z);
 	float TerrainX (float x, float y, float z);
+	float TerrainY (float x, float y, float z);
 	float TerrainZ (float x, float y, float z);
 
 	Terrain(){

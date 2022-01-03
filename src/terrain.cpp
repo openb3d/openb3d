@@ -21,6 +21,8 @@
 #include "camera.h"
 #include "brush.h"
 #include "terrain.h"
+#include "pick.h"
+
 
 #include "stb_image.h"
 #include "string_helper.h"
@@ -39,7 +41,98 @@ float radius;
 MeshInfo* Terrain::mesh_info;
 list<Terrain*> Terrain::terrain_list;
 
-Terrain* Terrain::CopyEntity(Entity* parent_ent){}
+Terrain* Terrain::CopyEntity(Entity* parent_ent){
+
+	if(parent_ent==NULL) parent_ent=Global::root_ent;
+
+	// new terr
+	Terrain* terr=new Terrain;
+
+	// copy contents of child list before adding parent
+	list<Entity*>::iterator it;
+	for(it=child_list.begin();it!=child_list.end();it++){
+		Entity* ent=*it;
+		ent->CopyEntity(terr);
+	}
+	
+	// lists
+	
+	// add parent, add to list
+	terr->AddParent(*parent_ent);
+	entity_list.push_back(terr);
+	
+	// add to collision entity list
+	if(collision_type!=0){
+		CollisionPair::ent_lists[collision_type].push_back(terr);
+	}
+	
+	// add to pick entity list
+	if(pick_mode){
+		Pick::ent_list.push_back(terr);
+	}
+	
+	// update matrix
+	if(terr->parent){
+		terr->mat.Overwrite(terr->parent->mat);
+	}else{
+		terr->mat.LoadIdentity();
+	}
+	
+	// copy entity info
+	
+	terr->mat.Multiply(mat);
+	
+	terr->px=px;
+	terr->py=py;
+	terr->pz=pz;
+	terr->sx=sx;
+	terr->sy=sy;
+	terr->sz=sz;
+	terr->rx=rx;
+	terr->ry=ry;
+	terr->rz=rz;
+	terr->qw=qw;
+	terr->qx=qx;
+	terr->qy=qy;
+	terr->qz=qz;
+
+	terr->name=name;
+	terr->class_name=class_name;
+	terr->order=order;
+	terr->hide=false;
+	
+	terr->cull_radius=cull_radius;
+	terr->radius_x=radius_x;
+	terr->radius_y=radius_y;
+	terr->box_x=box_x;
+	terr->box_y=box_y;
+	terr->box_z=box_z;
+	terr->box_w=box_w;
+	terr->box_h=box_h;
+	terr->box_d=box_d;
+	terr->pick_mode=pick_mode;
+	terr->obscurer=obscurer;
+
+	//copy terrain info
+	terr->size=size;
+	terr->vsize=vsize;
+	for (int i = 0; i<= ROAM_LMAX+1; i++){
+		terr->level2dzsize[i] = level2dzsize[i];
+	}		
+	int tsize=size;
+	terr->height=new float[(tsize+1)*(tsize+1)];
+	for (int i = 0; i<= (tsize+1)*(tsize+1); i++){
+		terr->height[i]=height[i];
+	}
+	terr->NormalsMap=new float[(tsize+1)*(tsize+1)*3];
+	for (int i = 0; i<= (tsize+1)*(tsize+1)*3; i++){
+		terr->NormalsMap[i]=NormalsMap[i];
+	}
+
+
+	return terr;
+
+}
 
 
 Terrain* Terrain::CreateTerrain(int tsize, Entity* parent_ent){
@@ -166,16 +259,19 @@ void Terrain::UpdateTerrain(){
 	int tex_count=0;
 	tex_count=brush.no_texs;
 
+	int DisableCubeSphereMapping=0;
 	for(int ix=0;ix<tex_count;ix++){
 
 		if(brush.tex[ix]){
 				
 			// Main brush texture takes precedent over surface brush texture
-			Texture* texture=NULL;
+			unsigned int texture=0;
 			int tex_flags=0,tex_blend=0,tex_coords=0;
 			float tex_u_scale=1.0,tex_v_scale=1.0,tex_u_pos=0.0,tex_v_pos=0.0,tex_ang=0.0;
+			int tex_cube_mode=0;
 
-			texture=brush.tex[ix];
+
+			texture=brush.cache_frame[ix];
 			tex_flags=brush.tex[ix]->flags;
 			tex_blend=brush.tex[ix]->blend;
 			tex_coords=brush.tex[ix]->coords;
@@ -184,14 +280,14 @@ void Terrain::UpdateTerrain(){
 			tex_u_pos=brush.tex[ix]->u_pos;
 			tex_v_pos=brush.tex[ix]->v_pos;
 			tex_ang=brush.tex[ix]->angle;
-			//tex_cube_mode=brush.tex[ix]->cube_mode;
+			tex_cube_mode=brush.tex[ix]->cube_mode;
 			//frame=brush.tex_frame;
 
 			glActiveTexture(GL_TEXTURE0+ix);
 			glClientActiveTexture(GL_TEXTURE0+ix);
 
 			glEnable(GL_TEXTURE_2D);
-			glBindTexture(GL_TEXTURE_2D,texture->texture); // call before glTexParameteri
+			glBindTexture(GL_TEXTURE_2D,texture); // call before glTexParameteri
 
 			// masked texture flag
 			if(tex_flags&4){
@@ -224,23 +320,24 @@ void Terrain::UpdateTerrain(){
 			}
 		
 				// ***!ES***
-				/*
-				// spherical environment map texture flag
-				if(tex_flags&64!=0){
-					glTexGeni(GL_S,GL_TEXTURE_GEN_MODE,GL_SPHERE_MAP);
-					glTexGeni(GL_T,GL_TEXTURE_GEN_MODE,GL_SPHERE_MAP);
-					glEnable(GL_TEXTURE_GEN_S);
-					glEnable(GL_TEXTURE_GEN_T);
-				}else{
-					glDisable(GL_TEXTURE_GEN_S);
-					glDisable(GL_TEXTURE_GEN_T);
-				}
+
+			// spherical environment map texture flag
+			if(tex_flags&64){
+				glTexGeni(GL_S,GL_TEXTURE_GEN_MODE,GL_SPHERE_MAP);
+				glTexGeni(GL_T,GL_TEXTURE_GEN_MODE,GL_SPHERE_MAP);
+				glEnable(GL_TEXTURE_GEN_S);
+				glEnable(GL_TEXTURE_GEN_T);
+				DisableCubeSphereMapping=1;
+			}/*else{
+				glDisable(GL_TEXTURE_GEN_S);
+				glDisable(GL_TEXTURE_GEN_T);
+			}*/
 			
 				// cubic environment map texture flag
-				if(tex_flags&128!=0){
+				if(tex_flags&128){
 	
 					glEnable(GL_TEXTURE_CUBE_MAP);
-					glBindTexture(GL_TEXTURE_CUBE_MAP,texture->texture.name); // call before glTexParameteri
+					glBindTexture(GL_TEXTURE_CUBE_MAP,texture); // call before glTexParameteri
 					
 					glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
 					glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
@@ -264,8 +361,9 @@ void Terrain::UpdateTerrain(){
 						glTexGeni(GL_T,GL_TEXTURE_GEN_MODE,GL_NORMAL_MAP);
 						glTexGeni(GL_R,GL_TEXTURE_GEN_MODE,GL_NORMAL_MAP);
 					}
+					DisableCubeSphereMapping=1;
 		
-				}else{
+				}else  if (DisableCubeSphereMapping!=0){
 
 					glDisable(GL_TEXTURE_CUBE_MAP);
 					
@@ -279,7 +377,7 @@ void Terrain::UpdateTerrain(){
 					//glDisable(GL_TEXTURE_GEN_Q)
 	
 				}
-				*/
+				
 				
 			switch(tex_blend){
 				case 0: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);
@@ -292,8 +390,8 @@ void Terrain::UpdateTerrain(){
 				case 3: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_ADD);
 				break;
 				case 4:
-					//glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT); ***!ES***
-					//glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_DOT3_RGB_EXT); ***!ES***
+					glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
+					glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_DOT3_RGB_EXT);
 					break;
 				case 5:
 					glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_COMBINE);
@@ -318,14 +416,14 @@ void Terrain::UpdateTerrain(){
 				glScalef(tex_u_scale,tex_v_scale,1.0);
 			}
 	
-			/* ***!ES***
+			// ***!ES***
 			// if spheremap flag=true then flip tex
-			if(tex_flags&64!=0){
+			if(tex_flags&64){
 				glScalef(1.0,-1.0,-1.0);
 			}
 				
 			// if cubemap flag=true then manipulate texture matrix so that cubemap is displayed properly 
-			if(tex_flags&128!=0){
+			if(tex_flags&128){
 
 				glScalef(1.0,-1.0,-1.0);
 					
@@ -352,7 +450,7 @@ void Terrain::UpdateTerrain(){
 				glMultMatrixf(&new_mat.grid[0][0]);
 
 			}
-			*/
+			
 								
 		}
 		
@@ -379,10 +477,13 @@ void Terrain::UpdateTerrain(){
 		glDisable(GL_TEXTURE_2D);
 			
 		// ***!ES***
-		//glDisable(GL_TEXTURE_CUBE_MAP);
-		//glDisable(GL_TEXTURE_GEN_S);
-		//glDisable(GL_TEXTURE_GEN_T);
-		//glDisable(GL_TEXTURE_GEN_R);
+		if (DisableCubeSphereMapping!=0){
+			glDisable(GL_TEXTURE_CUBE_MAP);
+			glDisable(GL_TEXTURE_GEN_S);
+			glDisable(GL_TEXTURE_GEN_T);
+			glDisable(GL_TEXTURE_GEN_R);
+			DisableCubeSphereMapping=0;
+		}
 	
 	}
 
@@ -811,6 +912,38 @@ float Terrain::TerrainX (float x, float y, float z){
 	TFormPoint(x, y, z, 0, this);
 	return tformed_x;
 }
+
+float Terrain::TerrainY (float x, float y, float z){
+	TFormPoint(x, y, z, 0, this);
+	float p0[3],p1[3],p2[3];
+	p0[0]=tformed_x;
+	p0[2]=tformed_z;
+	p0[1]=height[(int)((int)tformed_x*size-tformed_z)] * vsize;
+
+	p2[0]=tformed_x+1;
+	p2[2]=tformed_z;
+	p2[1]=height[(int)(((int)(tformed_x+1)*size)- tformed_z)] * vsize;
+
+	if (tformed_x-floor(tformed_x)-tformed_z+floor(tformed_z)<.5){
+		p1[0]=tformed_x;
+		p1[2]=tformed_z+1;
+		p1[1]=height[(int)(((int)tformed_x*size)- tformed_z-1)] * vsize;
+	}else
+	{
+		p1[0]=tformed_x+1;
+		p1[2]=tformed_z+1;
+		p1[1]=height[(int)(((int)(tformed_x+1)*size)- tformed_z-1)] * vsize;
+	}
+
+
+	float A = p0[1] *(p1[2] - p2[2]) + p1[1] *(p2[2] - p0[2]) + p2[1] *(p0[2] - p1[2]);
+	float B = p0[2] *(p1[0] - p2[0]) + p1[2] *(p2[0] - p0[0]) + p2[2] *(p0[0] - p1[0]);
+	float C = p0[0] *(p1[1] - p2[1]) + p1[0] *(p2[1] - p0[1]) + p2[0] *(p0[1] - p1[1]);
+	float D = -(p0[0] *(p1[1] * p2[2] - p2[1] * p1[2]) + p1[0] *(p2[1]* p0[2] - p0[1]* p2[2]) + p2[0] *(p0[1] *p1[2] - p1[1] *p0[2]));
+	if (B==0.0) B=0.0001;
+	return -(D+A*tformed_x+C*tformed_z)/B;
+}
+
 
 float Terrain::TerrainZ (float x, float y, float z){
 	TFormPoint(x, y, z, 0, this);
