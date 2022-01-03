@@ -85,9 +85,9 @@ Bone* Bone::CopyEntity(Entity* parent_ent){
 	bone->kqy=kqy;
 	bone->kqz=kqz;
 	
-	bone->mat2=*mat2.Copy();
-	bone->inv_mat=*inv_mat.Copy();
-	bone->tform_mat=*tform_mat.Copy();
+	bone->mat2=mat2;
+	bone->inv_mat=inv_mat;
+	bone->tform_mat=tform_mat;
 
 	return bone;
 

@@ -19,6 +19,8 @@
 #include "shadow.h"
 
 #include <list>
+#include <stdlib.h>
+
 using namespace std;
 
 float Global::ambient_red=0.5,Global::ambient_green=0.5,Global::ambient_blue=0.5;
@@ -71,6 +73,10 @@ void Global::Graphics(){
 	glLightModelfv(GL_LIGHT_MODEL_TWO_SIDE,flag); // 0 for one sided, 1 for two sided
 
 	Texture::AddTextureFilter("",9);
+
+	if (atof((char*)glGetString(GL_VERSION))<1.5){
+		Global::vbo_enabled=false;
+	}
 
 }
 

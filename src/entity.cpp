@@ -782,6 +782,13 @@ int Entity::AddAnimSeq(int length){
 
 // collision
 void Entity::EntityType(int type_no,int recursive){
+
+	// if type_no is negative, collision checking is dynamic
+	if (type_no<0){
+		type_no=-type_no;
+		dynamic=true;
+	}
+
 	// add to collision entity list if new type no<>0 and not previously added
 	if(collision_type==0 && type_no!=0){
 		CollisionPair::ent_lists[type_no].push_back(this);

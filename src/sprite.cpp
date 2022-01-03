@@ -74,7 +74,7 @@ Sprite* Sprite::CopyEntity(Entity* parent_ent){
 	sprite->order=order;
 	sprite->hide=false;
 
-	sprite->brush=*brush.Copy();
+	sprite->brush=brush;
 
 	sprite->cull_radius=cull_radius;
 	sprite->radius_x=radius_x;

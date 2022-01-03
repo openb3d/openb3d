@@ -578,7 +578,7 @@ Mesh* LoadX(string URL, Entity* parent_ent){
 
 										MovedTris.sort();
 										int CheckSurface=0;
-										for(list<int>::const_reverse_iterator it = MovedTris.rbegin(); it != MovedTris.rend(); it--){
+										for(list<int>::const_reverse_iterator it = MovedTris.rbegin(); it != MovedTris.rend(); it++){
 											surf->RemoveTri(*it);
 											CheckSurface=1;
 										}

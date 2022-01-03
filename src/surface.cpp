@@ -669,7 +669,7 @@ void Surface::RemoveTri(int tri){
 	int* tris=new int[no_tris*3];
 	int old_no_tris=no_tris;
 
-	for(int t=0;t<no_tris-1;t++){
+	for(int t=0;t<=no_tris-1;t++){
 
 		tris[t*3+0]=TriangleVertex(t,0);
 		tris[t*3+1]=TriangleVertex(t,1);
@@ -679,7 +679,7 @@ void Surface::RemoveTri(int tri){
 
 	ClearSurface(false,true);
 
-	for(int t=0;t<old_no_tris-1;t++){
+	for(int t=0;t<=old_no_tris-1;t++){
 
 		int v0=tris[t*3+0];
 		int v1=tris[t*3+1];

@@ -48,12 +48,12 @@ public:
 	Terrain* CopyEntity(Entity* parent_ent=NULL);
 	void FreeEntity(void);
 
-	void UpdateTerrain();
+	virtual void UpdateTerrain();
 	void RecreateROAM();
 	void drawsub(int l, float v0[], float v1[], float v2[]);
 	void UpdateNormals();
 	void ModifyTerrain (int x, int z, float height);
-	void TreeCheck(CollisionInfo* ci);
+	virtual void TreeCheck(CollisionInfo* ci);
 	void col_tree_sub(int l, float v0[], float v1[], float v2[]);
 	float TerrainHeight (int x, int z);
 	float TerrainX (float x, float y, float z);

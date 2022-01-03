@@ -83,7 +83,7 @@ Mesh* Mesh::CopyEntity(Entity* parent_ent){
 	// copy entity info
 
 	mesh->mat.Multiply(mat);
-	mesh->rotmat = *rotmat.Copy();
+	mesh->rotmat = rotmat;
 
 	mesh->px=px;
 	mesh->py=py;
@@ -108,7 +108,7 @@ Mesh* Mesh::CopyEntity(Entity* parent_ent){
 	//mesh->fade_far=fade_far;
 
 	//mesh->brush=NULL;
-	mesh->brush=*brush.Copy();
+	mesh->brush=brush;
 
 	mesh->anim=anim;
 	mesh->anim_render=anim_render;
@@ -227,23 +227,25 @@ Mesh* Mesh::CopyEntity(Entity* parent_ent){
 
 void Mesh::FreeEntity(){
 
-	if (no_surfs>0){
+	if (no_surfs>=0){
 		list<Surface*>::iterator surf_it;
 
 		for(surf_it=surf_list.begin();surf_it!=surf_list.end();surf_it++){
 			Surface* surf=*surf_it;
 			delete surf;
 		}
-		surf_list.clear();
 
 		for(surf_it=anim_surf_list.begin();surf_it!=anim_surf_list.end();surf_it++){
 			Surface* anim_surf=*surf_it;
 			delete anim_surf;
 		}
-		anim_surf_list.clear();
-	}
 
-	vector<Bone*>::iterator bone_it;
+		delete c_col_tree;
+	}
+	surf_list.clear();
+	anim_surf_list.clear();
+
+	//vector<Bone*>::iterator bone_it;
 
 	/*for(bone_it=bones.begin();bone_it!=bones.end();bone_it++){
 		Bone* bone=*bone_it;
@@ -251,7 +253,7 @@ void Mesh::FreeEntity(){
 	}*/
 	bones.clear();
 
-	delete c_col_tree;
+	
 
 	Entity::FreeEntity();
 
@@ -939,7 +941,7 @@ Mesh* Mesh::RepeatMesh(Entity* parent_ent){
 	//mesh->fade_far=fade_far;
 
 	//mesh->brush=NULL;
-	mesh->brush=*brush.Copy();
+	mesh->brush=brush;
 
 	mesh->anim=anim;
 	mesh->anim_render=(anim_mode!=0);
@@ -980,24 +982,27 @@ Mesh* Mesh::RepeatMesh(Entity* parent_ent){
 	mesh->no_surfs=-1;
 
 	// copy surf list
-	list<Surface*>::iterator it2;
+	/*list<Surface*>::iterator it2;
 	for(it2=surf_list.begin();it2!=surf_list.end();it2++){
 
 		Surface* surf=*it2;
 
 		mesh->surf_list.push_back(surf);
 
-	}
+	}*/
 
+	mesh->surf_list=surf_list;
+	mesh->anim_surf_list=anim_surf_list;
 	// copy anim surf list
-	for(it2=anim_surf_list.begin();it2!=anim_surf_list.end();it2++){
+	/*for(it2=anim_surf_list.begin();it2!=anim_surf_list.end();it2++){
 
 		Surface* surf=*it2;
 
 		mesh->anim_surf_list.push_back(surf);
 
-	}
+	}*/
 
+	TreeCheck();
 	mesh->c_col_tree=c_col_tree;
 
 	mesh->reset_bounds=reset_bounds;

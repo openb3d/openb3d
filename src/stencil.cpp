@@ -24,7 +24,7 @@ Stencil* Stencil::CreateStencil(){
 }
 
 void Stencil::StencilMesh(Mesh* mesh, int mode){
-	Global::root_ent->child_list.remove(mesh);
+	mesh->parent->child_list.remove(mesh);
 	StencilMesh_list.push_back(mesh);
 	StencilMode_list.push_back(mode);
 

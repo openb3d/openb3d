@@ -9,6 +9,7 @@
 #include "stencil.h"
 #include "csg.h"
 #include "voxel.h"
+#include "octree.h"
 
 extern "C" {
 
@@ -1750,6 +1751,20 @@ void ShaderMaterial(Shader* material, Material* tex, char* name, int index){
 
 
 
+
+
+
+OcTree* CreateOcTree(float w, float h, float d, Entity* parent_ent=0){
+	return OcTree::CreateOcTree(w, h, d, parent_ent);
+}
+
+void OctreeBlock(OcTree* octree, Mesh* mesh, int level, float X, float Y, float Z, float Near=0.0, float Far=1000.0){
+	octree->OctreeBlock(mesh, level, X, Y, Z, Near, Far);
+}
+
+void OctreeMesh(OcTree* octree, Mesh* mesh, int level, float X, float Y, float Z, float Near=0.0, float Far=1000.0){
+	octree->OctreeMesh(mesh, level, X, Y, Z, Near, Far);
+}
 
 /*void SetParameter1S(Shader* material, char* name, float v1){
 	material->SetParameter1S(name, v1);

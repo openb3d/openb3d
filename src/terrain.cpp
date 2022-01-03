@@ -32,8 +32,8 @@
 
 int Terrain::triangleindex;
 
-Line Ray;
-float radius;
+static Line Ray;
+static float radius;
 
 
 
@@ -114,7 +114,7 @@ Terrain* Terrain::CopyEntity(Entity* parent_ent){
 	terr->obscurer=obscurer;
 
 	//copy terrain info
-	terr->brush=*brush.Copy();
+	terr->brush=brush;
 
 	terr->ShaderMat=ShaderMat;
 
@@ -553,8 +553,8 @@ void Terrain::RecreateROAM(){
 		C_DeleteColTree(c_col_tree);
 		c_col_tree=NULL;
 	}
-*/
 	mesh_info=C_NewMeshInfo();
+*/
 	triangleindex = 0;
 
 	glBegin(GL_TRIANGLES);
@@ -611,7 +611,7 @@ void Terrain::drawsub(int l, float v0[], float v1[], float v2[]){
 		if (rc > rd) {rd = rc;}
 		rd = sqrt(rd)*dradius;
 
-		int m = 1;
+		//int m = 1;
 
 		/*TFormPoint(vc[0],vc[1],vc[2],this,0);
 		float vcx=tformed_x;
@@ -626,7 +626,7 @@ void Terrain::drawsub(int l, float v0[], float v1[], float v2[]){
 		for (int i = 0 ;i<= 5; i++){
 			float d = eyepoint->frustum[i][0] * vcx + eyepoint->frustum[i][1] * vcy - eyepoint->frustum[i][2] * vcz + eyepoint->frustum[i][3];
 			if (d <= -rd) return;//{ds=ds/10; break;}
-			m = m << 1;
+			//m = m << 1;
 		}
 
 		/* compute distance from split point To camera (squared) */

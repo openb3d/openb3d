@@ -1,3 +1,14 @@
+V0.7
+Added:
+- Octrees
+- Dynamic collisions (a sphere-to-sphere collision is detected even if both objects are moving)
+- VBO automatically disabled for older OpenGL version.
+
+Fixed:
+- Some memory leaks when a mesh is loaded or copied
+- RepeatMesh: repeated meshes can be used in collisions.
+- X and 3ds loader: surfaces were loaded twice.
+
 V0.62
 Added:
 -Can load some DirectX (.x) files

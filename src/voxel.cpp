@@ -313,6 +313,8 @@ void VoxelSprite::Render(){
 		glDrawElements(GL_QUADS,surf.no_tris*4/(1<<lod),GL_UNSIGNED_SHORT,&surf.tris[LOD[surf_number*16+lod]]);
 	}
 
+	glPopMatrix();
+
 	for(int ix=0;ix<no_mats;ix++){
 
 		glActiveTexture(GL_TEXTURE0+ix);
@@ -324,7 +326,6 @@ void VoxelSprite::Render(){
 	
 		glDisable(GL_TEXTURE_3D);
 	}
-	glPopMatrix();
 }
 
 

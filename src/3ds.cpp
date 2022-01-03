@@ -234,7 +234,7 @@ void ReadTriMesh(){
   if (surface!=0){
     MovedTris.sort();
     int CheckSurface=0;
-    for(list<int>::const_iterator it = MovedTris.end(); it != MovedTris.begin(); it--){
+    for(list<int>::const_reverse_iterator it = MovedTris.rbegin(); it != MovedTris.rend(); it++){
       surface->RemoveTri(*it);
       CheckSurface=1;
     }
@@ -379,7 +379,7 @@ Mesh* Load3ds(string URL, Entity* parent_ent){
   if (surface!=0){
     MovedTris.sort();
     int CheckSurface=0;
-    for(list<int>::const_reverse_iterator it = MovedTris.rbegin(); it != MovedTris.rend(); it--){
+    for(list<int>::const_reverse_iterator it = MovedTris.rbegin(); it != MovedTris.rend(); it++){
       surface->RemoveTri(*it);
       CheckSurface=1;
     }

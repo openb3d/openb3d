@@ -1,7 +1,7 @@
 CCMPILER = g++
 CC=g++ -Wall -O3 
 
-OBJECTS = model.o string_helper.o surface.o bank.o bone.o brush.o collision.o entity.o functions.o geom.o global.o light.o matrix.o pick.o pivot.o project.o sprite.o tilt.o touch.o texture_filter.o tree.o animation.o animation_keys.o collision2.o maths_helper.o quaternion.o sprite_batch.o camera.o file.o mesh.o texture.o terrain.o stb_image.o 3ds.o collidetri.o shadow.o material.o stencil.o csg.o voxel.o x.o
+OBJECTS = model.o string_helper.o surface.o bank.o bone.o brush.o collision.o entity.o functions.o geom.o global.o light.o matrix.o pick.o pivot.o project.o sprite.o tilt.o touch.o texture_filter.o tree.o animation.o animation_keys.o collision2.o maths_helper.o quaternion.o sprite_batch.o camera.o file.o mesh.o texture.o terrain.o stb_image.o 3ds.o collidetri.o shadow.o material.o stencil.o csg.o voxel.o x.o octree.o
 
 main:$(OBJECTS) 
 ifeq ($(shell uname), Linux)
@@ -124,6 +124,9 @@ stencil.o : stencil.cpp stencil.h
 
 csg.o : csg.cpp csg.h
 	$(CC) -c csg.cpp -o csg.o
+
+octree.o : octree.cpp octree.h
+	$(CC) -c octree.cpp -o octree.o
 
 voxel.o : voxel.cpp voxel.h
 	$(CC) -c voxel.cpp -o voxel.o
