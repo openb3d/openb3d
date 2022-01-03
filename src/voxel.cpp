@@ -3,8 +3,13 @@
 #include <GL/gl.h>
 #include <GL/glext.h>
 #endif
+
 #ifdef WIN32
 #include <gl\GLee.h>
+#endif
+
+#ifdef __APPLE__
+#include "GLee.h"
 #endif
 
 #include "voxel.h"
@@ -298,7 +303,11 @@ void VoxelSprite::Render(){
 		glColorPointer(4,GL_FLOAT,0,NULL);
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,surf.vbo_id[5]);
+		#ifdef __x86_64__
+		glDrawElements(GL_QUADS,surf.no_tris*4/(1<<lod),GL_UNSIGNED_SHORT, (GLvoid *)(long long)(LOD[surf_number*16+lod]*2));
+		#else
 		glDrawElements(GL_QUADS,surf.no_tris*4/(1<<lod),GL_UNSIGNED_SHORT, (GLvoid *)(LOD[surf_number*16+lod]*2));
+		#endif
 
 	}else{
 

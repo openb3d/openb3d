@@ -9,11 +9,15 @@
 #define GL_GLEXT_PROTOTYPES
 #include <GL/gl.h>
 #include <GL/glext.h>
+
 #endif
 #ifdef WIN32
 #include <gl\GLee.h>
 #endif
 
+#ifdef __APPLE__
+#include "GLee.h"
+#endif
 
 
 #include "global.h"
@@ -285,7 +289,7 @@ void Terrain::UpdateTerrain(){
 	int tex_count=0;
 
 	if(ShaderMat!=NULL){
-		ShaderMat->TurnOn(0, mat);
+		ShaderMat->TurnOn(mat, 0, &vertices);
 	}
 
 	tex_count=brush.no_texs;
@@ -297,7 +301,7 @@ void Terrain::UpdateTerrain(){
 
 			// Main brush texture takes precedent over surface brush texture
 			unsigned int texture=0;
-			int tex_flags=0,tex_blend=0,tex_coords=0;
+			int tex_flags=0,tex_blend=0;
 			float tex_u_scale=1.0,tex_v_scale=1.0,tex_u_pos=0.0,tex_v_pos=0.0,tex_ang=0.0;
 			int tex_cube_mode=0;
 
@@ -305,7 +309,7 @@ void Terrain::UpdateTerrain(){
 			texture=brush.cache_frame[ix];
 			tex_flags=brush.tex[ix]->flags;
 			tex_blend=brush.tex[ix]->blend;
-			tex_coords=brush.tex[ix]->coords;
+			//tex_coords=brush.tex[ix]->coords;
 			tex_u_scale=brush.tex[ix]->u_scale;
 			tex_v_scale=brush.tex[ix]->v_scale;
 			tex_u_pos=brush.tex[ix]->u_pos;
@@ -569,7 +573,7 @@ void Terrain::RecreateROAM(){
 	}
 
 
-	tmat = MQ_GetMatrix(true);
+	MQ_GetMatrix(tmat, true);
 
 
 
@@ -580,8 +584,6 @@ void Terrain::RecreateROAM(){
 	/* recurse on the two base triangles */
 	drawsub(0, v[0], v[1], v[2]);
 	drawsub(0, v[2], v[3], v[0]);
-
-	delete tmat;
 
 
 }
@@ -636,7 +638,7 @@ void Terrain::drawsub(int l, float v0[], float v1[], float v2[]){
 		float vcx=vc[0];
 		float vcy=vc[1];
 		float vcz=-vc[2];
-		tmat->TransformVec(vcx, vcy, vcz, 1);
+		tmat.TransformVec(vcx, vcy, vcz, 1);
 
 		for (int i = 0 ;i<= 5; i++){
 			float d = eyepoint->frustum[i][0] * vcx + eyepoint->frustum[i][1] * vcy - eyepoint->frustum[i][2] * vcz + eyepoint->frustum[i][3];
@@ -808,7 +810,7 @@ void Terrain::TreeCheck(CollisionInfo* ci){
 	}
 
 
-	tmat = MQ_GetMatrix(true);
+	MQ_GetMatrix(tmat, true);
 
 
 
@@ -827,7 +829,6 @@ void Terrain::TreeCheck(CollisionInfo* ci){
 
 	c_col_tree=C_CreateColTree(mesh_info);
 	C_DeleteMeshInfo(mesh_info);
-	delete tmat;
 
 
 
@@ -883,7 +884,7 @@ void Terrain::col_tree_sub(int l, float v0[], float v1[], float v2[]){
 		float vcx=vc[0];
 		float vcy=vc[1];
 		float vcz=-vc[2];
-		tmat->TransformVec(vcx, vcy, vcz, 1);
+		tmat.TransformVec(vcx, vcy, vcz, 1);
 
 
 		/*Is triangle on the collision line?*/
