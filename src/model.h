@@ -25,6 +25,8 @@ string b3dReadString(File* file);
 string ReadTag(File* file);
 int NewTag(string tag);
 int TagID(string tag);
+void TrimVerts(Surface* surf);
+
 
 /*
 const int BRUS;

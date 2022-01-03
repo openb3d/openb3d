@@ -586,9 +586,9 @@ Mesh* LoadAnimB3D(string f_name,Entity* parent_ent_ext){
 
 			// don't create new surface if tris chunk has same brush as chunk immediately before it
 			if(prev_tag!="TRIS" || tr_brush_id!=old_tr_brush_id){
-			
 				// no further tri data for this surf - trim verts
-				//if(prev_tag=="TRIS") TrimVerts(surf); ***todo***
+
+				if(prev_tag=="TRIS") TrimVerts(surf); 
 			
 				// new surf - copy arrays
 				surf=mesh->CreateSurface();
@@ -633,7 +633,7 @@ Mesh* LoadAnimB3D(string f_name,Entity* parent_ent_ext){
 			if((v_flags&1==0) && (new_tag!="TRIS")) mesh->UpdateNormals(); // if no normal data supplied and no further tri data then update normals
 
 			// no further tri data for this surface - trim verts
-			//if(new_tag!="TRIS") TrimVerts(surf); ***todo***
+			if(new_tag!="TRIS") TrimVerts(surf); 
 			
 		}else if(tag_id==ANIM){
 			
@@ -675,9 +675,9 @@ Mesh* LoadAnimB3D(string f_name,Entity* parent_ent_ext){
 					// transfer vmin/vmax values for using with TrimVerts func after
 					anim_surf->vmin=surf.vmin;
 					anim_surf->vmax=surf.vmax;
-				
+					
 				}
-										
+				
 			}
 
 		}else if(tag_id==BONE){
@@ -908,31 +908,44 @@ Mesh* LoadAnimB3D(string f_name,Entity* parent_ent_ext){
 
 }
 
-/*
+
 // Due to the .b3d format not being an exact fit with B3D, we need to slice vert arrays
 // Otherwise we duplicate all vert information per surf
 void TrimVerts(Surface* surf){
 			
-	if(surf.no_tris==0) return 0; // surf has no tri info, do not trim
+	if(surf->no_tris==0) return; // surf has no tri info, do not trim
 			
 	int vmin=surf->vmin;
 	int vmax=surf->vmax;
 
-	//***todo***
-	surf->vert_coords=surf->vert_coords[vmin*3..vmax*3+3]
-	surf->vert_col=surf->vert_col[vmin*4..vmax*4+4]
-	surf->vert_norm=surf->vert_norm[vmin*3..vmax*3+3]
-	surf->vert_tex_coords0=surf->vert_tex_coords0[vmin*2..vmax*2+2]
-	surf->vert_tex_coords1=surf->vert_tex_coords1[vmin*2..vmax*2+2]
+	//surf->vert_coords=surf->vert_coords[vmin*3..vmax*3+3]
+	vector<float> coords(surf->vert_coords.begin()+vmin*3,surf->vert_coords.begin()+vmax*3+3);
+	surf->vert_coords=coords;
+
+	//surf->vert_col=surf->vert_col[vmin*4..vmax*4+4]
+	vector<float> col(surf->vert_col.begin()+vmin*4,surf->vert_col.begin()+vmax*4+4);
+	surf->vert_col=col;
+
+	//surf->vert_norm=surf->vert_norm[vmin*3..vmax*3+3]
+	vector<float> norm(surf->vert_norm.begin()+vmin*3,surf->vert_norm.begin()+vmax*3+3);
+	surf->vert_norm=norm;
+
+	//surf->vert_tex_coords0=surf->vert_tex_coords0[vmin*2..vmax*2+2]
+	vector<float> tex_coords0(surf->vert_tex_coords0.begin()+vmin*2,surf->vert_tex_coords0.begin()+vmax*2+2);
+	surf->vert_tex_coords0=tex_coords0;
+
+	//surf->vert_tex_coords1=surf->vert_tex_coords1[vmin*2..vmax*2+2]
+	vector<float> tex_coords1(surf->vert_tex_coords1.begin()+vmin*2,surf->vert_tex_coords1.begin()+vmax*2+2);
+	surf->vert_tex_coords1=tex_coords1;
 	
-	for(int i=0;i<((surf->no_tris*3)+3),i++){
-		surf->tris[i]=surf->tris[i]-vmin // reassign vertex indices
+	for(int i=0;i<((surf->no_tris*3)+3);i++){
+		surf->tris[i]=surf->tris[i]-vmin; // reassign vertex indices
 	}
 	
 	surf->no_verts=(vmax-vmin)+1;
-	
+
 }
-*/
+
 
 string b3dReadString(File* file){
 	string t="";

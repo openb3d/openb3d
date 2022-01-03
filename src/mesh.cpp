@@ -1937,7 +1937,7 @@ void Mesh::Render(){
 
 	list<Surface*>::iterator anim_surf_it;
 	anim_surf_it=anim_surf_list.begin();
-	Surface& anim_surf=**anim_surf_it;
+	//Surface& anim_surf=**anim_surf_it;
 	
 	list<Surface*>::iterator surf_it;
 	
@@ -1946,8 +1946,9 @@ void Mesh::Render(){
 	for(surf_it=surf_list.begin();surf_it!=surf_list.end();surf_it++){
 	
 		any_surf=true;
-	
+
 		Surface& surf=**surf_it;
+		Surface& anim_surf=**anim_surf_it;
 
 		int vbo=false;
 		if(surf.vbo_enabled==true && surf.no_tris>=Global::vbo_min_tris){
@@ -1976,7 +1977,7 @@ void Mesh::Render(){
 		
 			// get anim_surf
 			
-			Surface& anim_surf=**anim_surf_it;
+			//anim_surf=**anim_surf_it;
 			anim_surf_it++;
 
 			if(vbo==true){
@@ -2340,8 +2341,8 @@ void Mesh::Render(){
 					case 3: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_ADD);
 					break;
 					case 4:
-						//glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT); ***!ES***
-						//glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_DOT3_RGB_EXT); ***!ES***
+						glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT); 
+						glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_DOT3_RGB_EXT); 
 						break;
 					case 5:
 						glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_COMBINE);

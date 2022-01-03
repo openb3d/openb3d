@@ -69,6 +69,8 @@ Terrain* Terrain::CreateTerrain(int tsize, Entity* parent_ent){
 		terr->size=tsize;
 		terr->vsize=30;
 		terr->height=new float[(tsize+1)*(tsize+1)];
+		terr->NormalsMap=new float[(tsize+1)*(tsize+1)*3];
+
 	}
 
 	return terr;
@@ -525,7 +527,7 @@ void Terrain::drawsub(int l, float v0[], float v1[], float v2[]){
 	 }
 	float uv[3];
 
-	float ax,ay,az,bx,by,bz;
+	/*float ax,ay,az,bx,by,bz;
 	float nx,ny,nz,ns;
 	ax = v1[0]-v0[0];
 	ay = v1[1]-v0[1];
@@ -540,28 +542,31 @@ void Terrain::drawsub(int l, float v0[], float v1[], float v2[]){
 	if (ns != 0) ns = 1;
 	nx /= ns;
 	ny /= ns;
-	nz /= ns;
+	nz /= ns;*/
 
 
 									
 	uv[0]=v0[0]; uv[1]=v0[2]; uv[2]=0;
 	glMultiTexCoord2f(GL_TEXTURE0, uv[0], uv[1]);
 	glMultiTexCoord2f(GL_TEXTURE1, uv[0], uv[1]);
-	glNormal3f(nx,ny,nz);
+	//glNormal3f(nx,ny,nz);
+	glNormal3fv (&NormalsMap[3*(int)(v0[0]*size+ v0[2])]);
 	glTexCoord2fv(&uv[0]);
 	glVertex3fv(&v0[0]);
 		
 	uv[0]=v1[0]; uv[1]=v1[2]; uv[2]=0;
 	glMultiTexCoord2f(GL_TEXTURE0, uv[0], uv[1]);
 	glMultiTexCoord2f(GL_TEXTURE1, uv[0], uv[1]);
-	glNormal3f(nx,ny,nz);
+	//glNormal3f(nx,ny,nz);
+	glNormal3fv (&NormalsMap[3*(int)(v1[0]*size+ v1[2])]);
 	glTexCoord2fv(&uv[0]);
 	glVertex3fv(&v1[0]);
 		
 	uv[0]=v2[0]; uv[1]=v2[2]; uv[2]=0;
 	glMultiTexCoord2f(GL_TEXTURE0, uv[0], uv[1]);
 	glMultiTexCoord2f(GL_TEXTURE1, uv[0], uv[1]);
-	glNormal3f(nx,ny,nz);
+	//glNormal3f(nx,ny,nz);
+	glNormal3fv (&NormalsMap[3*(int)(v2[0]*size+ v2[2])]);
 	glTexCoord2fv(&uv[0]);
 	glVertex3fv(&v2[0]);
 
@@ -573,6 +578,28 @@ void Terrain::drawsub(int l, float v0[], float v1[], float v2[]){
 	triangleindex++;
 */	
 						
+}
+
+
+void Terrain::UpdateNormals(){
+	float v0[3],v1[3],v2[3];
+	for (int x=1;x<=size-1;x++){
+		for (int y=1;y<=size-1;y++){
+			NormalsMap[3*(x*(int)size+y)]=height[(x-1)*(int)size+y] - height[(x+1)*(int)size+y];
+			NormalsMap[3*(x*(int)size+y)+1]=2*vsize/size;
+			NormalsMap[3*(x*(int)size+y)+2]=height[x*(int)size+y-1] - height[x*(int)size+y+1];
+		}
+	}
+	for (int i=0;i<=size;i++){
+		NormalsMap[3*i+1]=2*vsize/size;
+		if (i<=size){
+			NormalsMap[3*((int)size*i)+1]=2*vsize/size;
+			NormalsMap[3*((int)size*i+(int)size-1)+1]=2*vsize/size;
+		}
+		NormalsMap[3*(i+((int)size-1)*(int)size-1)+1]=2*vsize/size;
+
+	}
+
 }
 
 
@@ -609,6 +636,8 @@ Terrain* Terrain::LoadTerrain(string filename,Entity* parent_ent){
 			buffer++;		
 		}
 	}
+
+	terr->UpdateNormals();
 
 	return terr;
 }

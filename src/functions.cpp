@@ -1354,14 +1354,22 @@ int UpdateWorld(float anim_speed=1.0){
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=VectorPitch">Online Help</a>
 */
 float VectorPitch(float vx,float vy,float vz){
-//	return Vector->VectorPitch(vx,vy,vz);
+	//return Vector->VectorPitch(vx,vy,vz);
+	float ang=atan2deg(sqrt(vx*vx+vz*vz),vy)-90.0;
+
+	if (ang<=0.0001 && ang>=-0.0001) ang=0;
+	
+	return -ang;
+
 }
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=VectorYaw">Online Help</a>
 */
 float VectorYaw(float vx,float vy,float vz){
-//	return Vector->VectorYaw(vx,vy,vz);
+	//return Vector->VectorYaw(vx,vy,vz);
+	return atan2deg(-vx,vz);
+
 }
 
 /*

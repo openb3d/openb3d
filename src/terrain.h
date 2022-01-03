@@ -31,6 +31,7 @@ public:
 
 	float level2dzsize[ROAM_LMAX+1]; 	/* Max midpoint displacement per level     */
 	float* height; 				//heightmap
+	float* NormalsMap;
 	float xcf,ycf,zcf; 			//used to store camera position
 	Camera* eyepoint; 			//reference to camera
 	MeshCollider* c_col_tree;
@@ -42,6 +43,7 @@ public:
 	void UpdateTerrain();
 	void RecreateROAM();
 	void drawsub(int l, float v0[], float v1[], float v2[]);
+	void UpdateNormals();
 	void ModifyTerrain (int x, int z, float height);
 	void TreeCheck(CollisionInfo* ci);
 	void col_tree_sub(int l, float v0[], float v1[], float v2[]);
