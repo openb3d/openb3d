@@ -645,7 +645,7 @@ Mesh* LoadAnimB3D(string f_name,Entity* parent_ent_ext){
 
 			if(mesh!=NULL){
 
-				mesh->anim=true;
+				mesh->anim=1;
 
 				//mesh->frames=a_frames
 				mesh->anim_seqs_first[0]=0;
