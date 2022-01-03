@@ -1327,9 +1327,9 @@ void Entity::UpdateMat(bool load_identity){
 	MQ_Update();
 }
 
-void Entity::AddParent(Entity &parent_ent){
+void Entity::AddParent(Entity* parent_ent){
 	// self.parent = parent_ent
-	parent=&parent_ent;
+	parent=parent_ent;
 
 	//add self to parent_ent child list
 	if(parent!=NULL){

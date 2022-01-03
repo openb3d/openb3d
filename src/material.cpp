@@ -1,3 +1,8 @@
+#ifdef EMSCRIPTEN
+#include <GLES2/gl2.h>
+#define GLES2
+#endif
+
 #include <iostream>
 #include <string>
 
@@ -582,6 +587,7 @@ void Shader::TurnOn(Matrix& mat, Surface* surf, vector<float>* vertices){
 			tex_cube_mode=Shader_Tex[ix]->texture->cube_mode;
 											
 			glActiveTexture(GL_TEXTURE0+ix);
+#ifndef GLES2
 			glClientActiveTexture(GL_TEXTURE0+ix);
 
 			if (Shader_Tex[ix]->is3D==0){
@@ -631,7 +637,7 @@ void Shader::TurnOn(Matrix& mat, Surface* surf, vector<float>* vertices){
 			}
 	
 			// ***!ES***
-			///*
+			// *
 			// spherical environment map texture flag
 			if(tex_flags&64){
 				glTexGeni(GL_S,GL_TEXTURE_GEN_MODE,GL_SPHERE_MAP);
@@ -639,10 +645,7 @@ void Shader::TurnOn(Matrix& mat, Surface* surf, vector<float>* vertices){
 				glEnable(GL_TEXTURE_GEN_S);
 				glEnable(GL_TEXTURE_GEN_T);
 				DisableCubeSphereMapping=1;
-			}/*else{
-				glDisable(GL_TEXTURE_GEN_S);
-				glDisable(GL_TEXTURE_GEN_T);
-			}*/
+			}
 					
 			// cubic environment map texture flag
 			if(tex_flags&128){
@@ -765,7 +768,7 @@ void Shader::TurnOn(Matrix& mat, Surface* surf, vector<float>* vertices){
 				glScalef(tex_u_scale,tex_v_scale,1.0);
 			}
 
-			///* ***!ES***
+			// ***!ES***
 			// if spheremap flag=true then flip tex
 			if(tex_flags&64){
 				glScalef(1.0,-1.0,-1.0);
@@ -798,7 +801,10 @@ void Shader::TurnOn(Matrix& mat, Surface* surf, vector<float>* vertices){
 				glMultMatrixf(&new_mat.grid[0][0]);
 
 			}
-			//*/
+#else
+			glBindTexture(GL_TEXTURE_2D,texture); // call before glTexParameteri
+#endif
+
 						
 		}
 	}
@@ -807,6 +813,7 @@ void Shader::TurnOn(Matrix& mat, Surface* surf, vector<float>* vertices){
 	
 void Shader::TurnOff(){
 	ProgramAttriEnd();
+#ifndef GLES2
 	for (int ix=0; ix<=254; ix++){
 		if (Shader_Tex[ix] == 0) break;
 
@@ -829,6 +836,7 @@ void Shader::TurnOff(){
 		glDisable(GL_TEXTURE_GEN_R);
 			
 	}
+#endif
 	for (unsigned int i=0;i<Parameters.size();i++){
 		switch(Parameters[i].type){
 		case USE_SURFACE:
@@ -1261,7 +1269,7 @@ void ProgramObject::RefreshTypeMap(){
 	glGetProgramiv( Program,GL_ACTIVE_UNIFORM_MAX_LENGTH ,&maxlen);
 	glGetProgramiv( Program,GL_ACTIVE_UNIFORMS ,&count);
 	char* name=new char[maxlen+1];
-	for (int i=0;i<=count; i++){
+	for (int i=0;i<count; i++){
 		int glsize;
 		GLenum gltype;
 		glGetActiveUniform (Program,i,maxlen,0,&glsize,&gltype,name);
@@ -1272,7 +1280,7 @@ void ProgramObject::RefreshTypeMap(){
 	glGetProgramiv( Program,GL_ACTIVE_ATTRIBUTE_MAX_LENGTH ,&maxlen);
 	glGetProgramiv( Program,GL_ACTIVE_ATTRIBUTES ,&count);
 	name=new char[maxlen+1];
-	for (int i=0;i<=count; i++){
+	for (int i=0;i<count; i++){
 		int glsize;
 		GLenum gltype;
 		glGetActiveAttrib(Program,i,maxlen,0,&glsize,&gltype,name);
@@ -1293,6 +1301,7 @@ int ProgramObject::GetAttribLoc(string name){
 	return glGetAttribLocation(Program, name.c_str());
 }
 
+#ifndef GLES2
 void ProgramObject::SetParameter1S(string name, float v1){
 	int loc= glGetAttribLocation(Program, name.c_str());
 	glVertexAttrib1s(loc, v1);
@@ -1312,6 +1321,7 @@ void ProgramObject::SetParameter4S(string name, float v1, float v2, float v3, fl
 	int loc= glGetAttribLocation(Program, name.c_str());
 	glVertexAttrib4s(loc, v1,v2,v3,v4);
 }
+#endif
 	
 //------------------------------------------------------------
 // Int Parameter
@@ -1359,6 +1369,7 @@ void ProgramObject::SetVector4I(string name, int* v1){
 	glUniform4iv(loc,1,v1);
 }
 				
+#ifndef GLES2
 //-------------------------------------------------------------------------------------
 // Double Parameter ( automatically Attributes, because Uniform doubles does not exist)
 	
@@ -1381,6 +1392,7 @@ void ProgramObject::SetParameter4D(string name, double v1, double v2, double v3,
 	int loc= glGetAttribLocation(Program, name.c_str());
 	glVertexAttrib4d(loc, v1, v2, v3, v4);
 }
+#endif
 
 
 //-------------------------------------------------------------------------------------
@@ -1604,6 +1616,7 @@ int ProgramObject::AttachVertShader(ShaderObject* myShader){
 	'Attach & Link a VertShader
 	'------------------------*/
 	glAttachShader(Program, myShader->ShaderObj);
+#ifndef GLES2
 	glLinkProgram(Program);
 
 
@@ -1617,6 +1630,7 @@ int ProgramObject::AttachVertShader(ShaderObject* myShader){
 	if (linked==0){
 		return 0;
 	}
+#endif
 
 	//Add this VertShaderObject to this ProgramObjects list
 	vList.push_back(myShader);
@@ -1755,6 +1769,7 @@ Material* Material::LoadMaterial(string filename,int flags, int frame_width,int 
 
 	unsigned int name;
 
+#ifndef GLES2
 	glGenTextures (1,&name);
 	glBindTexture (GL_TEXTURE_3D,name);
 
@@ -1785,6 +1800,16 @@ Material* Material::LoadMaterial(string filename,int flags, int frame_width,int 
 	tex->width=frame_width;
 	tex->height=frame_height;
 	delete dstbuffer;
+#else
+	glGenTextures (1,&name);
+	glBindTexture (GL_TEXTURE_2D,name);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex->width, tex->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	tex->texture=name;
+	tex->width=frame_width;
+	tex->height=frame_height;
+#endif
 	stbi_image_free(buffer);
 
 

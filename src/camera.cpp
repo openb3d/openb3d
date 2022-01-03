@@ -1,3 +1,8 @@
+#ifdef EMSCRIPTEN
+#include <GLES2/gl2.h>
+#define GLES2
+#endif
+
 /*
  *  camera.mm
  *  iminib3d
@@ -6,6 +11,7 @@
  *  Copyright Si Design. All rights reserved.
  *
  */
+
 
 #include "global.h"
 #include "entity.h"
@@ -38,7 +44,7 @@ Camera* Camera::CopyEntity(Entity* parent_ent){
 	// lists
 	
 	// add parent, add to list
-	cam->AddParent(*parent_ent);
+	cam->AddParent(parent_ent);
 	entity_list.push_back(cam);
 	
 	// add to collision entity list
@@ -144,7 +150,7 @@ Camera* Camera::CreateCamera(Entity* parent_ent){
 	
 	cam->class_name="Camera";
 	
-	cam->AddParent(*parent_ent);
+	cam->AddParent(parent_ent);
 	entity_list.push_back(cam); // add to entity list
 	cam_list.push_back(cam); // add to cam list
 	
@@ -473,6 +479,7 @@ void Camera::Update(){
 	static float fogg=-1.0;
 	static float fogb=-1.0;
 
+#ifndef GLES2
 	if(fog_mode>0){
 	
 		if(fog!=true){
@@ -509,6 +516,7 @@ void Camera::Update(){
 		}
 		
 	}
+#endif
 	
 	float ratio=(float(vwidth)/vheight);
 
@@ -520,8 +528,12 @@ void Camera::Update(){
 
 	//glLoadMatrixf(&Camera::InverseMat.grid[0][0]);
 
+#ifndef GLES2
 	glLoadMatrixf(&new_mat.grid[0][0]);
+#else
+	Global::shader=0;
 
+#endif
 	
 	mod_mat[0]=new_mat.grid[0][0];
 	mod_mat[1]=new_mat.grid[0][1];
@@ -1017,6 +1029,7 @@ void Camera::accFrustum(float left_,float right_,float bottom,float top,float zN
 	//dx=(pixdx*xwsize/float(viewport[2])+eyedx*zNear/focus);
 	//dy=-(pixdy*ywsize/float(viewport[3])+eyedy*zNear/focus);
 	
+#ifndef GLES2
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	
@@ -1028,6 +1041,7 @@ void Camera::accFrustum(float left_,float right_,float bottom,float top,float zN
 	
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+#endif
 	
 }
 

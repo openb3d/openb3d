@@ -1,3 +1,8 @@
+#ifdef EMSCRIPTEN
+#include <GLES2/gl2.h>
+#define GLES2
+#endif
+
 #include "texture.h"
 #include "entity.h"
 #include "mesh.h"
@@ -1738,10 +1743,12 @@ void VoxelSpriteMaterial(VoxelSprite* voxelspr, Material* mat){
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=Wireframe">Online Help</a>
 */
 void Wireframe(int enable){
+#ifndef GLES2
 	if (enable!=0)
 	  glPolygonMode(GL_FRONT,GL_LINE);
 	else
 	  glPolygonMode(GL_FRONT,GL_FILL);
+#endif
 
 }
 

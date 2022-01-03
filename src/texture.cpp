@@ -1,3 +1,10 @@
+#ifdef EMSCRIPTEN
+#include <GLES3/gl3.h>
+#include <GLES3/gl2ext.h>
+#define GLES2
+#endif
+
+
 /*
  *  texture.mm
  *  iminib3d
@@ -86,6 +93,7 @@ Texture* Texture::LoadTexture(string filename,int flags){
 		//tex.gltex=tex.gltex[..tex.no_frames]
 		for (int i=0;i<6;i++){
 			CopyPixels (buffer,tex->width*6, tex->height,tex->width*i, 0, dstbuffer, tex->width, tex->height, 4);
+#ifndef GLES2
 			switch(i){
 				case 0:
 					gluBuild2DMipmaps(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, GL_RGBA,tex->width, tex->height, GL_RGBA, GL_UNSIGNED_BYTE, dstbuffer);
@@ -106,8 +114,31 @@ Texture* Texture::LoadTexture(string filename,int flags){
 					gluBuild2DMipmaps(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, GL_RGBA,tex->width, tex->height, GL_RGBA, GL_UNSIGNED_BYTE, dstbuffer);
 					break;
 			}
+#else
+			switch(i){
+				case 0:
+					glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGBA, tex->width, tex->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, dstbuffer);
+					break;
+				case 1:
+					glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGBA, tex->width, tex->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, dstbuffer);
+					break;
+				case 2:
+					glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGBA, tex->width, tex->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, dstbuffer);
+					break;
+				case 3:
+					glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGBA, tex->width, tex->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, dstbuffer);
+					break;
+				case 4:
+					glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGBA, tex->width, tex->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, dstbuffer);
+					break;
+				case 5:
+					glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGBA, tex->width, tex->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, dstbuffer);
+					break;
+			}
+			glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+#endif
 		}
-		delete dstbuffer;
+		delete[] dstbuffer;
 		stbi_image_free(buffer);
 
 		tex->texture=name;
@@ -164,8 +195,12 @@ Texture* Texture::LoadAnimTexture(string filename,int flags, int frame_width,int
 		glGenTextures (1,&name);
 		glBindTexture (GL_TEXTURE_2D,name);
 		//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, tex->width, tex->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+#ifndef GLES2
 		gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA,tex->width, tex->height, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
-
+#else
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex->width, tex->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+		glGenerateMipmap(GL_TEXTURE_2D);
+#endif
 
 		tex->texture=name;
 	} else {
@@ -188,7 +223,12 @@ Texture* Texture::LoadAnimTexture(string filename,int flags, int frame_width,int
 
 			glGenTextures (1,&name);
 			glBindTexture (GL_TEXTURE_2D,name);
+#ifndef GLES2
 			gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA,frame_width, frame_height, GL_RGBA, GL_UNSIGNED_BYTE, dstbuffer);
+#else
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, frame_width, frame_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, dstbuffer);
+			glGenerateMipmap(GL_TEXTURE_2D);
+#endif
 
 			tex->frames[i]=name;
 		}
@@ -196,7 +236,7 @@ Texture* Texture::LoadAnimTexture(string filename,int flags, int frame_width,int
 		tex->texture=tex->frames[0];
 		tex->width=frame_width;
 		tex->height=frame_height;
-		delete dstbuffer;
+		delete[] dstbuffer;
 
 	}
 	stbi_image_free(buffer);
@@ -328,6 +368,7 @@ void Texture::FilterFlags(){
 void Texture::BufferToTex(unsigned char* buffer, int frame){
 	if(flags&128){
 		glBindTexture (GL_TEXTURE_CUBE_MAP,texture);
+#ifndef GLES2
 		switch (cube_face){
 		case 0:
 			gluBuild2DMipmaps(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, GL_RGBA,width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
@@ -348,9 +389,38 @@ void Texture::BufferToTex(unsigned char* buffer, int frame){
 			gluBuild2DMipmaps(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, GL_RGBA,width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 			break;
 		}
+#else
+		switch(cube_face){
+		case 0:
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+			break;
+		case 1:
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+			break;
+		case 2:
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+			break;
+		case 3:
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+			break;
+		case 4:
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+			break;
+		case 5:
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+			break;
+		}
+		glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+
+#endif
 	}else{
 		glBindTexture (GL_TEXTURE_2D,texture);
+#ifndef GLES2
 		gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA,width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+#else
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+		glGenerateMipmap(GL_TEXTURE_2D);
+#endif
 	}
 
 }
@@ -378,11 +448,19 @@ void Texture::BackBufferToTex(int frame){
 			glCopyTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y,0,GL_RGBA,0,Global::height-height,width,height,0);
 			break;
 		}
+#ifndef GLES2
 		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
+#else
+		glGenerateMipmap(GL_TEXTURE_2D);
+#endif
 	}else{
 		glBindTexture (GL_TEXTURE_2D,texture);
 		glCopyTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,0,Global::height-height,width,height,0);
+#ifndef GLES2
 		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
+#else
+		glGenerateMipmap(GL_TEXTURE_2D);
+#endif
 	}
 }
 
@@ -409,27 +487,27 @@ void Texture::CameraToTex(Camera* cam, int frame){
 			for (int i=0;i<6;i++){
 				switch(i){
 					case 0:
-						glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+						glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 						break;
 					case 1:
-						glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+						glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 						break;
 					case 2:
-						glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+						glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 						break;
 					case 3:
-						glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+						glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 						break;
 					case 4:
-						glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+						glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 						break;
 					case 5:
-						glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+						glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 						break;
 				}
 			}
 		}else{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 		}
 
 	}
@@ -465,8 +543,12 @@ void Texture::CameraToTex(Camera* cam, int frame){
 	//Depth buffer
 	glBindRenderbuffer(GL_RENDERBUFFER, framebuffer[1]);
 	glRenderbufferStorage( GL_RENDERBUFFER, GL_DEPTH_STENCIL, width, height);
+#ifndef GLES2
 	glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, framebuffer[1]); 
 	glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, framebuffer[1]); 
+#else
+	glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, framebuffer[1]); 
+#endif
 
 	cam->Render();
 
@@ -485,9 +567,10 @@ void Texture::CameraToTex(Camera* cam, int frame){
 
 
 void Texture::TexToBuffer(unsigned char* buffer, int frame){
+#ifndef GLES2
 	glBindTexture (GL_TEXTURE_2D,texture);
 	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
-
+#endif
 }
 
 
@@ -495,7 +578,9 @@ void Texture::DepthBufferToTex(Camera* cam=0 ){
 	glBindTexture(GL_TEXTURE_2D,texture);
 	if (cam==0){
 		glCopyTexImage2D(GL_TEXTURE_2D,0,GL_DEPTH_COMPONENT,0,Global::height-height,width,height,0);
+#ifndef GLES2
 		glTexParameteri(GL_TEXTURE_2D,GL_GENERATE_MIPMAP_SGIS,GL_TRUE);
+#endif
 	}else{
 		Global::camera_in_use=cam;
 		if (framebuffer==0){

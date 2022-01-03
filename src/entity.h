@@ -262,7 +262,7 @@ public:
 	static float TFormedZ();
 	// helper funcs
 	void UpdateMat(bool load_identity=false);
-	void AddParent(Entity &parent_ent);
+	void AddParent(Entity* parent_ent);
 	static void UpdateChildren(Entity* ent_p);	
 	float EntityDistanceSquared(Entity* ent2);	
 	// Quaternions
