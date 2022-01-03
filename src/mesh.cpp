@@ -2510,3 +2510,120 @@ void Mesh::Render(){
 	if(any_surf==false) cout << "No surf: " << EntityName() << endl;
 
 }
+
+void Mesh::UpdateShadow(){
+	// convert surf lists into arrays, sort by alpha true/false (we need to draw surfaces with alpha last)
+	list<Surface*>::iterator anim_surf_it;
+	anim_surf_it=anim_surf_list.begin();
+	//Surface& anim_surf=**anim_surf_it;
+	
+	list<Surface*>::iterator surf_it;
+	
+	int any_surf=false;
+	
+	for(surf_it=surf_list.begin();surf_it!=surf_list.end();surf_it++){
+	
+		any_surf=true;
+
+		Surface& surf=**surf_it;
+		Surface& anim_surf=**anim_surf_it;
+
+		int vbo=false;
+	
+		// update surf vbo if necessary
+		if(vbo==true){
+			
+			// update vbo
+			if(surf.reset_vbo!=false){
+				surf.UpdateVBO();
+			}else if(surf.vbo_id[0]==0){ // no vbo - unknown reason
+				surf.reset_vbo=-1;
+				surf.UpdateVBO();
+			}
+			
+		}
+
+		if(anim==true){
+		
+			// get anim_surf
+			
+			//anim_surf=**anim_surf_it;
+			anim_surf_it++;
+
+			if(vbo==true){
+			
+				// update vbo
+				if(anim_surf.reset_vbo!=false){
+					anim_surf.UpdateVBO();
+				}else if(anim_surf.vbo_id[0]==0){ // no vbo - unknown reason
+					anim_surf.reset_vbo=-1;
+					anim_surf.UpdateVBO();
+				}
+			
+			}
+			
+		}
+	
+
+		if(vbo){
+		
+			if(anim_render){
+				glBindBuffer(GL_ARRAY_BUFFER,anim_surf.vbo_id[0]);
+				glVertexPointer(3,GL_FLOAT,0,NULL);
+			}else{
+				glBindBuffer(GL_ARRAY_BUFFER,surf.vbo_id[0]);
+				glVertexPointer(3,GL_FLOAT,0,NULL);
+			}
+						
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,surf.vbo_id[5]);
+				
+			
+		}else{
+	
+			glBindBuffer(GL_ARRAY_BUFFER,0); // reset - necessary for when non-vbo surf follows vbo surf
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
+	
+			if(anim_render){
+				glVertexPointer(3,GL_FLOAT,0,&anim_surf.vert_coords[0]);
+			}else{
+				glVertexPointer(3,GL_FLOAT,0,&surf.vert_coords[0]);
+			}
+			
+			glNormalPointer(GL_FLOAT,0,&surf.vert_norm[0]);
+			glColorPointer(4,GL_FLOAT,0,&surf.vert_col[0]);
+
+//			glNormalPointer(GL_FLOAT,0,NULL);
+		
+//			glColorPointer(4,GL_FLOAT,0,NULL);
+			
+		}
+							
+		// light + material color
+			
+		glMatrixMode(GL_MODELVIEW);
+
+		glPushMatrix();
+	
+		if(dynamic_cast<Sprite*>(this)==NULL){
+			glMultMatrixf(&mat.grid[0][0]);
+		}else{
+			glMultMatrixf(&mat_sp.grid[0][0]);
+		}
+		
+
+		if(vbo)	{
+			glDrawElements(GL_TRIANGLES,surf.no_tris*3,GL_UNSIGNED_SHORT,NULL);
+			glBindBuffer(GL_ARRAY_BUFFER , 0); 
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+ 
+
+		}else{
+			glDrawElements(GL_TRIANGLES,surf.no_tris*3,GL_UNSIGNED_SHORT,&surf.tris[0]);
+		}
+
+			
+
+		glPopMatrix();
+			
+	}
+}

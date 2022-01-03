@@ -110,6 +110,7 @@ public:
 	int MeshesIntersect(Mesh* mesh2);
 	void Update() {};
 	void Render();
+	void UpdateShadow();
 	
 };
 

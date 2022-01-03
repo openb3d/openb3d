@@ -478,6 +478,10 @@ Mesh* CreatePlane(int divisions=1,Entity* parent=0){
 	return Mesh::CreatePlane(divisions,parent);
 }
 
+ShadowObject* CreateShadow(Mesh* parent, char Static = false){
+	return ShadowObject::Create(parent, Static);
+}
+
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=CreateSphere">Online Help</a>
 */
@@ -557,8 +561,8 @@ int EntityBox(Entity* ent,float x,float y,float z,float w,float h,float d){
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=EntityClass">Online Help</a>
 */
-string EntityClass(Entity* ent){
-	return ent->EntityClass();
+const char* EntityClass(Entity* ent){
+	return ent->EntityClass().c_str();
 }
 
 /*
@@ -599,8 +603,8 @@ int EntityInView(Entity* ent,Camera* cam){
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=EntityName">Online Help</a>
 */
-string EntityName(Entity* ent){
-	return ent->EntityName();
+const char* EntityName(Entity* ent){
+	return ent->EntityName().c_str();
 }
 
 /*
@@ -758,6 +762,11 @@ int FreeEntity(Entity* ent){
 	ent->FreeEntity();
 }
 
+int FreeShadow(ShadowObject* shad){
+	shad->FreeShadow();
+}
+
+
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=FreeTexture">Online Help</a>
 */
@@ -859,6 +868,7 @@ int LightConeAngles(Light* light,float inner_ang,float outer_ang){
 }
 
 /*
+
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=LightRange">Online Help</a>
 */
 int LightRange(Light* light,float range){
@@ -1274,8 +1284,8 @@ int TextureFilter(char* match_text,int flags){
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=TextureName">Online Help</a>
 */
-string TextureName(Texture* tex){
-	return tex->TextureName();
+const char* TextureName(Texture* tex){
+	return tex->TextureName().c_str();
 }
 
 /*

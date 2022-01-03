@@ -23,6 +23,8 @@ public:
 	static int vbo_enabled;
 	static int vbo_min_tris;
 
+	static int Shadows_enabled;
+
 	static float anim_speed;
 
 	static int fog_enabled; // used to keep track of whether fog is enabled between camera update and mesh render

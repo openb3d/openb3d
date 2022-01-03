@@ -16,6 +16,7 @@
 #include "animation.h"
 #include "pick.h"
 #include "collision2.h"
+#include "shadow.h"
 
 #include <list>
 using namespace std;
@@ -29,6 +30,8 @@ float Global::anim_speed=1.0;
 int Global::fog_enabled=false;
 
 int Global::width=640,Global::height=480;
+
+int Global::Shadows_enabled=false;
 
 Pivot* Global::root_ent=new Pivot();
 
@@ -199,6 +202,18 @@ void Global::RenderWorld(){
 		
 		cam->Render();
 		
+	}
+
+	if (Shadows_enabled==true){
+		for(it=Camera::cam_list.begin();it!=Camera::cam_list.end();it++){
+		
+			Camera* cam=*it;
+		
+			if(cam->Hidden()==true) continue;
+			
+			ShadowObject::Update(cam);
+		
+		}
 	}
 	
 }

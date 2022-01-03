@@ -147,7 +147,7 @@ Terrain* Terrain::CreateTerrain(int tsize, Entity* parent_ent){
 	if (lmax>=ROAM_LMAX) lmax=ROAM_LMAX;
 
 	for (int i = 0; i<= lmax; i++){
-		terr->level2dzsize[i] = (float)tsize/2048 / sqrt((float)(1 << i));	// <-------------terrain detail here
+		terr->level2dzsize[i] = (float)pow((float)tsize/2048 / sqrt((float)(1 << i)),2);	// <-------------terrain detail here
 	}		
 
 
@@ -500,7 +500,7 @@ void Terrain::RecreateROAM(){
 	ycf = eyepoint->EntityY();
 	zcf = -eyepoint->EntityZ();*/
 
-	TFormPoint(eyepoint->EntityX(), eyepoint->EntityY(), eyepoint->EntityZ(), 0, this);
+	TFormPoint(eyepoint->EntityX(true), eyepoint->EntityY(true), eyepoint->EntityZ(true), 0, this);
 	xcf = tformed_x;
 	ycf = tformed_y;
 	zcf = -tformed_z;
@@ -619,7 +619,7 @@ void Terrain::drawsub(int l, float v0[], float v1[], float v2[]){
 		rc = dx*dx+dy*dy+dz*dz;
 					
 		/* If not error large on screen, recursively split */
-		if ((ds * ds) > (rc * 0.000000003)) {/*<---------terrain detail here*/
+		if (ds > (rc * 0.000000003)) {/*<---------terrain detail here*/
 			drawsub(l + 1, v1, vc, v0);
 			drawsub(l + 1, v2, vc, v1);
 			return;
@@ -887,7 +887,7 @@ void Terrain::col_tree_sub(int l, float v0[], float v1[], float v2[]){
 		rc = dx*dx+dy*dy+dz*dz;
 					
 		/* If not error large on screen, recursively split */
-		if ((ds * ds) > (rc * 0.000000003)) {/*<---------terrain detail here*/
+		if (ds > (rc * 0.000000003)) {/*<---------terrain detail here*/
 			col_tree_sub(l + 1, v1, vc, v0);
 			col_tree_sub(l + 1, v2, vc, v1);
 			return;

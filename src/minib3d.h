@@ -210,6 +210,7 @@
 #include "geom.h"
 #include "project.h"
 #include "maths_helper.h"
+#include "shadow.h"
 #include "string_helper.h"
 #include "file.h"
 #include "bank.h"

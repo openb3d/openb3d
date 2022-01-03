@@ -1360,6 +1360,8 @@ void Entity::AlignToVector(float x,float y,float z, int axis=3, float rate=1){
      //apply matrix
 	this->rotmat.Multiply2(*m);
 	this->MQ_Update();
+
+	delete m;
 	
 }
 
