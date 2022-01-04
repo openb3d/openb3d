@@ -29,6 +29,10 @@ class ShaderData{
 			Surface* surf;
 			int vbo;
 		};
+		struct {
+			void (*Enable)(void);
+			void (*Disable)(void);
+		};
 	};
 };
 
@@ -42,7 +46,6 @@ public:
 
 class Sampler{
 public:
-	int Name;
 	Texture* texture;
 	int Slot;
 	int is3D;
@@ -61,7 +64,6 @@ class Shader {//: public MaterialPlugin{
 	ProgramObject* arb_program;
 	int ID;
 	string name;
-	char UpdateSampler;
 
 	vector<ShaderData> Parameters;
 
@@ -75,10 +77,10 @@ public:
 	static Shader* CreateShaderMaterial(string Name = "");
 	void TurnOn(Matrix& mat, Surface* surf, vector<float>* vertices=0, Brush* brush=0);
 	void TurnOff();
-	void AddShader(string _vert, string _frag);
-	void AddShaderFromString(string _vert, string _frag);
-	void AddSampler2D(string Name, int Slot, Texture* Tex);
-	void AddSampler3D(string Name, int Slot, Texture* Tex);
+	int AddShader(string _vert, int type);
+	int AddShaderFromString(string _shader, int type);
+	void Link();
+	void AddSampler(string Name, int Slot, Texture* Tex, int is3D);
 	void ProgramAttriBegin();
 	void ProgramAttriEnd();
 
@@ -102,6 +104,7 @@ public:
 	void UseSurface(string name, Surface* surf, int vbo);
 	void UseMatrix(string name, int mode);
 	void UseEntity(string name, Entity* ent, int mode);
+	void UseFunction(void (*Enable)(void), void (*Disable)(void));
 
 	int GetProgram(){return arb_program->Program;}
 	/*void SetParameter1S(string name, float v1);

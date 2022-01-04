@@ -1,3 +1,14 @@
+V1.25
+Added:
+-Geometry shaders
+-possibility to use custom functions in materials
+
+Fixed
+-bugs in the post processor
+-anti alias
+-normals in isosurfaces
+-voxels can be used also in the Emscripten version
+
 V1.20
 Added:
 -Custom shaders now can also use the entity textures

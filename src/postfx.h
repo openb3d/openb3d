@@ -15,12 +15,14 @@ struct FXPass{
 	vector<int> buffer_in_out;
 	int PassLoc, PassValue;
 
-	list<Entity*> render_list;
+	void (*PassFunction)(void);
 
 	FXPass(){
 		numColBufs=0;
 		ShaderFX=0;
 		PassLoc=-1;
+
+		PassFunction=0;
 	}
 
 };
@@ -50,7 +52,7 @@ public:
 	void PostFXShaderPass(int pass_no, string name, int v);
 	void PostFXBuffer(int pass_no, int source_pass, int index, int slot);
 	void PostFXTexture(int pass_no, Texture* tex, int slot, int frame=0);
-	void PostFXEntity(int pass_no, Entity* ent);
+	void PostFXFunction(int pass_no, void (*PassFunction)(void));
 	void Render();
 
 

@@ -31,7 +31,6 @@
 #include "stb_image.h"
 
 
-list<ShaderObject*> ShaderObject::ShaderObjectList;
 list<ProgramObject*> ProgramObject::ProgramObjectList;
 int Shader::ShaderIDCount;
 
@@ -62,12 +61,13 @@ USE_SURFACE,
 USE_MODEL_MATRIX,
 USE_VIEW_MATRIX,
 USE_PROJ_MATRIX,
-USE_MODELVIEW_MATRIX
+USE_MODELVIEW_MATRIX,
+USE_FUNCTION
 };
 
 
 
-ShaderObject* ShaderObject::CreateVertShader(string shaderFileName){
+int CreateShader(string shaderFileName, GLenum type){
 	// Load the shader and dump it into a Byte Array
 	File* file=File::ReadFile(shaderFileName); // opens as ASCII!
 	if(file==0) {
@@ -100,121 +100,31 @@ ShaderObject* ShaderObject::CreateVertShader(string shaderFileName){
 	shaderSrc[i] = 0;  // 0-terminate it at the correct position
 	file->CloseFile();
 
-	//int ShaderObject;
-	ShaderObject* myShader = new ShaderObject;
-	
-	myShader->ShaderObj = glCreateShader(GL_VERTEX_SHADER);
-	myShader->ShaderType = 1; // 1 = Vert, 2 = Frag/Pixel
+	int ShaderObj = glCreateShader(type);
 
 	// Send shader to ShaderObject, then compile it
-	glShaderSource(myShader->ShaderObj,1, (const GLchar**)&shaderSrc, 0);
-	glCompileShader(myShader->ShaderObj);
+	glShaderSource(ShaderObj,1, (const GLchar**)&shaderSrc, 0);
+	glCompileShader(ShaderObj);
 
 	// Did the shader compile successfuly?
 	int compiled;
-	glGetShaderiv(myShader->ShaderObj,GL_COMPILE_STATUS, &compiled);
+	glGetShaderiv(ShaderObj,GL_COMPILE_STATUS, &compiled);
 
 	if (!compiled){
 		delete [] shaderSrc;
-		delete myShader;
 		return 0;
 	}
 
 
 	//myShader.Attached = New TList
-	myShader->shaderName = shaderFileName;
-	ShaderObject::ShaderObjectList.push_back(myShader);
 	delete [] shaderSrc;
 	
-	return myShader;
+	return ShaderObj;
 }
 
 
 
-
-/*
-'-----------------------------------------------------------
-'CreateFragShader:tShaderObject(shaderFileName:String)
-'
-'Creates a Fragment Shader Object from a File
-'
-'Returns: A tShaderObject if successful, or Null if it fails
-'-----------------------------------------------------------
-*/
-
-
-ShaderObject* ShaderObject::CreateFragShader(string shaderFileName){
-	// Load the shader and dump it into a Byte Array
-	File* file=File::ReadFile(shaderFileName); // opens as ASCII!
-	if(file==0) {
-		return 0;
-	}
-
-	fseek(file->pFile, 0L, SEEK_END);
-	unsigned long FileLength = ftell(file->pFile);
-	fseek(file->pFile, 0L, SEEK_SET);
-	// wrong size "void main(){}"
-	if (FileLength<13){
-		file->CloseFile();
-		return 0;
-	}
-	char* shaderSrc = new char[FileLength+1];
-	// out of memory
-	if (shaderSrc == 0) {
-		file->CloseFile();
-		return 0;
-	}
-
-	// FileLength isn't always strlen cause some characters are stripped in ascii read...
-	// it is important to 0-terminate the real length later, len is just max possible value...
-	shaderSrc[FileLength] = 0;
-	unsigned int i=0;
-	while (!file->Eof()){
-		shaderSrc[i] = file->ReadByte();       // get character from file.
-		i++;
-	}
-	shaderSrc[i] = 0;  // 0-terminate it at the correct position
-	file->CloseFile();
-
-	//int ShaderObject;
-	ShaderObject* myShader = new ShaderObject;
-	
-	myShader->ShaderObj = glCreateShader(GL_FRAGMENT_SHADER);
-	myShader->ShaderType = 2; // 1 = Vert, 2 = Frag/Pixel
-
-	// Send shader to ShaderObject, then compile it
-	glShaderSource(myShader->ShaderObj,1, (const GLchar**)&shaderSrc, 0);
-	glCompileShader(myShader->ShaderObj);
-
-	// Did the shader compile successfuly?
-	int compiled;
-	glGetShaderiv(myShader->ShaderObj,GL_COMPILE_STATUS, &compiled);
-
-	if (!compiled){
-		delete [] shaderSrc;
-		delete myShader;
-		return 0;
-	}
-
-
-	//myShader.Attached = New TList
-	myShader->shaderName = shaderFileName;
-	ShaderObject::ShaderObjectList.push_back(myShader);
-	delete [] shaderSrc;
-	
-	return myShader;
-}
-/*
-
-'-----------------------------------------------------------
-'CreateVertShader:tShaderObject(shaderFileName:String)
-'
-'Creates a Vertex Shader Object from a File
-'
-'Returns: A tShaderObject if successful, or Null if it fails
-'-----------------------------------------------------------
-*/
-ShaderObject* ShaderObject::CreateVertShaderFromString(string shadercode){
+int CreateShaderFromString(string shadercode, GLenum type){
 	// Load the shader and dump it into a Byte Array
 	if (shadercode == ""){
 		return 0;
@@ -227,10 +137,7 @@ ShaderObject* ShaderObject::CreateVertShaderFromString(string shadercode){
 		return 0;
 	}
 
-	ShaderObject* myShader = new ShaderObject;
-	
-	myShader->ShaderObj = glCreateShader(GL_VERTEX_SHADER);
-	myShader->ShaderType = 1; // 1 = Vert, 2 = Frag/Pixel
+	int ShaderObj = glCreateShader(type);
 
 	//Create a Byte Array to which the Shader Source will be copied to
 	//The extra Array Byte (FileLength+1) is so we can Null terminate the array
@@ -254,160 +161,25 @@ ShaderObject* ShaderObject::CreateVertShaderFromString(string shadercode){
 
 
 	// Send shader to ShaderObject, then compile it
-	glShaderSource(myShader->ShaderObj,1, (const GLchar**)&shaderSrc, 0);
-	glCompileShader(myShader->ShaderObj);
+	glShaderSource(ShaderObj,1, (const GLchar**)&shaderSrc, 0);
+	glCompileShader(ShaderObj);
 
 	// Did the shader compile successfuly?
 	int compiled;
-	glGetShaderiv(myShader->ShaderObj,GL_COMPILE_STATUS, &compiled);
+	glGetShaderiv(ShaderObj,GL_COMPILE_STATUS, &compiled);
 
 	if (!compiled){
 		delete [] shaderSrc;
-		delete myShader;
 		return 0;
 	}
 
 
 	//myShader.Attached = New TList
 	//myShader->shaderName = shaderFileName;
-	ShaderObject::ShaderObjectList.push_back(myShader);
 	delete [] shaderSrc;
 	
-	return myShader;
+	return ShaderObj;
 }
-
-/*
-'-----------------------------------------------------------
-'CreateFragShader:tShaderObject(shaderFileName:String)
-'
-'Creates a Fragment Shader Object from a File
-'
-'Returns: A tShaderObject if successful, or Null if it fails
-'-----------------------------------------------------------*/
-
-ShaderObject* ShaderObject::CreateFragShaderFromString(string shadercode){
-	// Load the shader and dump it into a Byte Array
-	if (shadercode == ""){
-		return 0;
-	}
-	
-	//Local tempShaderName:String = "Code"+Rand(10000)
-	unsigned int FileLength = shadercode.size();
-	// wrong size "void main(){}"
-	if (FileLength<13){
-		return 0;
-	}
-	//int ShaderObject;
-	ShaderObject* myShader = new ShaderObject;
-	
-	myShader->ShaderObj = glCreateShader(GL_FRAGMENT_SHADER);
-	myShader->ShaderType = 2; // 1 = Vert, 2 = Frag/Pixel
-
-	//Create a Byte Array to which the Shader Source will be copied to
-	//The extra Array Byte (FileLength+1) is so we can Null terminate the array
-	char* shaderSrc;
-
-	shaderSrc = new char[FileLength+1];
-	if (shaderSrc == 0) return 0;   // can't reserve memory
-   
-	// FileLength isn't always strlen cause some characters are stripped in ascii read...
-	// it is important to 0-terminate the real length later, len is just max possible value... 
-	shaderSrc[FileLength] = 0; 
-
-	unsigned int i=0;
-	while (i<FileLength)
-	{
-		shaderSrc[i] = shadercode[i];       // get character from file.
-		i++;
-	}
-    
-	shaderSrc[i] = 0;  // 0-terminate it at the correct position
-
-
-	// Send shader to ShaderObject, then compile it
-	glShaderSource(myShader->ShaderObj,1, (const GLchar**)&shaderSrc, 0);
-	glCompileShader(myShader->ShaderObj);
-
-	// Did the shader compile successfuly?
-	int compiled;
-	glGetShaderiv(myShader->ShaderObj,GL_COMPILE_STATUS, &compiled);
-
-	if (!compiled){
-		delete [] shaderSrc;
-		delete myShader;
-		return 0;
-	}
-
-
-	//myShader.Attached = New TList
-	//myShader->shaderName = shaderFileName;
-	ShaderObject::ShaderObjectList.push_back(myShader);
-	delete [] shaderSrc;
-	
-	return myShader;
-}
-
-
-void ShaderObject::DeleteVertShader(ShaderObject* vShader){
-	if (vShader==0) return;
-
-	ShaderObject::ShaderObjectList.remove(vShader);
-	
-	// Detach this ShaderObject from all ProgramObjects it was attached to
-	list<ProgramObject*>::iterator it;
-
-	for(it=ProgramObject::ProgramObjectList.begin();it!=ProgramObject::ProgramObjectList.end();it++){
-		ProgramObject* p=*it;
-
-		p->DetachVertShader(vShader);
-	}
-	
-	// Delete the shader
-	glDeleteShader(vShader->ShaderObj);
-	delete vShader;
-}
-
-void ShaderObject::DeleteFragShader(ShaderObject* fShader){
-	if (fShader==0) return;
-
-	ShaderObject::ShaderObjectList.remove(fShader);
-	
-	// Detach this ShaderObject from all ProgramObjects it was attached to
-	list<ProgramObject*>::iterator it;
-
-	for(it=ProgramObject::ProgramObjectList.begin();it!=ProgramObject::ProgramObjectList.end();it++){
-		ProgramObject* p=*it;
-
-		p->DetachFragShader(fShader);
-	}
-	
-	// Delete the shader
-	glDeleteShader(fShader->ShaderObj);
-	delete fShader;
-}	
-/*Function DeleteFragShader(fShader:tShaderObject Var)
-	If Not fShader Return
-	
-	RemoveLink(ListFindLink(ShaderObjectList,fShader))
-		
-	' Detach this ShaderObject from all ProgramObjects it was attached to
-	For Local p:tProgramObject = EachIn ProgramObjectList
-		If ListContains(p.fList, fShader)
-			p.DetachFragShader(fShader)
-		End If
-	Next
-	
-	' Delete the shader
-	glDeleteObjectARB(fShader.ShaderObject)
-	?Debug
-		Print "Deleted ShaderObject '"+fShader.shaderName+"'"
-		Print
-	?
-	fShader = Null
-End Function
-*/
-
-
 
 
 //ShaderMat
@@ -594,19 +366,23 @@ void Shader::TurnOn(Matrix& mat, Surface* surf, vector<float>* vertices, Brush* 
 				glUniformMatrix4fv(Parameters[i].name, 1 , 0, &new_mat.grid[0][0]);
 			}
 			break;
-
+		case USE_FUNCTION:
+			if (Parameters[i].Enable!=0){
+				Parameters[i].Enable();
+			}
+			break;
 
 		//default:
 		}
 	}
 
-	if (UpdateSampler != 0){
+	/*if (UpdateSampler != 0){
 		for (int i=0; i<=254; i++){
 			if (Shader_Tex[i] == 0) break;
 			if (arb_program !=0){glUniform1i(Shader_Tex[i]->Name,Shader_Tex[i]->Slot);}
 		}
 		UpdateSampler = 0;
-	}
+	}*/
 	
 	int tex_count=0;
 	tex_count=brush->no_texs;
@@ -898,7 +674,7 @@ void Shader::TurnOn(Matrix& mat, Surface* surf, vector<float>* vertices, Brush* 
 void Shader::TurnOff(){
 	ProgramAttriEnd();
 #ifndef GLES2
-	for (int ix=0; ix<=No_samplers; ix++){
+	for (int ix=0; ix<No_samplers; ix++){
 		int slot=ix, is3D=0;
 		if (Shader_Tex[ix] != 0) {
 			is3D=Shader_Tex[ix]->is3D;
@@ -934,6 +710,12 @@ void Shader::TurnOff(){
 				//glDisableVertexAttribArray(loc);
 				glDisableVertexAttribArray(Parameters[i].name);
 			}
+			break;
+		case USE_FUNCTION:
+			if (Parameters[i].Disable!=0){
+				Parameters[i].Disable();
+			}
+			break;
 		}
 	}
 
@@ -957,69 +739,63 @@ void Shader::TurnOff(){
 '		EndIf
 '	End Method*/
 	
-void Shader::AddShader(string _vert, string _frag){
-	if (arb_program == 0) return;
-	ShaderObject* Vert;
-	ShaderObject* Frag;
+int Shader::AddShader(string _shader, int type){
+	if (arb_program == 0) return 0;
 	
-	if (_vert != ""){
-		Vert = ShaderObject::CreateVertShader(_vert);
-		if (Vert!=0) {
-			arb_program->AttachVertShader(Vert);
+	if (_shader != ""){
+		int s = CreateShader(_shader, type);
+		if (s!=0) {
+			glAttachShader(arb_program->Program, s);
+			return s;
 		}
 	}
-		
-	if (_frag != ""){
-		Frag = ShaderObject::CreateFragShader(_frag);
-		if (Frag!=0) {
-			arb_program->AttachFragShader(Frag);
-		}
-	}
+	return 0;	
 }
 	
-void Shader::AddShaderFromString(string _vert, string _frag){
-	if (arb_program == 0) return;
-	ShaderObject* Vert;
-	ShaderObject* Frag;
+int Shader::AddShaderFromString(string _shader, int type){
+	if (arb_program == 0) return 0;
 		
-	if (_vert != ""){
-		Vert = ShaderObject::CreateVertShaderFromString(_vert);
-		if (Vert!=0) {
-			arb_program->AttachVertShader(Vert);
-		}
+	int s = CreateShaderFromString(_shader, type);
+	if (s!=0) {
+		glAttachShader(arb_program->Program, s);
+		return s;
 	}
-		
-	if (_frag != ""){
-		Frag = ShaderObject::CreateFragShaderFromString(_frag);
-		if (Frag!=0) {
-			arb_program->AttachFragShader(Frag);
-		}
+	return 0;
+}
+
+void Shader::Link(){
+	glLinkProgram(arb_program->Program);
+
+	/*-------------------------------
+	'Check if it Linked successfully
+	'------------------------------*/
+	int linked;
+	glValidateProgram(arb_program->Program);
+	glGetProgramiv(arb_program->Program,GL_LINK_STATUS, &linked);
+/*	if (Vert!=0) {
+		glDetachShader(arb_program->Program, Vert);
 	}
+	if (Frag!=0) {
+		glDetachShader(arb_program->Program, Frag);
+	}*/
+
+	if (linked==0){
+		return;
+	}
+
+	arb_program->RefreshTypeMap();
 }
 
 
-
-	/*Method ListShaders()
-		If arb_program = Null Then Return
-		'arb_program.ListAttachedShaders()
-	End Method */
-
-void Shader::AddSampler2D(string Name, int Slot, Texture* Tex){
-	Shader_Tex[texCount] = Sampler::Create(Slot,Tex);
-	UpdateSampler = 1;
-	Shader_Tex[texCount]->Name=glGetUniformLocation(arb_program->Program, Name.c_str());;
-	Shader_Tex[texCount]->is3D=0;
+void Shader::AddSampler(string Name, int Slot, Texture* Tex, int is3D){
+	if (Tex!=0) {
+		Shader_Tex[texCount] = Sampler::Create(Slot,Tex);
+		SetInteger(Name, Slot);
+		Shader_Tex[texCount]->is3D=is3D;
+	}
 	texCount++;
 }
 	
-void Shader::AddSampler3D(string Name, int Slot, Texture* Tex){
-	Shader_Tex[texCount] = Sampler::Create(Slot,Tex);
-	UpdateSampler = 1;
-	Shader_Tex[texCount]->Name=glGetUniformLocation(arb_program->Program, Name.c_str());;
-	Shader_Tex[texCount]->is3D=1;
-	texCount++;
-}
-
 
 void Shader::ProgramAttriBegin(){
 	if (arb_program !=0){
@@ -1316,6 +1092,15 @@ void Shader::UseEntity(string name, Entity* ent, int mode){
 	Parameters.push_back(data);
 }
 
+void Shader::UseFunction(void (*Enable)(void), void (*Disable)(void)){
+	ShaderData data;
+	data.type=USE_FUNCTION;
+	data.Enable=Enable;
+	data.Disable=Disable;
+	Parameters.push_back(data);
+}
+
+
 
 //ShaderObject
 
@@ -1334,8 +1119,6 @@ ProgramObject* ProgramObject::Create(string name){
 	'The amount of Vert & Frag Shaders
 	'attached to this Program Object
 	'---------------------------------*/
-	p->vertShaderCount = 0;
-	p->fragShaderCount = 0;
 	
 	/*--------------------------------------
 	'These lists contain any Vert or Frag
@@ -1713,129 +1496,6 @@ void ProgramObject::SetMatrix4F(string name, float* m){
 }*/
 
 
-//----------------------------------------------------------
-//Attach & Link a Vertex Shader Object to this ProgramObject
-//----------------------------------------------------------
-int ProgramObject::AttachVertShader(ShaderObject* myShader){
-	/*-------------------------
-	'Attach & Link a VertShader
-	'------------------------*/
-	glAttachShader(Program, myShader->ShaderObj);
-#ifndef GLES2
-	glLinkProgram(Program);
-
-
-	/*-------------------------------
-	'Check if it Linked successfully
-	'------------------------------*/
-	int linked;
-	glValidateProgram(Program);
-	glGetProgramiv(Program,GL_LINK_STATUS, &linked);
-	
-	if (linked==0){
-		return 0;
-	}
-#endif
-
-	//Add this VertShaderObject to this ProgramObjects list
-	vList.push_back(myShader);
-
-	//Add this ProgramObject to this Shaders 'attached to' list
-	myShader->Attached.push_back(this);
-	RefreshTypeMap();
-	return 1;
-}
-
-//------------------------------------------------------------
-//Attach & Link a Fragment Shader Object to this ProgramObject
-//------------------------------------------------------------
-int ProgramObject::AttachFragShader(ShaderObject* myShader){
-	/*-------------------------
-	'Attach & Link a FragShader
-	'------------------------*/
-	glAttachShader(Program, myShader->ShaderObj);
-	glLinkProgram(Program);
-
-
-	/*-------------------------------
-	'Check if it Linked successfully
-	'------------------------------*/
-	int linked;
-	glValidateProgram(Program);
-	glGetProgramiv(Program,GL_LINK_STATUS, &linked);
-
-	if (linked==0){
-		return 0;
-	}
-
-	//Add this FragShaderObject to this ProgramObjects list
-	fList.push_back(myShader);
-	
-	//Add this ProgramObject to this Shaders 'attached to' list
-	myShader->Attached.push_back(this);
-	RefreshTypeMap();
-	return 1;
-}
-
-//-------------------------------------------------------
-//Detach a VertShader:tShaderObject from a tProgramObject
-//-------------------------------------------------------
-void ProgramObject::DetachVertShader(ShaderObject* vShader){
-	list<ShaderObject*>::iterator it;
-
-	for(it=vList.begin();it!=vList.end();it++){
-		if (vShader==*it){
-			glDetachShader(Program, vShader->ShaderObj);
-			vList.remove(vShader);
-			vShader->Attached.remove(this);
-			break;
-		}
-	}
-}
-
-//-------------------------------------------------------
-//Detach a FragShader:tShaderObject from a tProgramObject
-//-------------------------------------------------------
-void ProgramObject::DetachFragShader(ShaderObject* fShader){
-	list<ShaderObject*>::iterator it;
-
-	for(it=fList.begin();it!=vList.end();it++){
-		if (fShader==*it){
-			glDetachShader(Program, fShader->ShaderObj);
-			fList.remove(fShader);
-			fShader->Attached.remove(this);
-			break;
-		}
-	}
-}
-
-
-/*------------------------------------------------------
-/Dump a list of Shaders attached to this tProgramObject
-/------------------------------------------------------
-Method ListAttachedShaders()
-	Print "Vertex Shader(s) attached to ProgramObject '"+Self.progName+"'"
-	Print "----------------------------------------------------------------------"
-	If vList.Count() = 0
-		Print "No Vertex Shaders attached"
-	Else
-		For Local v:tShaderObject = EachIn vList
-			Print v.shaderName
-		Next
-	End If
-		
-	Print
-	Print "Fragment Shader(s) attached to ProgramObject '"+Self.progName+"'"
-	Print "-----------------------------------------------------------------------"
-	If fList.Count() = 0
-		Print "No Fragment Shaders attached"
-	Else
-		For Local f:tShaderObject = EachIn fList
-			Print f.shaderName
-		Next
-	End If
-	Print
-End Method*/
 
 void CopyPixels (unsigned char *src, unsigned int srcWidth, unsigned int srcHeight, unsigned int srcX, unsigned int srcY, unsigned char *dst, unsigned int dstWidth, unsigned int dstHeight, unsigned int bytesPerPixel);
 
@@ -1912,6 +1572,7 @@ Material* Material::LoadMaterial(string filename,int flags, int frame_width,int 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex->width, tex->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 	glGenerateMipmap(GL_TEXTURE_2D);
 	tex->texture=name;
+	tex->no_frames=tex->width/frame_width;
 	tex->width=frame_width;
 	tex->height=frame_height;
 #endif

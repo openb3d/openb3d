@@ -9,35 +9,27 @@ class Surface;
 
 //list<ProgramObject*> ProgramObjectList;
 
-class ShaderObject{
+/*class ShaderObject{
 	public:
 	static list<ShaderObject*> ShaderObjectList;
 
 	int ShaderObj;
 	int ShaderType;				// 1 = Vert, 2 = Frag
-	list<ProgramObject*> Attached;		// Shaders can be attached, or 'referenced by', more than 1 ProgramObject
 	string shaderName;
 
 	static ShaderObject* CreateVertShader(string shaderFileName);
 	static ShaderObject* CreateFragShader(string shaderFileName);
 	static ShaderObject* CreateVertShaderFromString(string shadercode);
 	static ShaderObject* CreateFragShaderFromString(string shadercode);
-	void DeleteVertShader(ShaderObject* vShader);
-	void DeleteFragShader(ShaderObject* fShader);
 
-};
+};*/
 
 class ProgramObject{
 	public:
 	static list<ProgramObject*> ProgramObjectList;
 
 	int Program;		// The ProgramObject
-	list<ShaderObject*> vList;	// Vertex shader list. A List of what Vert shaders are attached to this ProgramObject
-	list<ShaderObject*> fList;	// Frag shader list. A List of what Frag shaders are attached to this ProgramObject
 	string progName;
-	
-	int vertShaderCount;
-	int fragShaderCount;
 	
 	map<string,int> TypeMap;
 
@@ -52,12 +44,11 @@ class ProgramObject{
 
 	// Get the Attribute Variable Location from a ProgramObject
 	int GetAttribLoc(string name);
-#ifndef GLES2
+
 	/*void SetParameter1S(int name, float v1);
 	void SetParameter2S(int name, float v1, float v2);
 	void SetParameter3S(int name, float v1, float v2, float v3);
 	void SetParameter4S(int name, float v1, float v2, float v3, float v4);*/
-#endif
 
 	//------------------------------------------------------------
 	// Int Parameter
@@ -114,26 +105,6 @@ class ProgramObject{
 	void SetMatrix3F(int name, float* m);
 	void SetMatrix4F(int name, float* m);*/
 
-
-	//----------------------------------------------------------
-	//Attach & Link a Vertex Shader Object to this ProgramObject
-	//----------------------------------------------------------
-	int AttachVertShader(ShaderObject* myShader);
-
-	//------------------------------------------------------------
-	//Attach & Link a Fragment Shader Object to this ProgramObject
-	//------------------------------------------------------------
-	int AttachFragShader(ShaderObject* myShader);
-
-	//-------------------------------------------------------
-	//Detach a VertShader:tShaderObject from a tProgramObject
-	//-------------------------------------------------------
-	void DetachVertShader(ShaderObject* vShader);
-
-	//-------------------------------------------------------
-	//Detach a FragShader:tShaderObject from a tProgramObject
-	//-------------------------------------------------------
-	void DetachFragShader(ShaderObject* fShader);
 
 };
 

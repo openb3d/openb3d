@@ -1095,3 +1095,7 @@ void Camera::UpdateProjMatrix(){
 	}
 
 }
+
+float* Camera::CameraProjMatrix(){
+	return &proj_mat[0];
+}

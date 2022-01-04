@@ -301,6 +301,7 @@ void Global::Graphics(){
 	glUseProgram(shader_voxel.ambient_program);
 	glUniform1i(glGetUniformLocation(shader_voxel.ambient_program, "uSampler0"), 0);
 	shader_voxel.texflag=glGetUniformLocation(shader_voxel.ambient_program, "texFlag");
+	shader_voxel.tex_coords_set=glGetUniformLocation(shader_voxel.ambient_program, "slices");
 
 	//Special shader for stencils
 	v=glCreateShader(GL_VERTEX_SHADER);

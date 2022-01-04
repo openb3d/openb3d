@@ -1461,3 +1461,7 @@ void Entity::MQ_Update(){
 		ent->MQ_Update();
 	}
 }
+
+float* Entity::EntityMatrix(){
+	return &mat.grid[0][0];
+}

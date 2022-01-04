@@ -629,8 +629,8 @@ void Fluid::MarchingCube(float x, float y, float z, float x1, float y1, float z1
 			bx = EdgeX[triTable[cubeIndex][k+2]]-EdgeX[triTable[cubeIndex][k+1]];
 			by = EdgeY[triTable[cubeIndex][k+2]]-EdgeY[triTable[cubeIndex][k+1]];
 			bz = EdgeZ[triTable[cubeIndex][k+2]]-EdgeZ[triTable[cubeIndex][k+1]];
-			nx = ( ay * bz ) - ( az * by );
-			ny = ( az * bx ) - ( ax * bz );
+			nx = ( az * by ) - ( ay * bz );
+			ny = ( ax * bz ) - ( az * bx );
 			nz = ( ax * by ) - ( ay * bx );
 
 
@@ -639,16 +639,16 @@ void Fluid::MarchingCube(float x, float y, float z, float x1, float y1, float z1
 			surf->vert_norm.push_back(nx); surf->vert_norm.push_back(ny);surf->vert_norm.push_back(nz);
 		}else{
 
-			surf->vert_norm.push_back(ScalarField(EdgeX[triTable[cubeIndex][k+0]]+1,EdgeY[triTable[cubeIndex][k+0]],EdgeZ[triTable[cubeIndex][k+0]])-ScalarField(EdgeX[triTable[cubeIndex][k+0]]-1,EdgeY[triTable[cubeIndex][k+0]],EdgeZ[triTable[cubeIndex][k+0]]));
-			surf->vert_norm.push_back(ScalarField(EdgeX[triTable[cubeIndex][k+0]],EdgeY[triTable[cubeIndex][k+0]]+1,EdgeZ[triTable[cubeIndex][k+0]])-ScalarField(EdgeX[triTable[cubeIndex][k+0]],EdgeY[triTable[cubeIndex][k+0]]-1,EdgeZ[triTable[cubeIndex][k+0]]));
+			surf->vert_norm.push_back(ScalarField(EdgeX[triTable[cubeIndex][k+0]]-1,EdgeY[triTable[cubeIndex][k+0]],EdgeZ[triTable[cubeIndex][k+0]])-ScalarField(EdgeX[triTable[cubeIndex][k+0]]+1,EdgeY[triTable[cubeIndex][k+0]],EdgeZ[triTable[cubeIndex][k+0]]));
+			surf->vert_norm.push_back(ScalarField(EdgeX[triTable[cubeIndex][k+0]],EdgeY[triTable[cubeIndex][k+0]]-1,EdgeZ[triTable[cubeIndex][k+0]])-ScalarField(EdgeX[triTable[cubeIndex][k+0]],EdgeY[triTable[cubeIndex][k+0]]+1,EdgeZ[triTable[cubeIndex][k+0]]));
 			surf->vert_norm.push_back(ScalarField(EdgeX[triTable[cubeIndex][k+0]],EdgeY[triTable[cubeIndex][k+0]],EdgeZ[triTable[cubeIndex][k+0]]+1)-ScalarField(EdgeX[triTable[cubeIndex][k+0]],EdgeY[triTable[cubeIndex][k+0]],EdgeZ[triTable[cubeIndex][k+0]]-1));
 
-			surf->vert_norm.push_back(ScalarField(EdgeX[triTable[cubeIndex][k+1]]+1,EdgeY[triTable[cubeIndex][k+1]],EdgeZ[triTable[cubeIndex][k+1]])-ScalarField(EdgeX[triTable[cubeIndex][k+1]]-1,EdgeY[triTable[cubeIndex][k+1]],EdgeZ[triTable[cubeIndex][k+1]]));
-			surf->vert_norm.push_back(ScalarField(EdgeX[triTable[cubeIndex][k+1]],EdgeY[triTable[cubeIndex][k+1]]+1,EdgeZ[triTable[cubeIndex][k+1]])-ScalarField(EdgeX[triTable[cubeIndex][k+1]],EdgeY[triTable[cubeIndex][k+1]]-1,EdgeZ[triTable[cubeIndex][k+1]]));
+			surf->vert_norm.push_back(ScalarField(EdgeX[triTable[cubeIndex][k+1]]-1,EdgeY[triTable[cubeIndex][k+1]],EdgeZ[triTable[cubeIndex][k+1]])-ScalarField(EdgeX[triTable[cubeIndex][k+1]]+1,EdgeY[triTable[cubeIndex][k+1]],EdgeZ[triTable[cubeIndex][k+1]]));
+			surf->vert_norm.push_back(ScalarField(EdgeX[triTable[cubeIndex][k+1]],EdgeY[triTable[cubeIndex][k+1]]-1,EdgeZ[triTable[cubeIndex][k+1]])-ScalarField(EdgeX[triTable[cubeIndex][k+1]],EdgeY[triTable[cubeIndex][k+1]]+1,EdgeZ[triTable[cubeIndex][k+1]]));
 			surf->vert_norm.push_back(ScalarField(EdgeX[triTable[cubeIndex][k+1]],EdgeY[triTable[cubeIndex][k+1]],EdgeZ[triTable[cubeIndex][k+1]]+1)-ScalarField(EdgeX[triTable[cubeIndex][k+1]],EdgeY[triTable[cubeIndex][k+1]],EdgeZ[triTable[cubeIndex][k+1]]-1));
 
-			surf->vert_norm.push_back(ScalarField(EdgeX[triTable[cubeIndex][k+2]]+1,EdgeY[triTable[cubeIndex][k+2]],EdgeZ[triTable[cubeIndex][k+2]])-ScalarField(EdgeX[triTable[cubeIndex][k+2]]-1,EdgeY[triTable[cubeIndex][k+2]],EdgeZ[triTable[cubeIndex][k+2]]));
-			surf->vert_norm.push_back(ScalarField(EdgeX[triTable[cubeIndex][k+2]],EdgeY[triTable[cubeIndex][k+2]]+1,EdgeZ[triTable[cubeIndex][k+2]])-ScalarField(EdgeX[triTable[cubeIndex][k+2]],EdgeY[triTable[cubeIndex][k+2]]-1,EdgeZ[triTable[cubeIndex][k+2]]));
+			surf->vert_norm.push_back(ScalarField(EdgeX[triTable[cubeIndex][k+2]]-1,EdgeY[triTable[cubeIndex][k+2]],EdgeZ[triTable[cubeIndex][k+2]])-ScalarField(EdgeX[triTable[cubeIndex][k+2]]+1,EdgeY[triTable[cubeIndex][k+2]],EdgeZ[triTable[cubeIndex][k+2]]));
+			surf->vert_norm.push_back(ScalarField(EdgeX[triTable[cubeIndex][k+2]],EdgeY[triTable[cubeIndex][k+2]]-1,EdgeZ[triTable[cubeIndex][k+2]])-ScalarField(EdgeX[triTable[cubeIndex][k+2]],EdgeY[triTable[cubeIndex][k+2]]+1,EdgeZ[triTable[cubeIndex][k+2]]));
 			surf->vert_norm.push_back(ScalarField(EdgeX[triTable[cubeIndex][k+2]],EdgeY[triTable[cubeIndex][k+2]],EdgeZ[triTable[cubeIndex][k+2]]+1)-ScalarField(EdgeX[triTable[cubeIndex][k+2]],EdgeY[triTable[cubeIndex][k+2]],EdgeZ[triTable[cubeIndex][k+2]]-1));
 		}
 

@@ -22,6 +22,23 @@
 #include "actions.h"
 #include "postfx.h"
 
+#ifndef GL_FRAGMENT_SHADER
+#define GL_FRAGMENT_SHADER 0x8B30
+#endif
+
+#ifndef GL_VERTEX_SHADER
+#define GL_VERTEX_SHADER 0x8B31
+#endif
+
+#ifndef GL_GEOMETRY_SHADER
+#define GL_GEOMETRY_SHADER 0x8DD9
+#endif
+
+#ifndef GL_MULTISAMPLE
+#define GL_MULTISAMPLE 0x809D
+#endif
+
+
 extern "C" {
 
 void BufferToTex(Texture* tex,unsigned char* buffer, int frame){
@@ -100,6 +117,13 @@ bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=AntiAlias">On
 */
 void AntiAlias(int samples){
 	//Global::AntiAlias(samples);
+#ifndef GLES2
+	if (samples==0){
+		glDisable(GL_MULTISAMPLE);
+	}else{
+		glEnable(GL_MULTISAMPLE);
+	}
+#endif
 }
 
 /*
@@ -1783,13 +1807,43 @@ float EntityScaleZ(Entity* ent,bool glob){
 
 Shader* LoadShader(char* ShaderName, char* VshaderFileName, char* FshaderFileName){
 	Shader* s=Shader::CreateShaderMaterial(ShaderName);
-	s->AddShader(VshaderFileName, FshaderFileName);
+	int Vert, Frag;
+	Vert = s->AddShader(VshaderFileName, GL_VERTEX_SHADER);
+	Frag = s->AddShader(FshaderFileName, GL_FRAGMENT_SHADER);
+	s->Link();
 	return s;
 }
 
 Shader* CreateShader(char* ShaderName, char* VshaderString, char* FshaderString){
 	Shader* s=Shader::CreateShaderMaterial(ShaderName);
-	s->AddShaderFromString(VshaderString, FshaderString);
+	int Vert, Frag;
+	Vert = s->AddShaderFromString(VshaderString, GL_VERTEX_SHADER);
+	Frag = s->AddShaderFromString(FshaderString, GL_FRAGMENT_SHADER);
+	s->Link();
+	return s;
+}
+
+Shader* LoadShaderVGF(char* ShaderName, char* VshaderFileName, char* GshaderFileName, char* FshaderFileName){
+	Shader* s=Shader::CreateShaderMaterial(ShaderName);
+	int Vert, Geom, Frag;
+	Vert = s->AddShader(VshaderFileName, GL_VERTEX_SHADER);
+#ifndef GLES2
+	Geom = s->AddShader(GshaderFileName, GL_GEOMETRY_SHADER);
+#endif
+	Frag = s->AddShader(FshaderFileName, GL_FRAGMENT_SHADER);
+	s->Link();
+	return s;
+}
+
+Shader* CreateShaderVGF(char* ShaderName, char* VshaderString, char* GshaderString, char* FshaderString){
+	Shader* s=Shader::CreateShaderMaterial(ShaderName);
+	int Vert, Geom, Frag;
+	Vert = s->AddShaderFromString(VshaderString, GL_VERTEX_SHADER);
+#ifndef GLES2
+	Geom = s->AddShaderFromString(GshaderString, GL_GEOMETRY_SHADER);
+#endif
+	Frag = s->AddShaderFromString(FshaderString, GL_FRAGMENT_SHADER);
+	s->Link();
 	return s;
 }
 
@@ -1816,7 +1870,7 @@ void ShadeEntity(Entity* ent, Shader* material){
 }
 
 void ShaderTexture(Shader* material, Texture* tex, char* name, int index){
-	material->AddSampler2D(name, index, tex);
+	material->AddSampler(name, index, tex, 0);
 }
 
 void SetFloat(Shader* material, char* name, float v1){
@@ -1895,16 +1949,26 @@ void UseEntity(Shader* material, char* name, Entity* ent, int mode){
 	material->UseEntity(name, ent, mode);
 }
 
+void ShaderFunction(Shader* material, void (*EnableFunction)(void), void (*DisableFunction)(void)){
+	material->UseFunction(EnableFunction, DisableFunction);
+}
+
+
+
 Material* LoadMaterial(char* filename,int flags, int frame_width,int frame_height,int first_frame,int frame_count){
 	return Material::LoadMaterial(filename, flags, frame_width, frame_height, first_frame, frame_count);
 }
 
 void ShaderMaterial(Shader* material, Material* tex, char* name, int index){
-	material->AddSampler3D(name, index, tex);
+	material->AddSampler(name, index, tex, 1);
 }
 
 void AmbientShader(Shader* material){
 	Global::ambient_shader=material;
+}
+
+int GetShaderProgram(Shader* material){
+	return material->GetProgram();
 }
 
 
@@ -2010,8 +2074,16 @@ void PostFXTexture(PostFX* fx, int pass_no, Texture* tex, int slot, int frame=0)
 	fx->PostFXTexture(pass_no, tex, slot, frame);
 }
 
-void PostFXEntity(PostFX* fx, int pass_no, Entity* ent){
-	fx->PostFXEntity(pass_no, ent);
+void PostFXFunction(PostFX* fx, int pass_no, void (*PassFunction)(void)){
+	fx->PostFXFunction(pass_no, PassFunction);
+}
+
+float* CameraProjMatrix(Camera* cam){
+	return cam->CameraProjMatrix();
+}
+
+float* EntityMatrix(Entity* ent){
+	return ent->EntityMatrix();
 }
 
 /*void SetParameter1S(Shader* material, char* name, float v1){

@@ -170,8 +170,8 @@ void PostFX::PostFXTexture(int pass_no, Texture* tex, int slot, int frame){
 	}
 }
 
-void PostFX::PostFXEntity(int pass_no, Entity* ent){
-	pass[pass_no].render_list.push_back(ent);
+void PostFX::PostFXFunction(int pass_no, void (*PassFunction)(void)){
+	pass[pass_no].PassFunction=PassFunction;
 }
 
 
@@ -277,65 +277,8 @@ void PostFX::Render(){
 			glDrawArrays(GL_TRIANGLE_FAN,0,4);
 
 		}
-		if (!pass[it].render_list.empty()){
-			cam->Update();
-			cam->render_list.clear(); // clear render list
-			list<Entity*>::iterator ent_it;
-
-			glEnable(GL_DEPTH_TEST);
-
-
-			glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer[0]);
-			glBlitFramebuffer(0, 0, vwidth,vheight, vx,vy,vwidth,vheight, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-
-			for(ent_it=pass[it].render_list.begin();ent_it!=pass[it].render_list.end();ent_it++){
-		
-				Entity* ent=*ent_it;
-
-				UpdateEntityRender(ent,cam);
-
-				//ent.Render();
-		
-			}
-
-
-
-			/*list<SpriteBatch*>::iterator spr_it;
-
-			//cout << "Sprite batch list size: " << SpriteBatch::sprite_batch_list.size() << endl;
-
-			for(spr_it=SpriteBatch::sprite_batch_list.begin();spr_it!=SpriteBatch::sprite_batch_list.end();spr_it++){
-		
-				SpriteBatch* sprite_batch=*spr_it;
-		
-				Mesh* mesh=sprite_batch->GetSpriteBatchMesh();
-		
-				cam->RenderListAdd(mesh);
-		
-			}*/
-
-
-			list<Mesh*>::iterator mesh_it;
-
-			for(mesh_it=cam->render_list.begin();mesh_it!=cam->render_list.end();mesh_it++){
-		
-				Mesh &mesh=**mesh_it;
-
-				mesh.Render();
-		
-			}
-#ifndef GLES2
-			glLoadIdentity();
-			glOrtho(0 , 1 , 1 , 0 , 0 , 1);
-#endif
-
-			glDisable(GL_DEPTH_TEST);
-#ifndef GLES2
-			glColor4f(1.0, 1.0, 1.0, 1.0);
-#endif
-
-
-
+		if (pass[it].PassFunction!=0){
+			pass[it].PassFunction();
 		}
 
 		if (pass[it].ShaderFX!=0){

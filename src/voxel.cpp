@@ -437,6 +437,7 @@ void VoxelSprite::Render(){
 	glBindTexture(GL_TEXTURE_2D, material[0]->texture); 
 
 	glUniformMatrix4fv(Global::shader->model, 1 , 0, &mat.grid[0][0] );
+	glUniform1f(Global::shader->tex_coords_set, material[0]->no_frames);
 
 	Surface& surf=**surf_list.begin();
 	glBindBuffer(GL_ARRAY_BUFFER,surf.vbo_id[0]);

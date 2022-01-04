@@ -460,10 +460,10 @@ Mesh* Mesh::CreatePlane(int divs, Entity* parent_ent){
 	surf->AddVertex( 50000.0,0.0,-50000.0);
 
 
-	surf->VertexNormal(0,0.0,0.0,-1.0);
-	surf->VertexNormal(1,0.0,0.0,-1.0);
-	surf->VertexNormal(2,0.0,0.0,-1.0);
-	surf->VertexNormal(3,0.0,0.0,-1.0);
+	surf->VertexNormal(0,0.0,1.0,0.0);
+	surf->VertexNormal(1,0.0,1.0,0.0);
+	surf->VertexNormal(2,0.0,1.0,0.0);
+	surf->VertexNormal(3,0.0,1.0,0.0);
 
 	surf->VertexTexCoords(0,0.0,1.0,0.0,0);
 	surf->VertexTexCoords(1,0.0,0.0,0.0,0);
