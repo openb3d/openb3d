@@ -57,13 +57,13 @@ public:
 
 
 class Shader {//: public MaterialPlugin{
-	static int ShaderIDCount;
+	//static int ShaderIDCount;
 
 	int texCount;
 	Sampler* Shader_Tex[255];
 	ProgramObject* arb_program;
-	int ID;
-	string name;
+	//int ID;
+	//string name;
 
 	vector<ShaderData> Parameters;
 
@@ -74,6 +74,8 @@ class Shader {//: public MaterialPlugin{
 	
 	// internal 
 public:
+	static list<Shader*> shader_list;
+
 	static Shader* CreateShaderMaterial(string Name = "");
 	void TurnOn(Matrix& mat, Surface* surf, vector<float>* vertices=0, Brush* brush=0);
 	void TurnOff();
@@ -83,6 +85,7 @@ public:
 	void AddSampler(string Name, int Slot, Texture* Tex, int is3D);
 	void ProgramAttriBegin();
 	void ProgramAttriEnd();
+	void FreeShader();
 
 	void SetFloat(string name, float v1);
 	void SetFloat2(string name, float v1, float v2);

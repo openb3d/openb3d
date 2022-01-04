@@ -7,10 +7,10 @@ main:$(OBJECTS)
 ifeq ($(shell uname), Linux)
 	$(CC) -shared -o libOpenB3D.so $(OBJECTS)  -lGL -lGLU
 else
-	$(CC) -shared -o openb3d.dll $(OBJECTS)  -lGLee -lopengl32 -lglu32 -lGDI32
+	$(CC) -shared -o openb3d.dll $(OBJECTS)  -lGLee -lopengl32 -lglu32 -lGDI32 -static
 endif
 
-static:
+static:$(OBJECTS) 
 	ar rcs libOpenB3D.a $(OBJECTS)  
 
 3ds.o  : 3ds.cpp 3ds.h

@@ -21,6 +21,7 @@ using namespace std;
 class Brush{
 
 public:
+	static list<Brush*> brush_list;
 
 	int no_texs;
 	string name;

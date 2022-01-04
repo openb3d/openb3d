@@ -374,6 +374,15 @@ void Global::Graphics(){
 	}
 #endif
 
+	ambient_red=0.5;ambient_green=0.5;ambient_blue=0.5;
+	ambient_shader=0;
+	fog_enabled=false;
+	Shadows_enabled=false;
+	alpha_enable=-1;
+	blend_mode=-1;
+	fx1=-1;
+	fx2=-1;
+
 }
 
 void Global::AmbientLight(float r,float g,float b){
@@ -426,23 +435,75 @@ void Global::ClearWorld(int entities,int brushes,int textures){
 		//	Entity* ent=*it;
 		//	ent->FreeEntity();
 		//}
-		Global::root_ent->FreeEntity();
-		Entity::entity_list.clear();
+		/*Global::root_ent->FreeEntity();
+		Entity::entity_list.clear();*/
+		/*for(list<Entity*>::iterator it=Entity::entity_list.begin();it!=Entity::entity_list.end();it++){
+			Entity* e=*it;
+			e->FreeEntity();
+			it=Entity::entity_list.begin();
+			it--;
+		}*/
+		while (!Entity::entity_list.empty()) {
+			Entity* e=*Entity::entity_list.begin();
+			e->FreeEntity();
+		}
+
+
 		Entity::animate_list.clear();
 		Camera::cam_list.clear();
 		ClearCollisions();
 		Pick::ent_list.clear();
+
+		/*for(list<Constraint*>::iterator it=Constraint::constraint_list.begin();it!=Constraint::constraint_list.end();it++){
+			Constraint* c=*it;
+			c->FreeConstraint();
+			it=Constraint::constraint_list.begin();
+			it--;
+		}
+
+		for(list<RigidBody*>::iterator it=RigidBody::rigidBody_list.begin();it!=RigidBody::rigidBody_list.end();it++){
+			RigidBody* b=*it;
+			b->FreeRigidBody();
+			it=RigidBody::rigidBody_list.begin();
+			it--;
+		}*/
+
+		while (!Constraint::constraint_list.empty()) {
+			Constraint* c=*Constraint::constraint_list.begin();
+			c->FreeConstraint();
+		}
+
+		while (!RigidBody::rigidBody_list.empty()) {
+			RigidBody* b=*RigidBody::rigidBody_list.begin();
+			b->FreeRigidBody();
+		}
+
+		for(list<Action*>::iterator it=Action::action_list.begin();it!=Action::action_list.end();it++){
+			Action* act=*it;
+			act->act=ACT_COMPLETED;
+		}
+
+	}
+
+	if(brushes){
+		while (!Brush::brush_list.empty()) {
+			Brush* brush=*Brush::brush_list.begin();
+			brush->FreeBrush();
+		}
+		//Brush::brush_list.clear();
+
+		while (!Shader::shader_list.empty()) {
+			Shader* s=*Shader::shader_list.begin();
+			s->FreeShader();
+		}
 	}
 
 	if(textures){
-		list<Texture*>::iterator it;
-		for(it=Texture::tex_list.begin();it!=Texture::tex_list.end();it++){
-			Texture* tex=*it;
+		while (!Texture::tex_list.empty()) {
+			Texture* tex=*Texture::tex_list.begin();
 			tex->FreeTexture();
-			it=Texture::tex_list.begin();
-			it--;
 		}
-		Texture::tex_list.clear();
+		//Texture::tex_list.clear();
 	}
 }
 

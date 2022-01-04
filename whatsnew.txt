@@ -1,3 +1,14 @@
+V1.26
+Added
+-FreeShader
+
+Fixed
+-memory leak in CreateSprite
+-ClearWorld now works for brushes, too
+-Graphics3D reinitializes some parameters
+-particle emitter didn't have correct orientation when added to a parent entity
+-EntityClass, EntityName and TextureName returned wrong result. Fixed.
+
 V1.251
 Fixed
 -several minor bugs that made difficult to compile with more modern compilers

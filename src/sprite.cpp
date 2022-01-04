@@ -14,6 +14,8 @@
 #include "pick.h"
 #include "texture.h"
 
+Surface* Sprite::surf=0;
+
 Sprite* Sprite::CopyEntity(Entity* parent_ent){
 
 	// new sprite
@@ -133,13 +135,17 @@ Sprite* Sprite::CreateSprite(Entity* parent_ent){
 		sprite->UpdateMat(true);
 	}
 
-	Surface* surf=sprite->CreateSurface();
-	surf->AddVertex(-1,-1,0, 0, 1);
-	surf->AddVertex(-1, 1,0, 0, 0);
-	surf->AddVertex( 1, 1,0, 1, 0);
-	surf->AddVertex( 1,-1,0, 1, 1);
-	surf->AddTriangle(0,1,2);
-	surf->AddTriangle(0,2,3);
+	if (surf==0){
+		surf=new Surface();
+		surf->AddVertex(-1,-1,0, 0, 1);
+		surf->AddVertex(-1, 1,0, 0, 0);
+		surf->AddVertex( 1, 1,0, 1, 0);
+		surf->AddVertex( 1,-1,0, 1, 1);
+		surf->AddTriangle(0,1,2);
+		surf->AddTriangle(0,2,3);
+	}
+	sprite->surf_list.push_back(surf);
+	sprite->no_surfs=1;
 
 	sprite->EntityFX(1);
 

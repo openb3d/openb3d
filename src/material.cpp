@@ -31,8 +31,9 @@
 #include "stb_image.h"
 
 
-list<ProgramObject*> ProgramObject::ProgramObjectList;
-int Shader::ShaderIDCount;
+//list<ProgramObject*> ProgramObject::ProgramObjectList;
+//int Shader::ShaderIDCount;
+list<Shader*> Shader::shader_list;
 
 static int default_program=0;
 
@@ -65,6 +66,25 @@ USE_MODELVIEW_MATRIX,
 USE_FUNCTION
 };
 
+
+
+void Shader::FreeShader(){
+	if(!arb_program->Program) return;
+	arb_program->DeActivate(); // Ensure the shader is not used
+	
+	list<int>::iterator it;
+	for(it=arb_program->sList.begin();it!=arb_program->sList.end();it++){
+		glDeleteShader(*it);
+	}
+	
+	glDeleteProgram(arb_program->Program);
+	delete arb_program;
+	for (int ix=0; ix<texCount; ix++){
+		delete Shader_Tex[ix];
+	}
+	shader_list.remove(this);
+	delete this;
+}
 
 
 int CreateShader(string shaderFileName, GLenum type){
@@ -197,19 +217,21 @@ Sampler* Sampler::Create(int Slot, Texture* Tex){
 Shader* Shader::CreateShaderMaterial(string Name){
 	Shader* s= new Shader;
 	s->texCount=0;
-	if (Name == ""){
+	/*if (Name == ""){
 		Name = "NoName";
-	}
+	}*/
 	if (1==1){//HardwareInfo->ShaderSupport{
-		stringstream sstm;
+		/*stringstream sstm;
 		sstm << Name << s->ID;
-		s->ID = ShaderIDCount;
-		s->arb_program = ProgramObject::Create(sstm.str());
-		s->name = Name;
+		s->ID = ShaderIDCount;*/
+		s->arb_program = ProgramObject::Create();
+		//s->name = Name;
 	}else{
+		delete s;
 		return 0;
 	}
-	ShaderIDCount++;
+	//ShaderIDCount++;
+	shader_list.push_back(s);
 
 	for (int i=0; i<=254; i++){
 		s->Shader_Tex[i] = 0;
@@ -746,6 +768,7 @@ int Shader::AddShader(string _shader, int type){
 		int s = CreateShader(_shader, type);
 		if (s!=0) {
 			glAttachShader(arb_program->Program, s);
+			arb_program->sList.push_back(s);
 			return s;
 		}
 	}
@@ -758,6 +781,7 @@ int Shader::AddShaderFromString(string _shader, int type){
 	int s = CreateShaderFromString(_shader, type);
 	if (s!=0) {
 		glAttachShader(arb_program->Program, s);
+		arb_program->sList.push_back(s);
 		return s;
 	}
 	return 0;
@@ -1104,7 +1128,7 @@ void Shader::UseFunction(void (*Enable)(void), void (*Disable)(void)){
 
 //ShaderObject
 
-ProgramObject* ProgramObject::Create(string name){
+ProgramObject* ProgramObject::Create(){
 	ProgramObject* p = new ProgramObject;
 		
 	//Create a new GL ProgramObject
@@ -1128,13 +1152,13 @@ ProgramObject* ProgramObject::Create(string name){
 	p->fList:TList = CreateList();*/
 	
 	//This Program Objects Name
-	p->progName = name;
+	//p->progName = name;
 		
 	/*-----------------------------
 	'Add this Program Object to the
 	'Global list of ProgramObjects
 	'------------------------------*/
-	ProgramObjectList.push_back(p);
+	//ProgramObjectList.push_back(p);
 	return p;
 }
 
@@ -1526,6 +1550,7 @@ Material* Material::LoadMaterial(string filename,int flags, int frame_width,int 
 
 	//const char* c_filename_left=filename_left.c_str();
 	//const char* c_filename_right=filename_right.c_str();
+	tex_list.push_back(tex);
 
 
 	unsigned char* buffer;

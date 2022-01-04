@@ -649,7 +649,8 @@ void EntityBox(Entity* ent,float x,float y,float z,float w,float h,float d){
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=EntityClass">Online Help</a>
 */
 const char* EntityClass(Entity* ent){
-	return ent->EntityClass().c_str();
+	//return ent->EntityClass().c_str();
+	return ent->class_name.c_str();
 }
 
 /*
@@ -691,7 +692,8 @@ int EntityInView(Entity* ent,Camera* cam){
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=EntityName">Online Help</a>
 */
 const char* EntityName(Entity* ent){
-	return ent->EntityName().c_str();
+	//return ent->EntityName().c_str();
+	return ent->name.c_str();
 }
 
 /*
@@ -872,6 +874,10 @@ void FreeEntity(Entity* ent){
 
 void FreeRigidBody(RigidBody* body){
 	body->FreeRigidBody();
+}
+
+void FreeShader(Shader* shader){
+	shader->FreeShader();
 }
 
 void FreeShadow(ShadowObject* shad){
@@ -1515,7 +1521,8 @@ void TextureFilter(char* match_text,int flags){
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=TextureName">Online Help</a>
 */
 const char* TextureName(Texture* tex){
-	return tex->TextureName().c_str();
+	//return tex->TextureName().c_str();
+	return tex->file.c_str();
 }
 
 /*

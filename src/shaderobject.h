@@ -26,14 +26,15 @@ class Surface;
 
 class ProgramObject{
 	public:
-	static list<ProgramObject*> ProgramObjectList;
+	//static list<ProgramObject*> ProgramObjectList;
 
 	int Program;		// The ProgramObject
-	string progName;
+	list<int> sList;	// A List of what Vert shaders are attached to this ProgramObject
+	//string progName;
 	
 	map<string,int> TypeMap;
 
-	static ProgramObject* Create(string name = "null");
+	static ProgramObject* Create();
 
 	void Activate();
 	void DeActivate();
