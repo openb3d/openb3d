@@ -480,7 +480,7 @@ void Texture::CameraToTex(Camera* cam, int frame){
 	glBindTexture (target, texture);
 
 	if (framebuffer==0){
-		framebuffer=new unsigned int[1];
+		framebuffer=new unsigned int[2];
 		glGenFramebuffers(1, &framebuffer[0]);
 		glGenRenderbuffers(1, &framebuffer[1]);
 		if(flags&128){
@@ -586,20 +586,24 @@ void Texture::DepthBufferToTex(Camera* cam=0 ){
 		if (framebuffer==0){
 			framebuffer=new unsigned int[1];
 			glGenFramebuffers(1, &framebuffer[0]);
-			glGenRenderbuffers(1, &framebuffer[1]);
+			//glGenRenderbuffers(1, &framebuffer[1]);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, 0);
+
+			glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[0]);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texture, 0);
+		}else{
+			glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[0]);
 		}
-		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[0]);
 
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texture, 0);
-		glBindRenderbuffer(GL_RENDERBUFFER, framebuffer[1]);
+		//glBindRenderbuffer(GL_RENDERBUFFER, framebuffer[1]);
 
 		cam->Render();
-		glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, 0); 
+		//glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, 0); 
 
 		glGenerateMipmap(GL_TEXTURE_2D);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+		//glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 	}
 }

@@ -1270,7 +1270,9 @@ void Fluid::Render(){
 #endif
 
 	if(surf->ShaderMat!=NULL){
-		surf->ShaderMat->TurnOn(mat, surf);
+		surf->reset_vbo=1|2|4;
+		surf->UpdateVBO();
+		surf->ShaderMat->TurnOn(mat, surf, 0, &brush);
 	}else{
 
 #ifndef GLES2
@@ -1511,10 +1513,10 @@ void Fluid::Render(){
 			}
 
 		}
+#ifndef GLES2
 	}
 
 	// draw tris
-#ifndef GLES2
 	glMatrixMode(GL_MODELVIEW);
 
 
@@ -1523,34 +1525,35 @@ void Fluid::Render(){
 
 	glVertexPointer(3,GL_FLOAT,0,&surf->vert_coords[0]);
 #else
-	glUniform2iv(Global::shader->texflag, tex_count , tblendflags[0]);
-	glUniformMatrix3fv(Global::shader->texmat, tex_count, 0, tmatrix[0]);
-	glUniform1fv(Global::shader->tex_coords_set, tex_count , tcoords);
+		glUniform2iv(Global::shader->texflag, tex_count , tblendflags[0]);
+		glUniformMatrix3fv(Global::shader->texmat, tex_count, 0, tmatrix[0]);
+		glUniform1fv(Global::shader->tex_coords_set, tex_count , tcoords);
 
-	glBindBuffer(GL_ARRAY_BUFFER, surf->vbo_id[0]);
-	glBufferData(GL_ARRAY_BUFFER,(surf->no_verts*3*sizeof(float)),&surf->vert_coords[0],GL_STREAM_DRAW);
-	glVertexAttribPointer(Global::shader->vposition, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(Global::shader->vposition);
+		glBindBuffer(GL_ARRAY_BUFFER, surf->vbo_id[0]);
+		glBufferData(GL_ARRAY_BUFFER,(surf->no_verts*3*sizeof(float)),&surf->vert_coords[0],GL_STREAM_DRAW);
+		glVertexAttribPointer(Global::shader->vposition, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(Global::shader->vposition);
 
-	if (tex_count>0){
-		glVertexAttribPointer(Global::shader->tex_coords, 2, GL_FLOAT, GL_FALSE, 3*sizeof(float), 0);
-		glEnableVertexAttribArray(Global::shader->tex_coords);
+		if (tex_count>0){
+			glVertexAttribPointer(Global::shader->tex_coords, 2, GL_FLOAT, GL_FALSE, 3*sizeof(float), 0);
+			glEnableVertexAttribArray(Global::shader->tex_coords);
+		}
+
+		glBindBuffer(GL_ARRAY_BUFFER, surf->vbo_id[3]);
+		glBufferData(GL_ARRAY_BUFFER,(surf->no_verts*3*sizeof(float)),&surf->vert_norm[0],GL_STREAM_DRAW);
+		glVertexAttribPointer(Global::shader->vnormal, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(Global::shader->vnormal);
+
+		/*glBindBuffer(GL_ARRAY_BUFFER, surf->vbo_id[4]);
+		glBufferData(GL_ARRAY_BUFFER,(surf->no_verts*4*sizeof(float)),&surf->vert_col[0],GL_STREAM_DRAW);
+		glVertexAttribPointer(Global::shader->color, 4, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(Global::shader->color);*/
+
+		glUniformMatrix4fv(Global::shader->model, 1 , 0, &mat.grid[0][0] );
+	
+		glDisableVertexAttribArray(Global::shader->color);
+		glVertexAttrib4f(Global::shader->color, brush.red,brush.green,brush.blue,brush.alpha);
 	}
-
-	glBindBuffer(GL_ARRAY_BUFFER, surf->vbo_id[3]);
-	glBufferData(GL_ARRAY_BUFFER,(surf->no_verts*3*sizeof(float)),&surf->vert_norm[0],GL_STREAM_DRAW);
-	glVertexAttribPointer(Global::shader->vnormal, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(Global::shader->vnormal);
-
-	/*glBindBuffer(GL_ARRAY_BUFFER, surf->vbo_id[4]);
-	glBufferData(GL_ARRAY_BUFFER,(surf->no_verts*4*sizeof(float)),&surf->vert_col[0],GL_STREAM_DRAW);
-	glVertexAttribPointer(Global::shader->color, 4, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(Global::shader->color);*/
-
-	glUniformMatrix4fv(Global::shader->model, 1 , 0, &mat.grid[0][0] );
-
-	glDisableVertexAttribArray(Global::shader->color);
-	glVertexAttrib4f(Global::shader->color, brush.red,brush.green,brush.blue,brush.alpha);
 #endif
 	glDrawArrays(GL_TRIANGLES,0,surf->no_verts);
 

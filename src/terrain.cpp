@@ -363,263 +363,267 @@ void Terrain::UpdateTerrain(){
 
 	// textures
 
+	int DisableCubeSphereMapping=0;
 #ifndef GLES2
 	int tex_count=0;
 #endif
 	if(ShaderMat!=NULL){
-		ShaderMat->TurnOn(mat, 0, &vertices);
+		ShaderMat->TurnOn(mat, 0, &vertices, &brush);
 	}
+	else
+	{
 
 #ifndef GLES2
-	tex_count=brush.no_texs;
+		tex_count=brush.no_texs;
 #endif
 
-	int DisableCubeSphereMapping=0;
-	for(int ix=0;ix<tex_count;ix++){
+		for(int ix=0;ix<tex_count;ix++){
 
-		if(brush.tex[ix]){
+			if(brush.tex[ix]){
 
-			// Main brush texture takes precedent over surface brush texture
-			unsigned int texture=0;
-			int tex_flags=0,tex_blend=0;
-			float tex_u_scale=1.0,tex_v_scale=1.0,tex_u_pos=0.0,tex_v_pos=0.0,tex_ang=0.0;
-			int tex_cube_mode=0;
+				// Main brush texture takes precedent over surface brush texture
+				unsigned int texture=0;
+				int tex_flags=0,tex_blend=0;
+				float tex_u_scale=1.0,tex_v_scale=1.0,tex_u_pos=0.0,tex_v_pos=0.0,tex_ang=0.0;
+				int tex_cube_mode=0;
 
 
-			texture=brush.cache_frame[ix];
-			tex_flags=brush.tex[ix]->flags;
-			tex_blend=brush.tex[ix]->blend;
-			//tex_coords=brush.tex[ix]->coords;
-			tex_u_scale=brush.tex[ix]->u_scale;
-			tex_v_scale=brush.tex[ix]->v_scale;
-			tex_u_pos=brush.tex[ix]->u_pos;
-			tex_v_pos=brush.tex[ix]->v_pos;
-			tex_ang=brush.tex[ix]->angle;
-			tex_cube_mode=brush.tex[ix]->cube_mode;
-			//frame=brush.tex_frame;
+				texture=brush.cache_frame[ix];
+				tex_flags=brush.tex[ix]->flags;
+				tex_blend=brush.tex[ix]->blend;
+				//tex_coords=brush.tex[ix]->coords;
+				tex_u_scale=brush.tex[ix]->u_scale;
+				tex_v_scale=brush.tex[ix]->v_scale;
+				tex_u_pos=brush.tex[ix]->u_pos;
+				tex_v_pos=brush.tex[ix]->v_pos;
+				tex_ang=brush.tex[ix]->angle;
+				tex_cube_mode=brush.tex[ix]->cube_mode;
+				//frame=brush.tex_frame;
 
 #ifndef GLES2
-			glActiveTexture(GL_TEXTURE0+ix);
-			glClientActiveTexture(GL_TEXTURE0+ix);
-			glEnable(GL_TEXTURE_2D);
-#else
-			if(tex_flags&128){
-				glActiveTexture(GL_TEXTURE0+ix+8);
-			}else{
 				glActiveTexture(GL_TEXTURE0+ix);
-			}
-#endif
-
-			glBindTexture(GL_TEXTURE_2D,texture); // call before glTexParameteri
-
-#ifndef GLES2
-			// masked texture flag
-			if(tex_flags&4){
-				glEnable(GL_ALPHA_TEST);
-			}else{
-				glDisable(GL_ALPHA_TEST);
-			}
-#endif
-
-			// mipmapping texture flag
-			if(tex_flags&8){
-				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
-			}else{
-				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-			}
-
-			// clamp u flag
-			if(tex_flags&16){
-				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
-			}else{
-				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
-			}
-
-			// clamp v flag
-			if(tex_flags&32){
-				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
-			}else{
-				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
-			}
-
-#ifndef GLES2
-			// ***!ES***
-
-			// spherical environment map texture flag
-			if(tex_flags&64){
-				glTexGeni(GL_S,GL_TEXTURE_GEN_MODE,GL_SPHERE_MAP);
-				glTexGeni(GL_T,GL_TEXTURE_GEN_MODE,GL_SPHERE_MAP);
-				glEnable(GL_TEXTURE_GEN_S);
-				glEnable(GL_TEXTURE_GEN_T);
-				DisableCubeSphereMapping=1;
-			}/*else{
-				glDisable(GL_TEXTURE_GEN_S);
-				glDisable(GL_TEXTURE_GEN_T);
-			}*/
-
-				// cubic environment map texture flag
+				glClientActiveTexture(GL_TEXTURE0+ix);
+				glEnable(GL_TEXTURE_2D);
+#else
 				if(tex_flags&128){
+					glActiveTexture(GL_TEXTURE0+ix+8);
+				}else{
+					glActiveTexture(GL_TEXTURE0+ix);
+				}
+#endif
 
-					glEnable(GL_TEXTURE_CUBE_MAP);
-					glBindTexture(GL_TEXTURE_CUBE_MAP,texture); // call before glTexParameteri
+				glBindTexture(GL_TEXTURE_2D,texture); // call before glTexParameteri
 
-					glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
-					glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
-					glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_WRAP_R,GL_CLAMP_TO_EDGE);
-					glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-					glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+#ifndef GLES2
+				// masked texture flag
+				if(tex_flags&4){
+					glEnable(GL_ALPHA_TEST);
+				}else{
+					glDisable(GL_ALPHA_TEST);
+				}
+#endif
 
-					glEnable(GL_TEXTURE_GEN_S);
-					glEnable(GL_TEXTURE_GEN_T);
-					glEnable(GL_TEXTURE_GEN_R);
-					//glEnable(GL_TEXTURE_GEN_Q)
-
-					if(tex_cube_mode==1){
-						glTexGeni(GL_S,GL_TEXTURE_GEN_MODE,GL_REFLECTION_MAP);
-						glTexGeni(GL_T,GL_TEXTURE_GEN_MODE,GL_REFLECTION_MAP);
-						glTexGeni(GL_R,GL_TEXTURE_GEN_MODE,GL_REFLECTION_MAP);
-					}
-
-					if(tex_cube_mode==2){
-						glTexGeni(GL_S,GL_TEXTURE_GEN_MODE,GL_NORMAL_MAP);
-						glTexGeni(GL_T,GL_TEXTURE_GEN_MODE,GL_NORMAL_MAP);
-						glTexGeni(GL_R,GL_TEXTURE_GEN_MODE,GL_NORMAL_MAP);
-					}
-					DisableCubeSphereMapping=1;
-
-				}else  if (DisableCubeSphereMapping!=0){
-
-					glDisable(GL_TEXTURE_CUBE_MAP);
-
-					// only disable tex gen s and t if sphere mapping isn't using them
-					if((tex_flags & 64)==0){
-						glDisable(GL_TEXTURE_GEN_S);
-						glDisable(GL_TEXTURE_GEN_T);
-					}
-
-					glDisable(GL_TEXTURE_GEN_R);
-					//glDisable(GL_TEXTURE_GEN_Q)
-
+				// mipmapping texture flag
+				if(tex_flags&8){
+					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
+				}else{
+					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 				}
 
+				// clamp u flag
+				if(tex_flags&16){
+					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
+				}else{
+					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+				}
 
-			switch(tex_blend){
-				case 0: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);
-				break;
-				case 1: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_DECAL);
-				break;
-				case 2: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
-				//case 2 glTexEnvf(GL_TEXTURE_ENV,GL_COMBINE_RGB_EXT,GL_MODULATE);
-				break;
-				case 3: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_ADD);
-				break;
-				case 4:
-					glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
-					glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_DOT3_RGB_EXT);
-					break;
-				case 5:
-					glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_COMBINE);
-					glTexEnvi(GL_TEXTURE_ENV,GL_COMBINE_RGB,GL_MODULATE);
-					glTexEnvi(GL_TEXTURE_ENV,GL_RGB_SCALE,2.0);
-					break;
-				default: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
-			}
+				// clamp v flag
+				if(tex_flags&32){
+					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
+				}else{
+					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+				}
 
-			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-			glTexCoordPointer(2,GL_FLOAT,8*sizeof(float),&vertices[6]);
+#ifndef GLES2
+				// ***!ES***
 
+				// spherical environment map texture flag
+				if(tex_flags&64){
+					glTexGeni(GL_S,GL_TEXTURE_GEN_MODE,GL_SPHERE_MAP);
+					glTexGeni(GL_T,GL_TEXTURE_GEN_MODE,GL_SPHERE_MAP);
+					glEnable(GL_TEXTURE_GEN_S);
+					glEnable(GL_TEXTURE_GEN_T);
+					DisableCubeSphereMapping=1;
+				}/*else{
+					glDisable(GL_TEXTURE_GEN_S);
+					glDisable(GL_TEXTURE_GEN_T);
+				}*/
 
-			// reset texture matrix
-			glMatrixMode(GL_TEXTURE);
-			glLoadIdentity();
-
-			if(tex_u_pos!=0.0 || tex_v_pos!=0.0){
-				glTranslatef(tex_u_pos,tex_v_pos,0.0);
-			}
-			if(tex_ang!=0.0){
-				glRotatef(tex_ang,0.0,0.0,1.0);
-			}
-			if(tex_u_scale!=1.0 || tex_v_scale!=1.0){
-				glScalef(tex_u_scale,tex_v_scale,1.0);
-			}
-
-			// ***!ES***
-			// if spheremap flag=true then flip tex
-			if(tex_flags&64){
-				glScalef(1.0,-1.0,-1.0);
-			}
-
-			// if cubemap flag=true then manipulate texture matrix so that cubemap is displayed properly
-			if(tex_flags&128){
-
-				glScalef(1.0,-1.0,-1.0);
-
-				// get current modelview matrix (set in last camera update)
-				float mod_mat[16];
-				glGetFloatv(GL_MODELVIEW_MATRIX,&mod_mat[0]);
-
-				// get rotational inverse of current modelview matrix
-				Matrix new_mat;
-				new_mat.LoadIdentity();
-
-				new_mat.grid[0][0] = mod_mat[0];
-				new_mat.grid[1][0] = mod_mat[1];
-				new_mat.grid[2][0] = mod_mat[2];
-
-				new_mat.grid[0][1] = mod_mat[4];
-				new_mat.grid[1][1] = mod_mat[5];
-				new_mat.grid[2][1] = mod_mat[6];
-
-				new_mat.grid[0][2] = mod_mat[8];
-				new_mat.grid[1][2] = mod_mat[9];
-				new_mat.grid[2][2] = mod_mat[10];
-
-				glMultMatrixf(&new_mat.grid[0][0]);
-
-			}
-#else
-
-					tmatrix[ix][0]= 1.0; tmatrix[ix][1]= 0.0; tmatrix[ix][2]= 0.0;
-					tmatrix[ix][3]= 0.0; tmatrix[ix][4]= 1.0; tmatrix[ix][5]= 0.0;
-					tmatrix[ix][6]= 0.0; tmatrix[ix][7]= 0.0; tmatrix[ix][8]= 1.0;
-
-					if(tex_u_pos!=0.0 || tex_v_pos!=0.0){
-						tmatrix[ix][6]= tex_u_pos; tmatrix[ix][7]= tex_v_pos;
-					}
-					if(tex_ang!=0.0){
-						float cos_ang=cosdeg(tex_ang);
-						float sin_ang=sindeg(tex_ang);
-						tmatrix[ix][0]= cos_ang; tmatrix[ix][1]= sin_ang; 
-						tmatrix[ix][3]=-sin_ang; tmatrix[ix][4]= cos_ang; 
-
-					}
-					if(tex_u_scale!=1.0 || tex_v_scale!=1.0){
-						tmatrix[ix][0]*= tex_u_scale; tmatrix[ix][1]*= tex_v_scale; 
-						tmatrix[ix][3]*= tex_u_scale; tmatrix[ix][4]*= tex_v_scale; 
-					}
-
+					// cubic environment map texture flag
 					if(tex_flags&128){
-	
+
 						glEnable(GL_TEXTURE_CUBE_MAP);
 						glBindTexture(GL_TEXTURE_CUBE_MAP,texture); // call before glTexParameteri
-	
+
+						glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
+						glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
+						glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_WRAP_R,GL_CLAMP_TO_EDGE);
 						glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
 						glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+
+						glEnable(GL_TEXTURE_GEN_S);
+						glEnable(GL_TEXTURE_GEN_T);
+						glEnable(GL_TEXTURE_GEN_R);
+						//glEnable(GL_TEXTURE_GEN_Q)
+
+						if(tex_cube_mode==1){
+							glTexGeni(GL_S,GL_TEXTURE_GEN_MODE,GL_REFLECTION_MAP);
+							glTexGeni(GL_T,GL_TEXTURE_GEN_MODE,GL_REFLECTION_MAP);
+							glTexGeni(GL_R,GL_TEXTURE_GEN_MODE,GL_REFLECTION_MAP);
+						}
+
+						if(tex_cube_mode==2){
+							glTexGeni(GL_S,GL_TEXTURE_GEN_MODE,GL_NORMAL_MAP);
+							glTexGeni(GL_T,GL_TEXTURE_GEN_MODE,GL_NORMAL_MAP);
+							glTexGeni(GL_R,GL_TEXTURE_GEN_MODE,GL_NORMAL_MAP);
+						}
+						DisableCubeSphereMapping=1;
+
+					}else  if (DisableCubeSphereMapping!=0){
+
+						glDisable(GL_TEXTURE_CUBE_MAP);
+
+						// only disable tex gen s and t if sphere mapping isn't using them
+						if((tex_flags & 64)==0){
+							glDisable(GL_TEXTURE_GEN_S);
+							glDisable(GL_TEXTURE_GEN_T);
+						}
+
+						glDisable(GL_TEXTURE_GEN_R);
+						//glDisable(GL_TEXTURE_GEN_Q)
+
 					}
 
-					tblendflags[ix][0]=tex_blend;
-					tblendflags[ix][1]=tex_flags&(4|128);
-					tcoords[ix]=0;
+
+				switch(tex_blend){
+					case 0: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);
+					break;
+					case 1: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_DECAL);
+					break;
+					case 2: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
+					//case 2 glTexEnvf(GL_TEXTURE_ENV,GL_COMBINE_RGB_EXT,GL_MODULATE);
+					break;
+					case 3: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_ADD);
+					break;
+					case 4:
+						glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
+						glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_DOT3_RGB_EXT);
+						break;
+					case 5:
+						glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_COMBINE);
+						glTexEnvi(GL_TEXTURE_ENV,GL_COMBINE_RGB,GL_MODULATE);
+						glTexEnvi(GL_TEXTURE_ENV,GL_RGB_SCALE,2.0);
+						break;
+					default: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
+				}
+
+				glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+				glTexCoordPointer(2,GL_FLOAT,8*sizeof(float),&vertices[6]);
+
+
+				// reset texture matrix
+				glMatrixMode(GL_TEXTURE);
+				glLoadIdentity();
+
+				if(tex_u_pos!=0.0 || tex_v_pos!=0.0){
+					glTranslatef(tex_u_pos,tex_v_pos,0.0);
+				}
+				if(tex_ang!=0.0){
+					glRotatef(tex_ang,0.0,0.0,1.0);
+				}
+				if(tex_u_scale!=1.0 || tex_v_scale!=1.0){
+					glScalef(tex_u_scale,tex_v_scale,1.0);
+				}
+
+				// ***!ES***
+				// if spheremap flag=true then flip tex
+				if(tex_flags&64){
+					glScalef(1.0,-1.0,-1.0);
+				}
+
+				// if cubemap flag=true then manipulate texture matrix so that cubemap is displayed properly
+				if(tex_flags&128){
+
+					glScalef(1.0,-1.0,-1.0);
+
+					// get current modelview matrix (set in last camera update)
+					float mod_mat[16];
+					glGetFloatv(GL_MODELVIEW_MATRIX,&mod_mat[0]);
+
+					// get rotational inverse of current modelview matrix
+					Matrix new_mat;
+					new_mat.LoadIdentity();
+
+					new_mat.grid[0][0] = mod_mat[0];
+					new_mat.grid[1][0] = mod_mat[1];
+					new_mat.grid[2][0] = mod_mat[2];
+
+					new_mat.grid[0][1] = mod_mat[4];
+					new_mat.grid[1][1] = mod_mat[5];
+					new_mat.grid[2][1] = mod_mat[6];
+
+					new_mat.grid[0][2] = mod_mat[8];
+					new_mat.grid[1][2] = mod_mat[9];
+					new_mat.grid[2][2] = mod_mat[10];
+
+					glMultMatrixf(&new_mat.grid[0][0]);
+
+				}
+#else
+
+				tmatrix[ix][0]= 1.0; tmatrix[ix][1]= 0.0; tmatrix[ix][2]= 0.0;
+				tmatrix[ix][3]= 0.0; tmatrix[ix][4]= 1.0; tmatrix[ix][5]= 0.0;
+				tmatrix[ix][6]= 0.0; tmatrix[ix][7]= 0.0; tmatrix[ix][8]= 1.0;
+
+				if(tex_u_pos!=0.0 || tex_v_pos!=0.0){
+					tmatrix[ix][6]= tex_u_pos; tmatrix[ix][7]= tex_v_pos;
+				}
+				if(tex_ang!=0.0){
+					float cos_ang=cosdeg(tex_ang);
+					float sin_ang=sindeg(tex_ang);
+					tmatrix[ix][0]= cos_ang; tmatrix[ix][1]= sin_ang; 
+					tmatrix[ix][3]=-sin_ang; tmatrix[ix][4]= cos_ang; 
+
+				}
+				if(tex_u_scale!=1.0 || tex_v_scale!=1.0){
+					tmatrix[ix][0]*= tex_u_scale; tmatrix[ix][1]*= tex_v_scale; 
+					tmatrix[ix][3]*= tex_u_scale; tmatrix[ix][4]*= tex_v_scale; 
+				}
+
+				if(tex_flags&128){
+	
+					glEnable(GL_TEXTURE_CUBE_MAP);
+					glBindTexture(GL_TEXTURE_CUBE_MAP,texture); // call before glTexParameteri
+	
+					glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+					glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+				}
+
+				tblendflags[ix][0]=tex_blend;
+				tblendflags[ix][1]=tex_flags&(4|128);
+				tcoords[ix]=0;
 #endif
 
+
+			}
 
 		}
 
+#ifndef GLES2
 	}
 
-#ifndef GLES2
 	// draw tris
 	glMatrixMode(GL_MODELVIEW);
 
@@ -628,25 +632,25 @@ void Terrain::UpdateTerrain(){
 	glVertexPointer(3,GL_FLOAT,8*sizeof(float),&vertices[0]);
 	glNormalPointer(GL_FLOAT,8*sizeof(float),&vertices[3]);
 #else
-	glUniform2iv(Global::shader->texflag, tex_count , tblendflags[0]);
-	glUniformMatrix3fv(Global::shader->texmat, tex_count, 0, tmatrix[0]);
-	glUniform1fv(Global::shader->tex_coords_set, tex_count , tcoords);
+		glUniform2iv(Global::shader->texflag, tex_count , tblendflags[0]);
+		glUniformMatrix3fv(Global::shader->texmat, tex_count, 0, tmatrix[0]);
+		glUniform1fv(Global::shader->tex_coords_set, tex_count , tcoords);
 
-	glBindBuffer(GL_ARRAY_BUFFER,vbo_id);
-	glBufferData(GL_ARRAY_BUFFER,(triangleindex*3*8*sizeof(float)),&vertices[0],GL_STREAM_DRAW);
-	glVertexAttribPointer(Global::shader->vposition, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), (GLvoid*)0);
-	glEnableVertexAttribArray(Global::shader->vposition);
-	glVertexAttribPointer(Global::shader->vnormal, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), (GLvoid*)(3*sizeof(float)));
-	glEnableVertexAttribArray(Global::shader->vnormal);
-	glVertexAttribPointer(Global::shader->tex_coords, 2, GL_FLOAT, GL_FALSE, 8*sizeof(float), (GLvoid*)(6*sizeof(float)));
-	glEnableVertexAttribArray(Global::shader->tex_coords);
-	glDisableVertexAttribArray(Global::shader->tex_coords2);
+		glBindBuffer(GL_ARRAY_BUFFER,vbo_id);
+		glBufferData(GL_ARRAY_BUFFER,(triangleindex*3*8*sizeof(float)),&vertices[0],GL_STREAM_DRAW);
+		glVertexAttribPointer(Global::shader->vposition, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), (GLvoid*)0);
+		glEnableVertexAttribArray(Global::shader->vposition);
+		glVertexAttribPointer(Global::shader->vnormal, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), (GLvoid*)(3*sizeof(float)));
+		glEnableVertexAttribArray(Global::shader->vnormal);
+		glVertexAttribPointer(Global::shader->tex_coords, 2, GL_FLOAT, GL_FALSE, 8*sizeof(float), (GLvoid*)(6*sizeof(float)));
+		glEnableVertexAttribArray(Global::shader->tex_coords);
+		glDisableVertexAttribArray(Global::shader->tex_coords2);
 
-	glUniformMatrix4fv(Global::shader->model, 1 , 0, &mat.grid[0][0] );
+		glUniformMatrix4fv(Global::shader->model, 1 , 0, &mat.grid[0][0] );
 
-	glDisableVertexAttribArray(Global::shader->color);
-	glVertexAttrib4f(Global::shader->color, brush.red,brush.green,brush.blue,brush.alpha);
-
+		glDisableVertexAttribArray(Global::shader->color);
+		glVertexAttrib4f(Global::shader->color, brush.red,brush.green,brush.blue,brush.alpha);
+	}
 #endif
 
 	glDrawArrays(GL_TRIANGLES, 0, triangleindex*3);

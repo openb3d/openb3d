@@ -16,7 +16,7 @@ class Entity;
 
 class ShaderData{
 	public:
-	string name;
+	int name;
 	int type;
 	union{
 		//float valuef[3];
@@ -42,12 +42,12 @@ public:
 
 class Sampler{
 public:
-	string Name;
+	int Name;
 	Texture* texture;
 	int Slot;
 	int is3D;
 	
-	static Sampler* Create(string Name, int Slot, Texture* Tex);
+	static Sampler* Create(int Slot, Texture* Tex);
 
 };
 
@@ -73,7 +73,7 @@ class Shader {//: public MaterialPlugin{
 	// internal 
 public:
 	static Shader* CreateShaderMaterial(string Name = "");
-	void TurnOn(Matrix& mat, Surface* surf, vector<float>* vertices=0);
+	void TurnOn(Matrix& mat, Surface* surf, vector<float>* vertices=0, Brush* brush=0);
 	void TurnOff();
 	void AddShader(string _vert, string _frag);
 	void AddShaderFromString(string _vert, string _frag);
@@ -101,7 +101,9 @@ public:
 
 	void UseSurface(string name, Surface* surf, int vbo);
 	void UseMatrix(string name, int mode);
+	void UseEntity(string name, Entity* ent, int mode);
 
+	int GetProgram(){return arb_program->Program;}
 	/*void SetParameter1S(string name, float v1);
 	void SetParameter2S(string name, float v1, float v2);
 	void SetParameter3S(string name, float v1, float v2, float v3);

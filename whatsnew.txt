@@ -1,3 +1,13 @@
+V1.20
+Added:
+-Custom shaders now can also use the entity textures
+-Experimental post processor
+
+Fixed:
+-Bug in isosurfaces when using custom shaders
+-Bug in RotateEntity and PointEntity, that caused issue with the scale of an entity when it was in a nested structure
+-Bug in calculating light in geospheres
+
 V1.15
 Added Emscripten as a target (compile with: make web)
 

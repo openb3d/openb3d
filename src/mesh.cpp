@@ -2534,7 +2534,7 @@ void Mesh::Render(){
 #endif
 
 		if(surf.ShaderMat!=NULL){
-			surf.ShaderMat->TurnOn(mat, &surf);
+			surf.ShaderMat->TurnOn(mat, &surf,0, &brush);
 		}
 		else
 		{

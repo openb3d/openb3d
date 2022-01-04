@@ -20,6 +20,7 @@
 #include "particle.h"
 #include "physics.h"
 #include "actions.h"
+#include "postfx.h"
 
 extern "C" {
 
@@ -1890,6 +1891,10 @@ void UseMatrix(Shader* material, char* name, int mode){
 	material->UseMatrix(name, mode);
 }
 
+void UseEntity(Shader* material, char* name, Entity* ent, int mode){
+	material->UseEntity(name, ent, mode);
+}
+
 Material* LoadMaterial(char* filename,int flags, int frame_width,int frame_height,int first_frame,int frame_count){
 	return Material::LoadMaterial(filename, flags, frame_width, frame_height, first_frame, frame_count);
 }
@@ -1978,6 +1983,35 @@ void FreeAction(Action* act){
 
 void DepthBufferToTex( Texture* tex, Camera* cam=0 ){
 	tex->DepthBufferToTex(cam);
+}
+
+
+PostFX* CreatePostFX(Camera* cam, int passes=1){
+	return PostFX::CreatePostFX(cam, passes);
+}
+
+void AddRenderTarget(PostFX* fx, int pass_no, int numColBufs, bool depth, int format=8, float scale=1.0){
+	fx->AddRenderTarget(pass_no, numColBufs, depth, format, scale);
+}
+
+void PostFXShader(PostFX* fx, int pass_no, Shader* shader){
+	fx->PostFXShader(pass_no, shader);
+}
+
+void PostFXShaderPass(PostFX* fx, int pass_no, char* name, int v){
+	fx->PostFXShaderPass(pass_no, name, v);
+}
+
+void PostFXBuffer(PostFX* fx, int pass_no, int source_pass, int index, int slot){
+	fx->PostFXBuffer(pass_no, source_pass, index, slot);
+}
+
+void PostFXTexture(PostFX* fx, int pass_no, Texture* tex, int slot, int frame=0){
+	fx->PostFXTexture(pass_no, tex, slot, frame);
+}
+
+void PostFXEntity(PostFX* fx, int pass_no, Entity* ent){
+	fx->PostFXEntity(pass_no, ent);
 }
 
 /*void SetParameter1S(Shader* material, char* name, float v1){

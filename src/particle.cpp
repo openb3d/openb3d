@@ -92,7 +92,7 @@ void ParticleBatch::Render(){
 
 
 	if(surf->ShaderMat!=NULL){
-		surf->ShaderMat->TurnOn(mat, surf);
+		surf->ShaderMat->TurnOn(mat, surf, 0, &brush);
 	}else{
 #ifndef GLES2
 		glEnable( GL_POINT_SPRITE ); 

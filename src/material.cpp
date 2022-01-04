@@ -37,16 +37,27 @@ int Shader::ShaderIDCount;
 
 static int default_program=0;
 
+#ifndef GLES2
+static int No_samplers=0;
+#else
+static unsigned int vbo_id;
+#endif
+
 enum{
-USE_FLOAT_1,
-USE_FLOAT_2,
-USE_FLOAT_3,
-USE_FLOAT_4,
+USE_FLOAT_1_UNI,
+USE_FLOAT_2_UNI,
+USE_FLOAT_3_UNI,
+USE_FLOAT_4_UNI,
+USE_FLOAT_1_ATT,
+USE_FLOAT_2_ATT,
+USE_FLOAT_3_ATT,
+USE_FLOAT_4_ATT,
 USE_INTEGER_1,
 USE_INTEGER_2,
 USE_INTEGER_3,
 USE_INTEGER_4,
-USE_ENTITY_COORDS,
+USE_ENTITY_MATRIX,
+USE_ENTITY_INVERSE_MATRIX,
 USE_SURFACE,
 USE_MODEL_MATRIX,
 USE_VIEW_MATRIX,
@@ -401,9 +412,9 @@ End Function
 
 //ShaderMat
 
-Sampler* Sampler::Create(string Name, int Slot, Texture* Tex){
+Sampler* Sampler::Create(int Slot, Texture* Tex){
 	Sampler* S = new Sampler;
-	S->Name = Name;
+	//S->Name = Name;
 	S->Slot = Slot;
 	S->texture = Tex;
 	return S;
@@ -473,45 +484,76 @@ Shader* Shader::CreateShaderMaterial(string Name){
 }
 	*/
 // internal 
-void Shader::TurnOn(Matrix& mat, Surface* surf, vector<float>* vertices){
+void Shader::TurnOn(Matrix& mat, Surface* surf, vector<float>* vertices, Brush* brush){
 	ProgramAttriBegin();
 	// Update Data
 
+#ifdef GLES2
+	if (surf==0){
+		vector<float>&vert=*vertices;
+		if (vbo_id==0) {
+			glGenBuffers(1,&vbo_id);
+		}
+		glBindBuffer(GL_ARRAY_BUFFER,vbo_id);
+		glBufferData(GL_ARRAY_BUFFER,(vert.size()*sizeof(float)),&vert[0],GL_STREAM_DRAW);
+	}
+#endif
+
 	for (unsigned int i=0;i<Parameters.size();i++){
 		switch(Parameters[i].type){
-		case USE_FLOAT_1:
-			if (arb_program !=0){arb_program->SetParameter1F(Parameters[i].name,*(Parameters[i].fp[0]));}
+		case USE_FLOAT_1_UNI:
+			if (arb_program !=0){glUniform1f(Parameters[i].name,*(Parameters[i].fp[0]));}
 			break;
-		case USE_FLOAT_2:
-			if (arb_program !=0){arb_program->SetParameter2F(Parameters[i].name,*(Parameters[i].fp[0]),*(Parameters[i].fp[1]));}
+		case USE_FLOAT_2_UNI:
+			if (arb_program !=0){glUniform2f(Parameters[i].name,*(Parameters[i].fp[0]),*(Parameters[i].fp[1]));}
 			break;
-		case USE_FLOAT_3:
-			if (arb_program !=0){arb_program->SetParameter3F(Parameters[i].name,*(Parameters[i].fp[0]),*(Parameters[i].fp[1]),
+		case USE_FLOAT_3_UNI:
+			if (arb_program !=0){glUniform3f(Parameters[i].name,*(Parameters[i].fp[0]),*(Parameters[i].fp[1]),
 			*(Parameters[i].fp[2]));}
 			break;
-		case USE_FLOAT_4:
-			if (arb_program !=0){arb_program->SetParameter4F(Parameters[i].name,*(Parameters[i].fp[0]),*(Parameters[i].fp[1]),
+		case USE_FLOAT_4_UNI:
+			if (arb_program !=0){glUniform4f(Parameters[i].name,*(Parameters[i].fp[0]),*(Parameters[i].fp[1]),
+			*(Parameters[i].fp[2]),*(Parameters[i].fp[3]));}
+			break;
+		case USE_FLOAT_1_ATT:
+			if (arb_program !=0){glVertexAttrib1f(Parameters[i].name,*(Parameters[i].fp[0]));}
+			break;
+		case USE_FLOAT_2_ATT:
+			if (arb_program !=0){glVertexAttrib2f(Parameters[i].name,*(Parameters[i].fp[0]),*(Parameters[i].fp[1]));}
+			break;
+		case USE_FLOAT_3_ATT:
+			if (arb_program !=0){glVertexAttrib3f(Parameters[i].name,*(Parameters[i].fp[0]),*(Parameters[i].fp[1]),
+			*(Parameters[i].fp[2]));}
+			break;
+		case USE_FLOAT_4_ATT:
+			if (arb_program !=0){glVertexAttrib4f(Parameters[i].name,*(Parameters[i].fp[0]),*(Parameters[i].fp[1]),
 			*(Parameters[i].fp[2]),*(Parameters[i].fp[3]));}
 			break;
 		case USE_INTEGER_1:
-			if (arb_program !=0){arb_program->SetParameter1I(Parameters[i].name,*(Parameters[i].ip[0]));}
+			if (arb_program !=0){glUniform1i(Parameters[i].name,*(Parameters[i].ip[0]));}
 			break;
 		case USE_INTEGER_2:
-			if (arb_program !=0){arb_program->SetParameter2I(Parameters[i].name,*(Parameters[i].ip[0]),*(Parameters[i].ip[1]));}
+			if (arb_program !=0){glUniform2i(Parameters[i].name,*(Parameters[i].ip[0]),*(Parameters[i].ip[1]));}
 			break;
 		case USE_INTEGER_3:
-			if (arb_program !=0){arb_program->SetParameter3I(Parameters[i].name,*(Parameters[i].ip[0]),*(Parameters[i].ip[1]),
+			if (arb_program !=0){glUniform3i(Parameters[i].name,*(Parameters[i].ip[0]),*(Parameters[i].ip[1]),
 			*(Parameters[i].ip[2]));}
 			break;
 		case USE_INTEGER_4:
-			if (arb_program !=0){arb_program->SetParameter4I(Parameters[i].name,*(Parameters[i].ip[0]),*(Parameters[i].ip[1]),
+			if (arb_program !=0){glUniform4i(Parameters[i].name,*(Parameters[i].ip[0]),*(Parameters[i].ip[1]),
 			*(Parameters[i].ip[2]),*(Parameters[i].ip[3]));}
 			break;
-		case USE_ENTITY_COORDS:
-			if (arb_program !=0){arb_program->SetParameter3F(Parameters[i].name, 
-			Parameters[i].ent->EntityX(), 
-			Parameters[i].ent->EntityY(),
-			Parameters[i].ent->EntityZ());}
+		case USE_ENTITY_MATRIX:
+			if (arb_program !=0){
+				glUniformMatrix4fv(Parameters[i].name, 1 , 0, &Parameters[i].ent->mat.grid[0][0]);
+			}
+			break;
+		case USE_ENTITY_INVERSE_MATRIX:
+			if (arb_program !=0){
+				Matrix new_mat;
+				Parameters[i].ent->mat.GetInverse(new_mat);
+				glUniformMatrix4fv(Parameters[i].name, 1 , 0, &new_mat.grid[0][0]);
+			}
 			break;
 		case USE_SURFACE:
 			if (arb_program !=0){
@@ -528,20 +570,20 @@ void Shader::TurnOn(Matrix& mat, Surface* surf, vector<float>* vertices){
 			break;
 		case USE_MODEL_MATRIX:
 			if (arb_program !=0){
-				arb_program->SetMatrix4F(Parameters[i].name, &mat.grid[0][0]);
+				glUniformMatrix4fv(Parameters[i].name, 1 , 0, &mat.grid[0][0]);
 			}
 			break;
 		case USE_VIEW_MATRIX:
 			if (arb_program !=0){
-				Matrix new_mat;
-				Global::camera_in_use->mat.GetInverse(new_mat);
-				arb_program->SetMatrix4F(Parameters[i].name, &new_mat.grid[0][0]);
+				//Matrix new_mat;
+				//Global::camera_in_use->mat.GetInverse(new_mat);
+				glUniformMatrix4fv(Parameters[i].name, 1 , 0, &Global::camera_in_use->mod_mat[0]);
 			}
 			break;
 
 		case USE_PROJ_MATRIX:
 			if (arb_program !=0){
-				arb_program->SetMatrix4F(Parameters[i].name, &Global::camera_in_use->proj_mat[0]);
+				glUniformMatrix4fv(Parameters[i].name, 1 , 0, &Global::camera_in_use->proj_mat[0]);
 			}
 			break;
 		case USE_MODELVIEW_MATRIX:
@@ -549,7 +591,7 @@ void Shader::TurnOn(Matrix& mat, Surface* surf, vector<float>* vertices){
 				Matrix new_mat;
 				Global::camera_in_use->mat.GetInverse(new_mat);
 				new_mat.Multiply(mat);
-				arb_program->SetMatrix4F(Parameters[i].name, &new_mat.grid[0][0]);
+				glUniformMatrix4fv(Parameters[i].name, 1 , 0, &new_mat.grid[0][0]);
 			}
 			break;
 
@@ -561,20 +603,27 @@ void Shader::TurnOn(Matrix& mat, Surface* surf, vector<float>* vertices){
 	if (UpdateSampler != 0){
 		for (int i=0; i<=254; i++){
 			if (Shader_Tex[i] == 0) break;
-			if (arb_program !=0){arb_program->SetParameter1I(Shader_Tex[i]->Name,Shader_Tex[i]->Slot);}
+			if (arb_program !=0){glUniform1i(Shader_Tex[i]->Name,Shader_Tex[i]->Slot);}
 		}
 		UpdateSampler = 0;
 	}
 	
+	int tex_count=0;
+	tex_count=brush->no_texs;
+
 	if (surf!=0) {
-		int DisableCubeSphereMapping=0;
-		for (int ix=0;ix<=254;ix++){
-			if (Shader_Tex[ix] == 0) break;
-			// Main brush texture takes precedent over surface brush texture
-			unsigned int texture=0;
-			int tex_flags=0,tex_blend=0,tex_coords=0;
-			float tex_u_scale=1.0,tex_v_scale=1.0,tex_u_pos=0.0,tex_v_pos=0.0,tex_ang=0.0;
-			int tex_cube_mode=0;//,frame=0;
+		if(surf->brush->no_texs>tex_count) tex_count=surf->brush->no_texs;
+	}
+
+	int DisableCubeSphereMapping=0;
+	for (int ix=0;ix<=254;ix++){
+		if (Shader_Tex[ix] == 0 && ix>=tex_count) break;
+		// Main brush texture takes precedent over surface brush texture
+		unsigned int texture=0;
+		int tex_flags=0,tex_blend=0,tex_coords=0;
+		float tex_u_scale=1.0,tex_v_scale=1.0,tex_u_pos=0.0,tex_v_pos=0.0,tex_ang=0.0;
+		int tex_cube_mode=0, is3D=0, slot=ix;//,frame=0;
+		if (Shader_Tex[ix] != 0){
 			texture=Shader_Tex[ix]->texture->texture;
 			tex_flags=Shader_Tex[ix]->texture->flags;
 			tex_blend=Shader_Tex[ix]->texture->blend;
@@ -585,137 +634,167 @@ void Shader::TurnOn(Matrix& mat, Surface* surf, vector<float>* vertices){
 			tex_v_pos=Shader_Tex[ix]->texture->v_pos;
 			tex_ang=Shader_Tex[ix]->texture->angle;
 			tex_cube_mode=Shader_Tex[ix]->texture->cube_mode;
+			is3D=Shader_Tex[ix]->is3D;
+			slot=Shader_Tex[ix]->Slot;
+		}else if(brush->tex[ix]){
+			texture=brush->cache_frame[ix];//brush.tex[ix]->texture;
+			tex_flags=brush->tex[ix]->flags;
+			tex_blend=brush->tex[ix]->blend;
+			tex_coords=brush->tex[ix]->coords;
+			tex_u_scale=brush->tex[ix]->u_scale;
+			tex_v_scale=brush->tex[ix]->v_scale;
+			tex_u_pos=brush->tex[ix]->u_pos;
+			tex_v_pos=brush->tex[ix]->v_pos;
+			tex_ang=brush->tex[ix]->angle;
+			tex_cube_mode=brush->tex[ix]->cube_mode;
+		}else{
+			texture=surf->brush->cache_frame[ix];//surf.brush->tex[ix]->texture;
+			tex_flags=surf->brush->tex[ix]->flags;
+			tex_blend=surf->brush->tex[ix]->blend;
+			tex_coords=surf->brush->tex[ix]->coords;
+			tex_u_scale=surf->brush->tex[ix]->u_scale;
+			tex_v_scale=surf->brush->tex[ix]->v_scale;
+			tex_u_pos=surf->brush->tex[ix]->u_pos;
+			tex_v_pos=surf->brush->tex[ix]->v_pos;
+			tex_ang=surf->brush->tex[ix]->angle;
+			tex_cube_mode=surf->brush->tex[ix]->cube_mode;
+			//frame=surf.brush.tex_frame;
+		}
+		
+		
+
 											
-			glActiveTexture(GL_TEXTURE0+ix);
+		glActiveTexture(GL_TEXTURE0+slot);
 #ifndef GLES2
-			glClientActiveTexture(GL_TEXTURE0+ix);
+		glClientActiveTexture(GL_TEXTURE0+slot);
 
-			if (Shader_Tex[ix]->is3D==0){
-				glEnable(GL_TEXTURE_2D);
-				glBindTexture(GL_TEXTURE_2D,texture); // call before glTexParameteri
-				// mipmapping texture flag
-				if(tex_flags&8){
-					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
-				}else{
-					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-					glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-				}
+		if (is3D==0){
+			glEnable(GL_TEXTURE_2D);
+			glBindTexture(GL_TEXTURE_2D,texture); // call before glTexParameteri
+			// mipmapping texture flag
+			if(tex_flags&8){
+				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
 			}else{
-				glEnable(GL_TEXTURE_3D);
-				glBindTexture(GL_TEXTURE_3D,texture); // call before glTexParameteri
-				// mipmapping texture flag
-				if(tex_flags&8){
-					glTexParameteri(GL_TEXTURE_3D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-					glTexParameteri(GL_TEXTURE_3D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
-				}else{
-					glTexParameteri(GL_TEXTURE_3D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-					glTexParameteri(GL_TEXTURE_3D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-				}
+				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 			}
+		}else{
+			glEnable(GL_TEXTURE_3D);
+			glBindTexture(GL_TEXTURE_3D,texture); // call before glTexParameteri
+			// mipmapping texture flag
+			if(tex_flags&8){
+				glTexParameteri(GL_TEXTURE_3D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_3D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
+			}else{
+				glTexParameteri(GL_TEXTURE_3D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_3D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+			}
+		}
 
-			// masked texture flag
-			if(tex_flags&4){
-				glEnable(GL_ALPHA_TEST);
-			}else{
-				glDisable(GL_ALPHA_TEST);
-			}
+		// masked texture flag
+		if(tex_flags&4){
+			glEnable(GL_ALPHA_TEST);
+		}else{
+			glDisable(GL_ALPHA_TEST);
+		}
 		
 		
-			// clamp u flag
-			if(tex_flags&16){
-				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
-			}else{						
-				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
-			}
+		// clamp u flag
+		if(tex_flags&16){
+			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
+		}else{						
+			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+		}
 			
-			// clamp v flag
-			if(tex_flags&32){
-				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
-			}else{
-				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
-			}
+		// clamp v flag
+		if(tex_flags&32){
+			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
+		}else{
+			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+		}
 	
-			// ***!ES***
-			// *
-			// spherical environment map texture flag
-			if(tex_flags&64){
-				glTexGeni(GL_S,GL_TEXTURE_GEN_MODE,GL_SPHERE_MAP);
-				glTexGeni(GL_T,GL_TEXTURE_GEN_MODE,GL_SPHERE_MAP);
-				glEnable(GL_TEXTURE_GEN_S);
-				glEnable(GL_TEXTURE_GEN_T);
-				DisableCubeSphereMapping=1;
-			}
+		// ***!ES***
+		// *
+		// spherical environment map texture flag
+		if(tex_flags&64){
+			glTexGeni(GL_S,GL_TEXTURE_GEN_MODE,GL_SPHERE_MAP);
+			glTexGeni(GL_T,GL_TEXTURE_GEN_MODE,GL_SPHERE_MAP);
+			glEnable(GL_TEXTURE_GEN_S);
+			glEnable(GL_TEXTURE_GEN_T);
+			DisableCubeSphereMapping=1;
+		}
 					
-			// cubic environment map texture flag
-			if(tex_flags&128){
+		// cubic environment map texture flag
+		if(tex_flags&128){
 
-				glEnable(GL_TEXTURE_CUBE_MAP);
-				glBindTexture(GL_TEXTURE_CUBE_MAP,texture); // call before glTexParameteri
+			glEnable(GL_TEXTURE_CUBE_MAP);
+			glBindTexture(GL_TEXTURE_CUBE_MAP,texture); // call before glTexParameteri
 				
-				glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
-				glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
-				glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_WRAP_R,GL_CLAMP_TO_EDGE);
-				glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-				glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_WRAP_R,GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
 				
-				glEnable(GL_TEXTURE_GEN_S);
-				glEnable(GL_TEXTURE_GEN_T);
-				glEnable(GL_TEXTURE_GEN_R);
-				//glEnable(GL_TEXTURE_GEN_Q)
-				if(tex_cube_mode==1){
-					glTexGeni(GL_S,GL_TEXTURE_GEN_MODE,GL_REFLECTION_MAP);
-					glTexGeni(GL_T,GL_TEXTURE_GEN_MODE,GL_REFLECTION_MAP);
-					glTexGeni(GL_R,GL_TEXTURE_GEN_MODE,GL_REFLECTION_MAP);
-				}
-				
-				if(tex_cube_mode==2){
-					glTexGeni(GL_S,GL_TEXTURE_GEN_MODE,GL_NORMAL_MAP);
-					glTexGeni(GL_T,GL_TEXTURE_GEN_MODE,GL_NORMAL_MAP);
-					glTexGeni(GL_R,GL_TEXTURE_GEN_MODE,GL_NORMAL_MAP);
-				}
-				DisableCubeSphereMapping=1;
+			glEnable(GL_TEXTURE_GEN_S);
+			glEnable(GL_TEXTURE_GEN_T);
+			glEnable(GL_TEXTURE_GEN_R);
+			//glEnable(GL_TEXTURE_GEN_Q)
+			if(tex_cube_mode==1){
+				glTexGeni(GL_S,GL_TEXTURE_GEN_MODE,GL_REFLECTION_MAP);
+				glTexGeni(GL_T,GL_TEXTURE_GEN_MODE,GL_REFLECTION_MAP);
+				glTexGeni(GL_R,GL_TEXTURE_GEN_MODE,GL_REFLECTION_MAP);
 			}
-			else if (DisableCubeSphereMapping!=0){
-
-				glDisable(GL_TEXTURE_CUBE_MAP);
 				
-				// only disable tex gen s and t if sphere mapping isn't using them
-				if((tex_flags&64)==0){
-					glDisable(GL_TEXTURE_GEN_S);
-					glDisable(GL_TEXTURE_GEN_T);
-				}
-				
-				glDisable(GL_TEXTURE_GEN_R);
-				//glDisable(GL_TEXTURE_GEN_Q)
-
+			if(tex_cube_mode==2){
+				glTexGeni(GL_S,GL_TEXTURE_GEN_MODE,GL_NORMAL_MAP);
+				glTexGeni(GL_T,GL_TEXTURE_GEN_MODE,GL_NORMAL_MAP);
+				glTexGeni(GL_R,GL_TEXTURE_GEN_MODE,GL_NORMAL_MAP);
 			}
+			DisableCubeSphereMapping=1;
+		}
+		else if (DisableCubeSphereMapping!=0){
+
+			glDisable(GL_TEXTURE_CUBE_MAP);
+				
+			// only disable tex gen s and t if sphere mapping isn't using them
+			if((tex_flags&64)==0){
+				glDisable(GL_TEXTURE_GEN_S);
+				glDisable(GL_TEXTURE_GEN_T);
+			}
+				
+			glDisable(GL_TEXTURE_GEN_R);
+			//glDisable(GL_TEXTURE_GEN_Q)
+
+		}
 			
-			switch(tex_blend){
-				case 0: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);
+		switch(tex_blend){
+			case 0: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);
+			break;
+			case 1: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_DECAL);
+			break;
+			case 2: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
+			//case 2 glTexEnvf(GL_TEXTURE_ENV,GL_COMBINE_RGB_EXT,GL_MODULATE);
+			break;
+			case 3: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_ADD);
+			break;
+			case 4:
+				glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT); 
+				glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_DOT3_RGB_EXT); 
 				break;
-				case 1: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_DECAL);
+			case 5:
+				glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_COMBINE);
+				glTexEnvi(GL_TEXTURE_ENV,GL_COMBINE_RGB,GL_MODULATE);
+				glTexEnvi(GL_TEXTURE_ENV,GL_RGB_SCALE,2.0);
 				break;
-				case 2: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
-				//case 2 glTexEnvf(GL_TEXTURE_ENV,GL_COMBINE_RGB_EXT,GL_MODULATE);
-				break;
-				case 3: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_ADD);
-				break;
-				case 4:
-					glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT); 
-					glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_DOT3_RGB_EXT); 
-					break;
-				case 5:
-					glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_COMBINE);
-					glTexEnvi(GL_TEXTURE_ENV,GL_COMBINE_RGB,GL_MODULATE);
-					glTexEnvi(GL_TEXTURE_ENV,GL_RGB_SCALE,2.0);
-					break;
-				default: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
-			}
+			default: glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
+		}
 
-			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-			if (Shader_Tex[ix]->is3D==0){
+		if (surf!=0) {
+			if (is3D==0){
 
 				if(surf->vbo_enabled==true && surf->no_tris>=Global::vbo_min_tris){
 			
@@ -752,79 +831,88 @@ void Shader::TurnOn(Matrix& mat, Surface* surf, vector<float>* vertices){
 
 				}
 			}
+		}else{
+			vector<float>&Vertices=*vertices;
+			glTexCoordPointer(2, GL_FLOAT, 8*sizeof(float), &Vertices[6]);
+		}
 
 							
-			// reset texture matrix
-			glMatrixMode(GL_TEXTURE);
-			glLoadIdentity();
+		// reset texture matrix
+		glMatrixMode(GL_TEXTURE);
+		glLoadIdentity();
 					
-			if(tex_u_pos!=0.0 || tex_v_pos!=0.0){
-				glTranslatef(tex_u_pos,tex_v_pos,0.0);
-			}
-			if(tex_ang!=0.0){
-				glRotatef(tex_ang,0.0,0.0,1.0);
-			}
-			if(tex_u_scale!=1.0 || tex_v_scale!=1.0){
-				glScalef(tex_u_scale,tex_v_scale,1.0);
-			}
+		if(tex_u_pos!=0.0 || tex_v_pos!=0.0){
+			glTranslatef(tex_u_pos,tex_v_pos,0.0);
+		}
+		if(tex_ang!=0.0){
+			glRotatef(tex_ang,0.0,0.0,1.0);
+		}
+		if(tex_u_scale!=1.0 || tex_v_scale!=1.0){
+			glScalef(tex_u_scale,tex_v_scale,1.0);
+		}
 
-			// ***!ES***
-			// if spheremap flag=true then flip tex
-			if(tex_flags&64){
-				glScalef(1.0,-1.0,-1.0);
-			}
+		// ***!ES***
+		// if spheremap flag=true then flip tex
+		if(tex_flags&64){
+			glScalef(1.0,-1.0,-1.0);
+		}
 			
-			// if cubemap flag=true then manipulate texture matrix so that cubemap is displayed properly 
-			if(tex_flags&128){
+		// if cubemap flag=true then manipulate texture matrix so that cubemap is displayed properly 
+		if(tex_flags&128){
 
-				glScalef(1.0,-1.0,-1.0);
+			glScalef(1.0,-1.0,-1.0);
 				
-				// get current modelview matrix (set in last camera update)
-				float mod_mat[16];
-				glGetFloatv(GL_MODELVIEW_MATRIX,&mod_mat[0]);
-				// get rotational inverse of current modelview matrix
-				Matrix new_mat;
-				new_mat.LoadIdentity();
+			// get current modelview matrix (set in last camera update)
+			float mod_mat[16];
+			glGetFloatv(GL_MODELVIEW_MATRIX,&mod_mat[0]);
+			// get rotational inverse of current modelview matrix
+			Matrix new_mat;
+			new_mat.LoadIdentity();
 					
-				new_mat.grid[0][0] = mod_mat[0];
-				new_mat.grid[1][0] = mod_mat[1];
-				new_mat.grid[2][0] = mod_mat[2];
+			new_mat.grid[0][0] = mod_mat[0];
+			new_mat.grid[1][0] = mod_mat[1];
+			new_mat.grid[2][0] = mod_mat[2];
 
-				new_mat.grid[0][1] = mod_mat[4];
-				new_mat.grid[1][1] = mod_mat[5];
-				new_mat.grid[2][1] = mod_mat[6];
+			new_mat.grid[0][1] = mod_mat[4];
+			new_mat.grid[1][1] = mod_mat[5];
+			new_mat.grid[2][1] = mod_mat[6];
 
-				new_mat.grid[0][2] = mod_mat[8];
-				new_mat.grid[1][2] = mod_mat[9];
-				new_mat.grid[2][2] = mod_mat[10];
-					
-				glMultMatrixf(&new_mat.grid[0][0]);
+			new_mat.grid[0][2] = mod_mat[8];
+			new_mat.grid[1][2] = mod_mat[9];
+			new_mat.grid[2][2] = mod_mat[10];
+				
+			glMultMatrixf(&new_mat.grid[0][0]);
+		}
 
-			}
+		No_samplers++;
 #else
-			glBindTexture(GL_TEXTURE_2D,texture); // call before glTexParameteri
+		glBindTexture(GL_TEXTURE_2D,texture); // call before glTexParameteri
 #endif
 
 						
-		}
 	}
+	
 
 }
 	
 void Shader::TurnOff(){
 	ProgramAttriEnd();
 #ifndef GLES2
-	for (int ix=0; ix<=254; ix++){
-		if (Shader_Tex[ix] == 0) break;
+	for (int ix=0; ix<=No_samplers; ix++){
+		int slot=ix, is3D=0;
+		if (Shader_Tex[ix] != 0) {
+			is3D=Shader_Tex[ix]->is3D;
+			slot=Shader_Tex[ix]->Slot;
+		}
 
-		glActiveTexture(GL_TEXTURE0+ix);
-		glClientActiveTexture(GL_TEXTURE0+ix);
+		glActiveTexture(GL_TEXTURE0+slot);
+		glClientActiveTexture(GL_TEXTURE0+slot);
 				
 		// reset texture matrix
 		glMatrixMode(GL_TEXTURE);
 		glLoadIdentity();
 				
-		if (Shader_Tex[ix]->is3D==0){
+		if (is3D==0){
 			glDisable(GL_TEXTURE_2D);
 		}else{
 			glDisable(GL_TEXTURE_3D);
@@ -836,13 +924,15 @@ void Shader::TurnOff(){
 		glDisable(GL_TEXTURE_GEN_R);
 			
 	}
+	No_samplers=0;
 #endif
 	for (unsigned int i=0;i<Parameters.size();i++){
 		switch(Parameters[i].type){
 		case USE_SURFACE:
 			if (arb_program !=0){	
-				int loc= glGetAttribLocation(arb_program->Program, Parameters[i].name.c_str());
-				glDisableVertexAttribArray(loc);
+				//int loc= glGetAttribLocation(arb_program->Program, Parameters[i].name.c_str());
+				//glDisableVertexAttribArray(loc);
+				glDisableVertexAttribArray(Parameters[i].name);
 			}
 		}
 	}
@@ -915,16 +1005,18 @@ void Shader::AddShaderFromString(string _vert, string _frag){
 	End Method */
 
 void Shader::AddSampler2D(string Name, int Slot, Texture* Tex){
-	Shader_Tex[Slot] = Sampler::Create(Name,Slot,Tex);
+	Shader_Tex[texCount] = Sampler::Create(Slot,Tex);
 	UpdateSampler = 1;
-	Shader_Tex[Slot]->is3D=0;
+	Shader_Tex[texCount]->Name=glGetUniformLocation(arb_program->Program, Name.c_str());;
+	Shader_Tex[texCount]->is3D=0;
 	texCount++;
 }
 	
 void Shader::AddSampler3D(string Name, int Slot, Texture* Tex){
-	Shader_Tex[Slot] = Sampler::Create(Name,Slot,Tex);
+	Shader_Tex[texCount] = Sampler::Create(Slot,Tex);
 	UpdateSampler = 1;
-	Shader_Tex[Slot]->is3D=1;
+	Shader_Tex[texCount]->Name=glGetUniformLocation(arb_program->Program, Name.c_str());;
+	Shader_Tex[texCount]->is3D=1;
 	texCount++;
 }
 
@@ -947,50 +1039,144 @@ void Shader::ProgramAttriEnd(){
 }	
 
 void Shader::SetFloat(string name, float v1){
-	ProgramAttriBegin();
-	if (arb_program !=0){arb_program->SetParameter1F(name, v1);}
-	ProgramAttriEnd();
+	if (arb_program !=0){
+		if (arb_program->TypeMap.find(name) == arb_program->TypeMap.end() ){
+			return;
+		}
+		int ParameterType=arb_program->TypeMap.find(name)->second;
+
+		ProgramAttriBegin();
+		if (ParameterType == 1){		//"Uniform" 
+			int loc= glGetUniformLocation(arb_program->Program, name.c_str());
+			glUniform1f(loc, v1);
+			
+		} else if (ParameterType == 2){		//"Attribute"
+	 
+			int loc= glGetAttribLocation(arb_program->Program, name.c_str());
+			glVertexAttrib1f(loc, v1);
+
+		}
+		ProgramAttriEnd();
+	}
 }
 
 void Shader::SetFloat2(string name, float v1, float v2){
-	ProgramAttriBegin();
-	if (arb_program !=0){arb_program->SetParameter2F(name, v1, v2);}
-	ProgramAttriEnd();
+	if (arb_program !=0){
+		if (arb_program->TypeMap.find(name) == arb_program->TypeMap.end() ){
+			return;
+		}
+		int ParameterType=arb_program->TypeMap.find(name)->second;
+
+		ProgramAttriBegin();
+		if (ParameterType == 1){		//"Uniform" 
+			int loc= glGetUniformLocation(arb_program->Program, name.c_str());
+			glUniform2f(loc, v1, v2);
+			
+		} else if (ParameterType == 2){		//"Attribute"
+	 
+			int loc= glGetAttribLocation(arb_program->Program, name.c_str());
+			glVertexAttrib2f(loc, v1, v2);
+
+		}
+		ProgramAttriEnd();
+	}
 }
 
 void Shader::SetFloat3(string name, float v1, float v2, float v3){
-	ProgramAttriBegin();
-	if (arb_program !=0){arb_program->SetParameter3F(name, v1, v2, v3);}
-	ProgramAttriEnd();
+	if (arb_program !=0){
+		if (arb_program->TypeMap.find(name) == arb_program->TypeMap.end() ){
+			return;
+		}
+		int ParameterType=arb_program->TypeMap.find(name)->second;
+
+		ProgramAttriBegin();
+		if (ParameterType == 1){		//"Uniform" 
+			int loc= glGetUniformLocation(arb_program->Program, name.c_str());
+			glUniform3f(loc, v1, v2, v3);
+			
+		} else if (ParameterType == 2){		//"Attribute"
+	 
+			int loc= glGetAttribLocation(arb_program->Program, name.c_str());
+			glVertexAttrib3f(loc, v1, v2, v3);
+
+		}
+		ProgramAttriEnd();
+	}
 }
 
 void Shader::SetFloat4(string name, float v1, float v2, float v3, float v4){
-	ProgramAttriBegin();
-	if (arb_program !=0){arb_program->SetParameter4F(name, v1, v2, v3, v4);}
-	ProgramAttriEnd();
+	if (arb_program !=0){
+		if (arb_program->TypeMap.find(name) == arb_program->TypeMap.end() ){
+			return;
+		}
+		int ParameterType=arb_program->TypeMap.find(name)->second;
+
+		ProgramAttriBegin();
+		if (ParameterType == 1){		//"Uniform" 
+			int loc= glGetUniformLocation(arb_program->Program, name.c_str());
+			glUniform4f(loc, v1, v2, v3, v4);
+			
+		} else if (ParameterType == 2){		//"Attribute"
+	 
+			int loc= glGetAttribLocation(arb_program->Program, name.c_str());
+			glVertexAttrib4f(loc, v1, v2, v3, v4);
+
+		}
+		ProgramAttriEnd();
+	}
 }
 
 void Shader::UseFloat(string name, float* v1){
+	if (arb_program->TypeMap.find(name) == arb_program->TypeMap.end() ){
+		return;
+	}
+	int ParameterType=arb_program->TypeMap.find(name)->second;
+
 	ShaderData data;
-	data.name=name;
-	data.type=USE_FLOAT_1;
+	if (ParameterType == 1){		//"Uniform" 
+		data.name=glGetUniformLocation(arb_program->Program, name.c_str());
+		data.type=USE_FLOAT_1_UNI;
+	} else if (ParameterType == 2){		//"Attribute"
+		data.name=glGetAttribLocation(arb_program->Program, name.c_str());
+		data.type=USE_FLOAT_1_ATT;
+	}
 	data.fp[0]=v1;
 	Parameters.push_back(data);
 }
 
 void Shader::UseFloat2(string name, float* v1, float* v2){
+	if (arb_program->TypeMap.find(name) == arb_program->TypeMap.end() ){
+		return;
+	}
+	int ParameterType=arb_program->TypeMap.find(name)->second;
+
 	ShaderData data;
-	data.name=name;
-	data.type=USE_FLOAT_2;
+	if (ParameterType == 1){		//"Uniform" 
+		data.name=glGetUniformLocation(arb_program->Program, name.c_str());
+		data.type=USE_FLOAT_2_UNI;
+	} else if (ParameterType == 2){		//"Attribute"
+		data.name=glGetAttribLocation(arb_program->Program, name.c_str());
+		data.type=USE_FLOAT_2_ATT;
+	}
 	data.fp[0]=v1;
 	data.fp[1]=v2;
 	Parameters.push_back(data);
 }
 
 void Shader::UseFloat3(string name, float* v1, float* v2, float* v3){
+	if (arb_program->TypeMap.find(name) == arb_program->TypeMap.end() ){
+		return;
+	}
+	int ParameterType=arb_program->TypeMap.find(name)->second;
+
 	ShaderData data;
-	data.name=name;
-	data.type=USE_FLOAT_3;
+	if (ParameterType == 1){		//"Uniform" 
+		data.name=glGetUniformLocation(arb_program->Program, name.c_str());
+		data.type=USE_FLOAT_3_UNI;
+	} else if (ParameterType == 2){		//"Attribute"
+		data.name=glGetAttribLocation(arb_program->Program, name.c_str());
+		data.type=USE_FLOAT_3_ATT;
+	}
 	data.fp[0]=v1;
 	data.fp[1]=v2;
 	data.fp[2]=v3;
@@ -998,9 +1184,19 @@ void Shader::UseFloat3(string name, float* v1, float* v2, float* v3){
 }
 
 void Shader::UseFloat4(string name, float* v1, float* v2, float* v3, float* v4){
+	if (arb_program->TypeMap.find(name) == arb_program->TypeMap.end() ){
+		return;
+	}
+	int ParameterType=arb_program->TypeMap.find(name)->second;
+
 	ShaderData data;
-	data.name=name;
-	data.type=USE_FLOAT_4;
+	if (ParameterType == 1){		//"Uniform" 
+		data.name=glGetUniformLocation(arb_program->Program, name.c_str());
+		data.type=USE_FLOAT_4_UNI;
+	} else if (ParameterType == 2){		//"Attribute"
+		data.name=glGetAttribLocation(arb_program->Program, name.c_str());
+		data.type=USE_FLOAT_4_ATT;
+	}
 	data.fp[0]=v1;
 	data.fp[1]=v2;
 	data.fp[2]=v3;
@@ -1009,32 +1205,44 @@ void Shader::UseFloat4(string name, float* v1, float* v2, float* v3, float* v4){
 }
 
 void Shader::SetInteger(string name, int v1){
-	ProgramAttriBegin();
-	if (arb_program !=0){arb_program->SetParameter1I(name, v1);}
-	ProgramAttriEnd();
+	if (arb_program !=0){
+		ProgramAttriBegin();
+		int loc= glGetUniformLocation(arb_program->Program, name.c_str());
+		glUniform1i(loc,v1);
+		ProgramAttriEnd();
+	}
 }
 
 void Shader::SetInteger2(string name, int v1, int v2){
-	ProgramAttriBegin();
-	if (arb_program !=0){arb_program->SetParameter2I(name, v1, v2);}
-	ProgramAttriEnd();
+	if (arb_program !=0){
+		ProgramAttriBegin();
+		int loc= glGetUniformLocation(arb_program->Program, name.c_str());
+		glUniform2i(loc,v1,v2);
+		ProgramAttriEnd();
+	}
 }
 
 void Shader::SetInteger3(string name, int v1, int v2, int v3){
-	ProgramAttriBegin();
-	if (arb_program !=0){arb_program->SetParameter3I(name, v1, v2, v3);}
-	ProgramAttriEnd();
+	if (arb_program !=0){
+		ProgramAttriBegin();
+		int loc= glGetUniformLocation(arb_program->Program, name.c_str());
+		glUniform3i(loc,v1,v2,v3);
+		ProgramAttriEnd();
+	}
 }
 
 void Shader::SetInteger4(string name, int v1, int v2, int v3, int v4){
-	ProgramAttriBegin();
-	if (arb_program !=0){arb_program->SetParameter4I(name, v1, v2, v3, v4);}
-	ProgramAttriEnd();
+	if (arb_program !=0){
+		ProgramAttriBegin();
+		int loc= glGetUniformLocation(arb_program->Program, name.c_str());
+		glUniform4i(loc,v1,v2,v3,v4);
+		ProgramAttriEnd();
+	}
 }
 
 void Shader::UseInteger(string name, int* v1){
 	ShaderData data;
-	data.name=name;
+	data.name=glGetUniformLocation(arb_program->Program, name.c_str());
 	data.type=USE_INTEGER_1;
 	data.ip[0]=v1;
 	Parameters.push_back(data);
@@ -1042,7 +1250,7 @@ void Shader::UseInteger(string name, int* v1){
 
 void Shader::UseInteger2(string name, int* v1, int* v2){
 	ShaderData data;
-	data.name=name;
+	data.name=glGetUniformLocation(arb_program->Program, name.c_str());
 	data.type=USE_INTEGER_2;
 	data.ip[0]=v1;
 	data.ip[1]=v2;
@@ -1051,7 +1259,7 @@ void Shader::UseInteger2(string name, int* v1, int* v2){
 
 void Shader::UseInteger3(string name, int* v1, int* v2, int* v3){
 	ShaderData data;
-	data.name=name;
+	data.name=glGetUniformLocation(arb_program->Program, name.c_str());
 	data.type=USE_INTEGER_3;
 	data.ip[0]=v1;
 	data.ip[1]=v2;
@@ -1061,7 +1269,7 @@ void Shader::UseInteger3(string name, int* v1, int* v2, int* v3){
 
 void Shader::UseInteger4(string name, int* v1, int* v2, int* v3, int* v4){
 	ShaderData data;
-	data.name=name;
+	data.name=glGetUniformLocation(arb_program->Program, name.c_str());
 	data.type=USE_INTEGER_4;
 	data.ip[0]=v1;
 	data.ip[1]=v2;
@@ -1074,7 +1282,7 @@ void Shader::UseInteger4(string name, int* v1, int* v2, int* v3, int* v4){
 
 void Shader::UseSurface(string name, Surface* surf, int vbo){
 	ShaderData data;
-	data.name=name;
+	data.name=glGetAttribLocation(arb_program->Program, name.c_str());
 	data.type=USE_SURFACE;
 	data.surf=surf;
 	data.vbo=vbo;
@@ -1083,7 +1291,7 @@ void Shader::UseSurface(string name, Surface* surf, int vbo){
 
 void Shader::UseMatrix(string name, int mode){
 	ShaderData data;
-	data.name=name;
+	data.name=glGetUniformLocation(arb_program->Program, name.c_str());
 	if (mode==0) {		//model matrix
 		data.type=USE_MODEL_MATRIX;
 	}else if(mode==1){	//view matrix
@@ -1095,124 +1303,19 @@ void Shader::UseMatrix(string name, int mode){
 	}
 	Parameters.push_back(data);
 }
-/*void Shader::SetParameter1S(string name, float v1){
-	if (arb_program !=0){arb_program->SetParameter1S(name, v1);}
-}
 
-void Shader::SetParameter2S(string name, float v1, float v2){
-	if (arb_program !=0){arb_program->SetParameter2S(name, v1, v2);}
-}
-
-void Shader::SetParameter3S(string name, float v1, float v2, float v3){
-	if (arb_program !=0){arb_program->SetParameter3S(name, v1, v2, v3);}
-}
-
-void Shader::SetParameter4S(string name, float v1, float v2, float v3, float v4){
-	if (arb_program !=0){arb_program->SetParameter4S(name, v1, v2, v3, v4);}
-}
-
-void Shader::SetParameter1I(string name, int v1){
-	if (arb_program !=0){arb_program->SetParameter1I(name, v1);}
-}
-
-void Shader::SetParameter2I(string name, int v1, int v2){
-	if (arb_program !=0){arb_program->SetParameter2I(name, v1, v2);}
-}
-
-void Shader::SetParameter3I(string name, int v1, int v2, int v3){
-	if (arb_program !=0){arb_program->SetParameter3I(name, v1, v2, v3);}
-}
-
-void Shader::SetParameter4I(string name, int v1, int v2, int v3, int v4){
-	if (arb_program !=0){arb_program->SetParameter4I(name, v1, v2, v3, v4);}
-}
- 
-void Shader::SetVector1I(string name, int* v1){
-	if (arb_program !=0){arb_program->SetVector1I(name, v1);}
-}
-
-void Shader::SetVector2I(string name, int* v1){
-	if (arb_program !=0){arb_program->SetVector2I(name, v1);}
-}
-
-void Shader::SetVector3I(string name, int* v1){
-	if (arb_program !=0){arb_program->SetVector3I(name, v1);}
-}
-
-void Shader::SetVector4I(string name, int* v1){
-	if (arb_program !=0){arb_program->SetVector4I(name, v1);}
-}
-
-void Shader::SetParameter1F(string name, float v1){
-	//if (arb_program !=0){arb_program->SetParameter1F(name, v1);}
+void Shader::UseEntity(string name, Entity* ent, int mode){
 	ShaderData data;
-	data.name=name;
-	data.type=0;
-	data.valuef[0]=v1;
+	data.name=glGetUniformLocation(arb_program->Program, name.c_str());
+	if (mode==0) {		//model matrix
+		data.type=USE_ENTITY_MATRIX;
+	}else if(mode==1){	//view matrix
+		data.type=USE_ENTITY_INVERSE_MATRIX;
+	}
+	data.ent=ent;
 	Parameters.push_back(data);
 }
 
-void Shader::SetParameter2F(string name, float v1, float v2){
-	if (arb_program !=0){arb_program->SetParameter2F(name, v1, v2);}
-}
-
-void Shader::SetParameter3F(string name, float v1, float v2, float v3){
-	if (arb_program !=0){arb_program->SetParameter3F(name, v1, v2, v3);}
-}
-
-void Shader::SetParameter4F(string name, float v1, float v2, float v3, float v4){
-	if (arb_program !=0){arb_program->SetParameter4F(name, v1, v2, v3, v4);}
-}
-
-void Shader::SetVector1F(string name, float* v1){
-	if (arb_program !=0){arb_program->SetVector1F(name, v1);}
-}
-
-void Shader::SetVector2F(string name, float* v1){
-	if (arb_program !=0){arb_program->SetVector2F(name, v1);}
-}
-
-void Shader::SetVector3F(string name, float* v1){
-	if (arb_program !=0){arb_program->SetVector3F(name, v1);}
-}
-
-void Shader::SetVector4F(string name, float* v1){
-	if (arb_program !=0){arb_program->SetVector4F(name, v1);}
-}
-
-void Shader::SetMatrix2F(string name, float* m){
-	//if (arb_program !=0){arb_program->SetMatrix2F(name, m);}
-	ShaderData data;
-	data.name=name;
-	data.type=11;
-	data.pf=m;
-	Parameters.push_back(data);
-
-}
-
-void Shader::SetMatrix3F(string name, float* m){
-	if (arb_program !=0){arb_program->SetMatrix3F(name, m);}
-}
-
-void Shader::SetMatrix4F(string name, float* m){
-	if (arb_program !=0){arb_program->SetMatrix4F(name, m);}
-}
-
-void Shader::SetParameter1D(string name, double v1){
-	if (arb_program !=0){arb_program->SetParameter1D(name, v1);}
-}
-
-void Shader::SetParameter2D(string name, double v1, double v2){
-	if (arb_program !=0){arb_program->SetParameter2D(name, v1, v2);}
-}
-
-void Shader::SetParameter3D(string name, double v1, double v2, double v3){
-	if (arb_program !=0){arb_program->SetParameter3D(name, v1, v2, v3);}
-}
-
-void Shader::SetParameter4D(string name, double v1, double v2, double v3, double v4){
-	if (arb_program !=0){arb_program->SetParameter4D(name, v1, v2, v3, v4);}
-}*/
 
 //ShaderObject
 
@@ -1302,7 +1405,7 @@ int ProgramObject::GetAttribLoc(string name){
 }
 
 #ifndef GLES2
-void ProgramObject::SetParameter1S(string name, float v1){
+/*void ProgramObject::SetParameter1S(string name, float v1){
 	int loc= glGetAttribLocation(Program, name.c_str());
 	glVertexAttrib1s(loc, v1);
 }
@@ -1320,13 +1423,13 @@ void ProgramObject::SetParameter3S(string name, float v1, float v2, float v3){
 void ProgramObject::SetParameter4S(string name, float v1, float v2, float v3, float v4){
 	int loc= glGetAttribLocation(Program, name.c_str());
 	glVertexAttrib4s(loc, v1,v2,v3,v4);
-}
+}*/
 #endif
 	
 //------------------------------------------------------------
 // Int Parameter
 	
-void ProgramObject::SetParameter1I(string name, int v1){
+/*void ProgramObject::SetParameter1I(string name, int v1){
 	int loc= glGetUniformLocation(Program, name.c_str());
 	glUniform1i(loc,v1);
 }
@@ -1344,12 +1447,12 @@ void ProgramObject::SetParameter3I(string name, int v1, int v2, int v3){
 void ProgramObject::SetParameter4I(string name, int v1, int v2, int v3, int v4){
 	int loc= glGetUniformLocation(Program, name.c_str());
 	glUniform4i(loc,v1,v2,v3,v4);
-}
+}*/
 	
 //----------------------------------------------------------------------------------
 // Int Vectors
 
-void ProgramObject::SetVector1I(string name, int* v1){
+/*void ProgramObject::SetVector1I(string name, int* v1){
 	int loc= glGetUniformLocation(Program, name.c_str());
 	glUniform1iv(loc,1,v1);
 }
@@ -1367,13 +1470,13 @@ void ProgramObject::SetVector3I(string name, int* v1){
 void ProgramObject::SetVector4I(string name, int* v1){
 	int loc= glGetUniformLocation(Program, name.c_str());
 	glUniform4iv(loc,1,v1);
-}
+}*/
 				
 #ifndef GLES2
 //-------------------------------------------------------------------------------------
 // Double Parameter ( automatically Attributes, because Uniform doubles does not exist)
 	
-void ProgramObject::SetParameter1D(string name, double v1){
+/*void ProgramObject::SetParameter1D(string name, double v1){
 	int loc= glGetAttribLocation(Program, name.c_str());
 	glVertexAttrib1d(loc, v1);
 }
@@ -1391,15 +1494,15 @@ void ProgramObject::SetParameter3D(string name, double v1, double v2, double v3)
 void ProgramObject::SetParameter4D(string name, double v1, double v2, double v3, double v4){
 	int loc= glGetAttribLocation(Program, name.c_str());
 	glVertexAttrib4d(loc, v1, v2, v3, v4);
-}
+}*/
 #endif
 
 
 //-------------------------------------------------------------------------------------
 // Array Parameter
 
-void ProgramObject::SetParameterArray(string name, Surface* surf, int vbo){
-	int loc= glGetAttribLocation(Program, name.c_str());
+void ProgramObject::SetParameterArray(int name, Surface* surf, int vbo){
+	int loc= name;
 
 	if(surf->vbo_enabled!=0){
 		surf->reset_vbo=vbo;
@@ -1463,37 +1566,52 @@ void ProgramObject::SetParameterArray(string name, Surface* surf, int vbo){
 	glEnableVertexAttribArray(loc);
 }
 
-void ProgramObject::SetParameterArray(string name, vector<float>* verticesPtr, int vbo){
+void ProgramObject::SetParameterArray(int name, vector<float>* verticesPtr, int vbo){
+#ifndef GLES2
 	vector<float>&vertices=*verticesPtr;
-	int loc= glGetAttribLocation(Program, name.c_str());
+	int loc= name;
 
 	//special case, terrain surface
 	glBindBuffer(GL_ARRAY_BUFFER,0);
 	switch (vbo){
 	case 1:
-		glVertexAttribPointer(loc, 3, GL_FLOAT, GL_FALSE, 32, &vertices[0]);
+		glVertexAttribPointer(loc, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), &vertices[0]);
 		break;
 	case 2:
 	case 3:
-		glVertexAttribPointer(loc, 2, GL_FLOAT, GL_FALSE, 32, &vertices[6]);
+		glVertexAttribPointer(loc, 2, GL_FLOAT, GL_FALSE, 8*sizeof(float), &vertices[6]);
 		break;
 	case 4:
-		glVertexAttribPointer(loc, 3, GL_FLOAT, GL_FALSE, 32, &vertices[3]);
+		glVertexAttribPointer(loc, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), &vertices[3]);
 		break;
 	}
 	glEnableVertexAttribArray(loc);
 	return;
+#else
+	int loc= name;
+
+	switch (vbo){
+	case 1:
+		glVertexAttribPointer(loc, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), (GLvoid*)(0));
+		break;
+	case 2:
+	case 3:
+		glVertexAttribPointer(loc, 2, GL_FLOAT, GL_FALSE, 8*sizeof(float), (GLvoid*)(6*sizeof(float)));
+		break;
+	case 4:
+		glVertexAttribPointer(loc, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), (GLvoid*)(3*sizeof(float)));
+		break;
+	}
+	glEnableVertexAttribArray(loc);
+	return;
+#endif
 }
 
 
 //-------------------------------------------------------------------------------------
 // Float Parameter
 
-void ProgramObject::SetParameter1F(string name, float v){
-	if (TypeMap.find(name) == TypeMap.end() ){
-		return;
-	}
-	int ParameterType=TypeMap.find(name)->second;
+/*void ProgramObject::SetParameter1F(int name, int ParameterType, float v){
 	
 	if (ParameterType == 1){		//"Uniform" 
 		int loc= glGetUniformLocation(Program, name.c_str());
@@ -1508,11 +1626,7 @@ void ProgramObject::SetParameter1F(string name, float v){
 		
 }
 
-void ProgramObject::SetParameter2F(string name, float v1, float v2){
-	if (TypeMap.find(name) == TypeMap.end() ){
-		return;
-	}
-	int ParameterType=TypeMap.find(name)->second;
+void ProgramObject::SetParameter2F(int name, int ParameterType, float v1, float v2){
 	
 	if (ParameterType == 1){		//"Uniform" 
 		int loc= glGetUniformLocation(Program, name.c_str());
@@ -1527,12 +1641,7 @@ void ProgramObject::SetParameter2F(string name, float v1, float v2){
 
 }
 
-void ProgramObject::SetParameter3F(string name, float v1, float v2, float v3){
-		
-	if (TypeMap.find(name) == TypeMap.end() ){
-		return;
-	}
-	int ParameterType=TypeMap.find(name)->second;
+void ProgramObject::SetParameter3F(int name, int ParameterType, float v1, float v2, float v3){
 		
 	if (ParameterType == 1){		//"Uniform" 
 		int loc= glGetUniformLocation(Program, name.c_str());
@@ -1546,11 +1655,7 @@ void ProgramObject::SetParameter3F(string name, float v1, float v2, float v3){
 	}
 }
 
-void ProgramObject::SetParameter4F(string name, float v1, float v2, float v3, float v4){
-	if (TypeMap.find(name) == TypeMap.end() ){
-		return;
-	}
-	int ParameterType=TypeMap.find(name)->second;
+void ProgramObject::SetParameter4F(int name, int ParameterType, float v1, float v2, float v3, float v4){
 		
 	if (ParameterType == 1){		//"Uniform" 
 		int loc= glGetUniformLocation(Program, name.c_str());
@@ -1562,13 +1667,13 @@ void ProgramObject::SetParameter4F(string name, float v1, float v2, float v3, fl
 		glVertexAttrib4f(loc, v1, v2, v3,v4);
 
 	}
-}
+}*/
 
 //---------------------------------------------------------------------------------------------------
 // Float Vectors
 
 
-void ProgramObject::SetVector1F(string name, float* v1){
+/*void ProgramObject::SetVector1F(string name, float* v1){
 	int loc= glGetUniformLocation(Program, name.c_str());
 	glUniform1fv(loc,1,v1);
 }
@@ -1586,13 +1691,13 @@ void ProgramObject::SetVector3F(string name, float* v1){
 void ProgramObject::SetVector4F(string name, float* v1){
 	int loc= glGetUniformLocation(Program, name.c_str());
 	glUniform4fv(loc,1,v1);
-}
+}*/
 
 
 //--------------------------------------------------------------------------------------------------
 // Matrices
 
-void ProgramObject::SetMatrix2F(string name, float* m){
+/*void ProgramObject::SetMatrix2F(string name, float* m){
 	int loc= glGetUniformLocation(Program, name.c_str());
 	glUniformMatrix2fv(loc, 1 , 0, m );
 } 
@@ -1605,7 +1710,7 @@ void ProgramObject::SetMatrix3F(string name, float* m){
 void ProgramObject::SetMatrix4F(string name, float* m){
 	int loc= glGetUniformLocation(Program, name.c_str());
 	glUniformMatrix4fv(loc, 1 , 0, m );
-}
+}*/
 
 
 //----------------------------------------------------------
