@@ -1001,7 +1001,7 @@ void DLL_EXPORT TurnEntity(Entity* ent,float x,float y,float z,int glob);
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=UpdateNormals">Online Help</a>
 */
-void DLL_EXPORT UpdateNormals(Mesh* mesh);
+void DLL_EXPORT UpdateNormals(Entity* ent);
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=UpdateNormals">Online Help</a>

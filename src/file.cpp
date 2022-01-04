@@ -124,9 +124,7 @@ File* File::ReadFile(string filename){
 		RuntimeError("Error: No Filename");
 	}*/
 
-	string filename2=filename;
-
-	FILE* pFile=fopen(filename2.c_str(),"rb");
+	FILE* pFile=fopen(filename.c_str(),"rb");
 
 	if(pFile==NULL){
 		cout << "Error: Can't Find Document File '"+filename+"'" << endl;
@@ -140,15 +138,13 @@ File* File::ReadFile(string filename){
 
 }
 
-File* File::WriteFile(string filename){
+/*File* File::WriteFile(string filename){
 
-/*	if(filename==""){
-		RuntimeError("Error: No Filename");
-	}*/
+//	if(filename==""){
+//		RuntimeError("Error: No Filename");
+//	}
 
-	string filename2=filename;
-
-	FILE* pFile=fopen(filename2.c_str(), "wb" );
+	FILE* pFile=fopen(filename.c_str(), "wb" );
 
 	if(pFile==NULL){
 		cout << "Error: Can't Write File '"+filename+"'" << endl;
@@ -160,7 +156,7 @@ File* File::WriteFile(string filename){
 
 	return file;
 
-}
+}*/
 
 void File::CloseFile(){
 
@@ -173,7 +169,8 @@ void File::CloseFile(){
 char File::ReadByte(){
 
 	char c;
-	fread(&c,1,1,pFile);
+	if (fread(&c,1,1,pFile)<1) 
+		return 0;
 
 	return c;
 
@@ -182,7 +179,8 @@ char File::ReadByte(){
 short File::ReadShort(){
 
 	short s;
-	fread(&s,1,2,pFile);
+	if (fread(&s,2,1,pFile)<1)
+		return 0;
 
 	return s;
 
@@ -191,7 +189,8 @@ short File::ReadShort(){
 int File::ReadInt(){
 
 	int i;
-	fread(&i,1,4,pFile);
+	if (fread(&i,4,1,pFile)<1)
+		return 0;
 
 	return i;
 
@@ -200,7 +199,8 @@ int File::ReadInt(){
 long File::ReadLong(){
 
 	long l;
-	fread(&l,1,8,pFile);
+	if (fread(&l,8,1,pFile)<1)
+		return 0;
 
 	return l;
 
@@ -209,7 +209,8 @@ long File::ReadLong(){
 float File::ReadFloat(){
 
 	float f;
-	fread(&f,1,4,pFile);
+	if (fread(&f,4,1,pFile)<1)
+		return 0;
 
 	return f;
 
@@ -220,7 +221,8 @@ string File::ReadString(){
 	int length=ReadInt();
 
 	char* c=new char[length+1];
-	fgets(c,length+1,pFile);
+	if (fgets(c,length+1,pFile)==NULL)
+		return std::string();
 
 	string s=c;
 
@@ -256,7 +258,7 @@ string File::ReadLine(){
 
 }
 
-void File::WriteByte(char c){
+/*void File::WriteByte(char c){
 
 	fwrite(&c,1,1,pFile);
 
@@ -325,7 +327,7 @@ void File::WriteLine(string s){
 
 	return;
 
-}
+}*/
 
 void File::SeekFile(int pos){
 
@@ -346,7 +348,8 @@ int File::Eof(){
 	int pos=ftell(pFile);
 
 	char c;
-	fread(&c,1,1,pFile);
+	if (fread(&c,1,1,pFile)<1) 
+		endof=1;
 
 	endof=feof(pFile);
 

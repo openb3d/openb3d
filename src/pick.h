@@ -30,7 +30,7 @@ public:
 
 	//EntityPickMode in TEntity
 
-	static const float EPSILON=0.0001;
+	constexpr static const float EPSILON=0.0001;
 	
 	static list<Entity*> ent_list; // list containing pickable entities
 

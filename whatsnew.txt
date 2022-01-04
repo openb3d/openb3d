@@ -1,3 +1,8 @@
+V1.251
+Fixed
+-several minor bugs that made difficult to compile with more modern compilers
+-Several fix for Web mode
+
 V1.25
 Added:
 -Geometry shaders

@@ -129,7 +129,7 @@ Geosphere* Geosphere::CopyEntity(Entity* parent_ent){
 	geo->size=size;
 	geo->vsize=vsize;
 	geo->hsize=hsize;
-	for (int i = 0; i<= ROAM_LMAX+1; i++){
+	for (int i = 0; i<= ROAM_LMAX; i++){
 		geo->level2dzsize[i] = level2dzsize[i];
 	}
 	int tsize=size;
@@ -323,10 +323,12 @@ void Geosphere::UpdateTerrain(){
 		glUniformMatrix4fv(Global::shader->view, 1 , 0, &Global::camera_in_use->mod_mat[0] );
 		glUniformMatrix4fv(Global::shader->proj, 1 , 0, &Global::camera_in_use->proj_mat[0] );
 
-		glUniformMatrix4fv(Global::shader->lightMat, Light::no_lights , 0, Light::light_matrices[0][0] );
-		glUniform1fv(Global::shader->lightType, Light::no_lights , Light::light_types);
-		glUniform1fv(Global::shader->lightOuterCone, Light::no_lights , Light::light_outercone);
-		glUniform3fv(Global::shader->lightColor, Light::no_lights , Light::light_color[0]);
+		if (Light::no_lights>0){
+			glUniformMatrix4fv(Global::shader->lightMat, Light::no_lights , 0, Light::light_matrices[0][0] );
+			glUniform1fv(Global::shader->lightType, Light::no_lights , Light::light_types);
+			glUniform1fv(Global::shader->lightOuterCone, Light::no_lights , Light::light_outercone);
+			glUniform3fv(Global::shader->lightColor, Light::no_lights , Light::light_color[0]);
+		}
 
 		glUniform3f(Global::shader->fogColor, Global::camera_in_use->fog_r, Global::camera_in_use->fog_g, Global::camera_in_use->fog_b);
 		glUniform2f(Global::shader->fogRange, Global::camera_in_use->fog_range_near, Global::camera_in_use->fog_range_far);

@@ -157,6 +157,13 @@ void Global::Graphics(){
 				glAttachShader(shader->ambient_program, ambient_vert[l][f]);
 				glAttachShader(shader->ambient_program, ambient_frag[t][f]);
 
+				glBindAttribLocation(shader->ambient_program, 0, "aVertexPosition");
+				shader->vposition=0; glBindAttribLocation(shader->ambient_program, 0, "aVertexPosition");
+				shader->vnormal=1; glBindAttribLocation(shader->ambient_program, 1, "aVertexNormal");
+				shader->tex_coords=2;glBindAttribLocation(shader->ambient_program, 2, "aTextureCoord");
+				shader->tex_coords2=3;glBindAttribLocation(shader->ambient_program, 3, "aTextureCoord2");
+				shader->color=4;glBindAttribLocation(shader->ambient_program, 4, "aVertexColor");
+
 				glLinkProgram(shader->ambient_program);
 				glValidateProgram(shader->ambient_program);
 
@@ -165,11 +172,6 @@ void Global::Graphics(){
 
 				glGetProgramiv(shader->ambient_program,GL_LINK_STATUS, &linked);
 
-				shader->vposition=glGetAttribLocation(shader->ambient_program, "aVertexPosition");
-				shader->vnormal=glGetAttribLocation(shader->ambient_program, "aVertexNormal");
-				shader->tex_coords=glGetAttribLocation(shader->ambient_program, "aTextureCoord");
-				shader->tex_coords2=glGetAttribLocation(shader->ambient_program, "aTextureCoord2");
-				shader->color=glGetAttribLocation(shader->ambient_program, "aVertexColor");
 
 				shader->shininess=glGetUniformLocation(shader->ambient_program, "uShine");
 				shader->model=glGetUniformLocation(shader->ambient_program, "uMMatrix");
@@ -247,6 +249,9 @@ void Global::Graphics(){
 	glAttachShader(shader_particle.ambient_program, v);
 	glAttachShader(shader_particle.ambient_program, f);
 
+	shader_particle.vposition=0; glBindAttribLocation(shader_particle.ambient_program, 0, "aVertexPosition");
+	shader_particle.color=1; glBindAttribLocation(shader_particle.ambient_program, 1, "aVertexColor");
+
 	glLinkProgram(shader_particle.ambient_program);
 	glValidateProgram(shader_particle.ambient_program);
 
@@ -258,8 +263,6 @@ void Global::Graphics(){
 	shader_particle.view=glGetUniformLocation(shader_particle.ambient_program, "uVMatrix");
 	shader_particle.proj=glGetUniformLocation(shader_particle.ambient_program, "uPMatrix");
 
-	shader_particle.vposition=glGetAttribLocation(shader_particle.ambient_program, "aVertexPosition");
-	shader_particle.color=glGetAttribLocation(shader_particle.ambient_program, "aVertexColor");
 
 	glUseProgram(shader_particle.ambient_program);
 	glUniform1i(glGetUniformLocation(shader_particle.ambient_program, "uSampler0"), 0);
@@ -283,6 +286,9 @@ void Global::Graphics(){
 	glAttachShader(shader_voxel.ambient_program, v);
 	glAttachShader(shader_voxel.ambient_program, f);
 
+	shader_voxel.vposition=0; glBindAttribLocation(shader_voxel.ambient_program, 0, "aVertexPosition");
+	shader_voxel.vnormal=1; glBindAttribLocation(shader_voxel.ambient_program, 1, "aVertexNormal");
+
 	glLinkProgram(shader_voxel.ambient_program);
 	glValidateProgram(shader_voxel.ambient_program);
 
@@ -294,9 +300,6 @@ void Global::Graphics(){
 	shader_voxel.model=glGetUniformLocation(shader_voxel.ambient_program, "uMMatrix");
 	shader_voxel.view=glGetUniformLocation(shader_voxel.ambient_program, "uVMatrix");
 	shader_voxel.proj=glGetUniformLocation(shader_voxel.ambient_program, "uPMatrix");
-
-	shader_voxel.vposition=glGetAttribLocation(shader_voxel.ambient_program, "aVertexPosition");
-	shader_voxel.vnormal=glGetAttribLocation(shader_voxel.ambient_program, "aVertexNormal");
 
 	glUseProgram(shader_voxel.ambient_program);
 	glUniform1i(glGetUniformLocation(shader_voxel.ambient_program, "uSampler0"), 0);
@@ -321,6 +324,8 @@ void Global::Graphics(){
 	glAttachShader(shader_stencil.ambient_program, v);
 	glAttachShader(shader_stencil.ambient_program, f);
 
+	shader_stencil.vposition=0;glBindAttribLocation(shader_stencil.ambient_program, 0, "aVertexPosition");
+
 	glLinkProgram(shader_stencil.ambient_program);
 	glValidateProgram(shader_stencil.ambient_program);
 
@@ -329,7 +334,6 @@ void Global::Graphics(){
 
 	glGetProgramiv(shader_stencil.ambient_program,GL_LINK_STATUS, &linked);
 
-	shader_stencil.vposition=glGetAttribLocation(shader_stencil.ambient_program, "aVertexPosition");
 	shader_stencil.color=glGetUniformLocation(shader_stencil.ambient_program, "uColor");
 
 

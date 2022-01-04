@@ -167,7 +167,7 @@ public:
 											
 	}
 	
-	//virtual ~Entity(){};		//Actually not needed, since no class derived from Entity has a destructor
+	virtual ~Entity(){};		//Actually not needed, since no class derived from Entity has a destructor
 
 	virtual Entity* CopyEntity(Entity* ent)=0;
 	virtual void FreeEntity(void);

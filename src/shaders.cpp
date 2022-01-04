@@ -218,9 +218,9 @@ const char *GLES2_Shader::frag_shader=
 "#endif\r\n"
 
 "#ifdef Fog\r\n"
-"    gl_FragColor =  vec4(mix(pixColor.rgb * vLighting, fogColor, fogBlend), pixColor.a);\r\n"
+"    gl_FragColor =  vec4(mix(pixColor.rgb * vLighting, fogColor, fogBlend) * pixColor.a, pixColor.a);\r\n"
 "#else\r\n"
-"    gl_FragColor =  vec4(pixColor.rgb * vLighting, pixColor.a);\r\n"
+"    gl_FragColor =  vec4(pixColor.rgb * vLighting * pixColor.a, pixColor.a);\r\n"
 "#endif\r\n"
 "  }\r\n";
 

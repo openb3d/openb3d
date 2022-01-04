@@ -133,7 +133,7 @@ Terrain* Terrain::CopyEntity(Entity* parent_ent){
 
 	terr->size=size;
 	terr->vsize=vsize;
-	for (int i = 0; i<= ROAM_LMAX+1; i++){
+	for (int i = 0; i<= ROAM_LMAX; i++){
 		terr->level2dzsize[i] = level2dzsize[i];
 	}
 	int tsize=size;
@@ -319,10 +319,12 @@ void Terrain::UpdateTerrain(){
 		glUniformMatrix4fv(Global::shader->view, 1 , 0, &Global::camera_in_use->mod_mat[0] );
 		glUniformMatrix4fv(Global::shader->proj, 1 , 0, &Global::camera_in_use->proj_mat[0] );
 
-		glUniformMatrix4fv(Global::shader->lightMat, Light::no_lights , 0, Light::light_matrices[0][0] );
-		glUniform1fv(Global::shader->lightType, Light::no_lights , Light::light_types);
-		glUniform1fv(Global::shader->lightOuterCone, Light::no_lights , Light::light_outercone);
-		glUniform3fv(Global::shader->lightColor, Light::no_lights , Light::light_color[0]);
+		if (Light::no_lights>0){
+			glUniformMatrix4fv(Global::shader->lightMat, Light::no_lights , 0, Light::light_matrices[0][0] );
+			glUniform1fv(Global::shader->lightType, Light::no_lights , Light::light_types);
+			glUniform1fv(Global::shader->lightOuterCone, Light::no_lights , Light::light_outercone);
+			glUniform3fv(Global::shader->lightColor, Light::no_lights , Light::light_color[0]);
+		}
 
 		glUniform3f(Global::shader->fogColor, Global::camera_in_use->fog_r, Global::camera_in_use->fog_g, Global::camera_in_use->fog_b);
 		glUniform2f(Global::shader->fogRange, Global::camera_in_use->fog_range_near, Global::camera_in_use->fog_range_far);
@@ -901,9 +903,9 @@ Terrain* Terrain::LoadTerrain(string filename,Entity* parent_ent){
 		unsigned char* buffer=pixels;
 		terr=Terrain::CreateTerrain(width, parent_ent);
 
-		terr->vsize=30;
+		/*terr->vsize=30;
 		terr->size=width;
-		terr->height=new float[(width+1)*(width+1)];
+		terr->height=new float[(width+1)*(width+1)];*/
 		for (int x=0;x<=terr->size-1;x++){
 			for (int y=0;y<=terr->size-1;y++){
 				terr->height[x*(int)terr->size+y]=((float)*buffer)/255.0;
@@ -916,9 +918,9 @@ Terrain* Terrain::LoadTerrain(string filename,Entity* parent_ent){
 		// create a dummy terrain only as a dirty fallback
 		width =128;
 		terr=Terrain::CreateTerrain(width, parent_ent);
-		terr->vsize=30;
+		/*terr->vsize=30;
 		terr->size=width;
-		terr->height=new float[(width+1)*(width+1)];
+		terr->height=new float[(width+1)*(width+1)];*/
 		for (int x=0;x<=terr->size-1;x++){
 			for (int y=0;y<=terr->size-1;y++){
 				terr->height[x*(int)terr->size+y]=0.0f;

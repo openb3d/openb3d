@@ -6,6 +6,9 @@
 
 using namespace std;
 
+#undef near
+#undef far
+
 class OcTreeChild{
 
 public:

@@ -1117,6 +1117,10 @@ void NameEntity(Entity* ent,char* name){
 	ent->NameEntity(name);
 }
 
+void NameTexture(Texture* tex,char* name){
+	tex->file=name;
+}
+
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=PaintEntity">Online Help</a>
 */
@@ -1587,9 +1591,24 @@ void TurnEntity(Entity* ent,float x,float y,float z,bool glob){
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=UpdateNormals">Online Help</a>
 */
-void UpdateNormals(Mesh* mesh){
+/*void UpdateNormals(Mesh* mesh){
 	mesh->UpdateNormals();
+}*/
+
+void UpdateNormals(Entity* ent){
+	Mesh* mesh=dynamic_cast<Mesh*>(ent);
+	Terrain* terr=dynamic_cast<Terrain*>(ent);
+	Geosphere* geo=dynamic_cast<Geosphere*>(ent);
+
+	if (geo)
+		geo->UpdateNormals();
+	else if (terr)
+		terr->UpdateNormals();
+	else if (mesh)
+		mesh->UpdateNormals();
+
 }
+
 
 /*
 bbdoc: <a href="http://www.blitzbasic.com/b3ddocs/command.php?name=UpdateNormals">Online Help</a>
@@ -1807,42 +1826,42 @@ float EntityScaleZ(Entity* ent,bool glob){
 
 Shader* LoadShader(char* ShaderName, char* VshaderFileName, char* FshaderFileName){
 	Shader* s=Shader::CreateShaderMaterial(ShaderName);
-	int Vert, Frag;
-	Vert = s->AddShader(VshaderFileName, GL_VERTEX_SHADER);
-	Frag = s->AddShader(FshaderFileName, GL_FRAGMENT_SHADER);
+	//int Vert, Frag;
+	s->AddShader(VshaderFileName, GL_VERTEX_SHADER);
+	s->AddShader(FshaderFileName, GL_FRAGMENT_SHADER);
 	s->Link();
 	return s;
 }
 
 Shader* CreateShader(char* ShaderName, char* VshaderString, char* FshaderString){
 	Shader* s=Shader::CreateShaderMaterial(ShaderName);
-	int Vert, Frag;
-	Vert = s->AddShaderFromString(VshaderString, GL_VERTEX_SHADER);
-	Frag = s->AddShaderFromString(FshaderString, GL_FRAGMENT_SHADER);
+	//int Vert, Frag;
+	s->AddShaderFromString(VshaderString, GL_VERTEX_SHADER);
+	s->AddShaderFromString(FshaderString, GL_FRAGMENT_SHADER);
 	s->Link();
 	return s;
 }
 
 Shader* LoadShaderVGF(char* ShaderName, char* VshaderFileName, char* GshaderFileName, char* FshaderFileName){
 	Shader* s=Shader::CreateShaderMaterial(ShaderName);
-	int Vert, Geom, Frag;
-	Vert = s->AddShader(VshaderFileName, GL_VERTEX_SHADER);
+	//int Vert, Geom, Frag;
+	s->AddShader(VshaderFileName, GL_VERTEX_SHADER);
 #ifndef GLES2
-	Geom = s->AddShader(GshaderFileName, GL_GEOMETRY_SHADER);
+	s->AddShader(GshaderFileName, GL_GEOMETRY_SHADER);
 #endif
-	Frag = s->AddShader(FshaderFileName, GL_FRAGMENT_SHADER);
+	s->AddShader(FshaderFileName, GL_FRAGMENT_SHADER);
 	s->Link();
 	return s;
 }
 
 Shader* CreateShaderVGF(char* ShaderName, char* VshaderString, char* GshaderString, char* FshaderString){
 	Shader* s=Shader::CreateShaderMaterial(ShaderName);
-	int Vert, Geom, Frag;
-	Vert = s->AddShaderFromString(VshaderString, GL_VERTEX_SHADER);
+	//int Vert, Geom, Frag;
+	s->AddShaderFromString(VshaderString, GL_VERTEX_SHADER);
 #ifndef GLES2
-	Geom = s->AddShaderFromString(GshaderString, GL_GEOMETRY_SHADER);
+	s->AddShaderFromString(GshaderString, GL_GEOMETRY_SHADER);
 #endif
-	Frag = s->AddShaderFromString(FshaderString, GL_FRAGMENT_SHADER);
+	s->AddShaderFromString(FshaderString, GL_FRAGMENT_SHADER);
 	s->Link();
 	return s;
 }

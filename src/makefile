@@ -1,5 +1,5 @@
 CCMPILER = g++
-CC=g++ -Wall -O3 
+CC=g++ -fPIC -Wall -O3 
 
 OBJECTS = model.o string_helper.o surface.o bank.o bone.o brush.o collision.o entity.o functions.o geom.o global.o light.o matrix.o pick.o pivot.o project.o sprite.o tilt.o touch.o texture_filter.o tree.o animation.o animation_keys.o collision2.o maths_helper.o quaternion.o sprite_batch.o camera.o file.o mesh.o texture.o terrain.o stb_image.o 3ds.o collidetri.o shadow.o material.o stencil.o csg.o voxel.o x.o octree.o geosphere.o md2.o isosurface.o particle.o physics.o actions.o postfx.o
 
@@ -10,6 +10,8 @@ else
 	$(CC) -shared -o openb3d.dll $(OBJECTS)  -lGLee -lopengl32 -lglu32 -lGDI32
 endif
 
+static:
+	ar rcs libOpenB3D.a $(OBJECTS)  
 
 3ds.o  : 3ds.cpp 3ds.h
 	$(CC) -c 3ds.cpp -o 3ds.o
@@ -132,7 +134,7 @@ sprite_batch.o : sprite_batch.cpp sprite_batch.h
 	$(CC) -c sprite_batch.cpp -o sprite_batch.o
 
 stb_image.o	: stb_image.c
-	gcc -c stb_image.c -o stb_image.o
+	gcc -fPIC -c stb_image.c -o stb_image.o
 
 stencil.o : stencil.cpp stencil.h
 	$(CC) -c stencil.cpp -o stencil.o
@@ -156,7 +158,7 @@ x.o : x.cpp x.h
 	$(CC) -c x.cpp -o x.o
 
 collidetri.o	: collidetri.c
-	gcc -c collidetri.c -o collidetri.o
+	gcc -fPIC -c collidetri.c -o collidetri.o
 
 web:
 	make -f makefile.web
